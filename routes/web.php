@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\SpecialtiesController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -14,14 +15,12 @@ Route::get('dashboard', function () {
     return Inertia::render('Dashboard');
 })->middleware(['auth', 'verified'])->name('dashboard');
 
-Route::prefix('employees')->group(function () {
-    Route::get('/', [UserController::class, 'index'])->name('employees.index');
-    Route::get('/table', [UserController::class, 'table'])->name('employees.table');
-    Route::get('/create', [UserController::class, 'create'])->name('employees.create');
-    Route::post('/', [UserController::class, 'store'])->name('employees.store');
-    Route::get('/{id}/edit', [UserController::class, 'edit'])->name('employees.edit');
-    Route::put('/{id}', [UserController::class, 'update'])->name('employees.update');
-    Route::delete('/{id}', [UserController::class, 'destroy'])->name('employees.destroy');
+Route::prefix('specialties')->group(function () {
+    Route::get('/', [SpecialtiesController::class, 'index'])->name('specialties.index');
+    Route::get('/create', [SpecialtiesController::class, 'create'])->name('specialties.create');
+    Route::post('/', [SpecialtiesController::class, 'store'])->name('specialties.store');
+    Route::put('/{specialty}', [SpecialtiesController::class, 'update'])->name('specialties.update');
+    Route::delete('/{specialty}', [SpecialtiesController::class, 'destroy'])->name('specialties.destroy');
 });
 
 require __DIR__ . '/settings.php';
