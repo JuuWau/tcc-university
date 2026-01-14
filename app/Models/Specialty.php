@@ -2,11 +2,17 @@
 
 namespace App\Models;
 
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Model;
 
-class Specialty extends Model
+class Specialty extends BaseModel
 {
-    protected $fillable = ['name'];
+    use SoftDeletes;
+
+    protected $fillable = [
+        'name',
+        'university_id',
+    ];
 
     public function periods()
     {

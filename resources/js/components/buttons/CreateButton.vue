@@ -1,16 +1,37 @@
-<!-- BaseButton.vue -->
+<script setup lang="ts">
+import * as Icons from 'lucide-vue-next';
+import { computed } from 'vue';
+
+const emit = defineEmits<{
+    (e: 'click'): void;
+}>();
+
+const props = defineProps<{
+    id?: string;
+    label?: string;
+    icon?: keyof typeof Icons;
+}>();
+
+const IconComponent = computed(() => {
+    return props.icon ? Icons[props.icon] : null;
+});
+</script>
+
 <template>
-    <div class="flex justify-start mb-4">
-        <button :id="id" type="button" class="text-white bg-blue-500 hover:bg-blue-700 font-medium rounded px-5 py-2 me-2 mb-2 focus:outline-none flex items-center" @click="$emit('click')">
-            <i v-if="icon" :class="icon + ' mr-2'"></i>{{ label }}
+    <div class="flex justify-start">
+        <button
+            :id="id"
+            type="button"
+            class="me-2 mb-2 flex items-center rounded bg-blue-400 px-5 py-2 font-medium text-white hover:bg-sky-700 focus:outline-none"
+            @click="emit('click')"
+        >
+            <component
+                v-if="IconComponent"
+                :is="IconComponent"
+                class="mr-2 h-4 w-4 font-bold"
+            />
+
+            {{ label ?? 'Criar' }}
         </button>
     </div>
 </template>
-
-<script setup lang="ts">
-const props = defineProps({
-    id: { type: String, default: null },
-    icon: { type: String, default: 'fas fa-plus' },
-    label: { type: String, default: 'Criar' }
-})
-</script>

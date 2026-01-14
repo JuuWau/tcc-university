@@ -5,8 +5,16 @@ import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
 import { initializeTheme } from './composables/useAppearance';
+import { ZiggyVue } from 'ziggy-js';
+import Vue3Toastify, { toast } from 'vue3-toastify'
+import 'vue3-toastify/dist/index.css'
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+
+import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community'; 
+
+// Register all Community features
+ModuleRegistry.registerModules([AllCommunityModule]);
 
 createInertiaApp({
     title: (title) => (title ? `${title} - ${appName}` : appName),
@@ -18,6 +26,19 @@ createInertiaApp({
     setup({ el, App, props, plugin }) {
         createApp({ render: () => h(App, props) })
             .use(plugin)
+            .use(ZiggyVue)
+            .use(Vue3Toastify, {
+                theme: 'colored',
+                autoClose: 3000,
+                position: toast.POSITION.TOP_RIGHT,
+                toastStyle: {
+                    color: '#fff',
+                },
+                iconTheme: {
+                    primary: '#fff',
+                    secondary: '#fff'
+                }
+            })
             .mount(el);
     },
     progress: {
