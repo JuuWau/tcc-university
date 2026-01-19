@@ -8,6 +8,8 @@ import { initializeTheme } from './composables/useAppearance';
 import { ZiggyVue } from 'ziggy-js';
 import Vue3Toastify, { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
+import Multiselect from '@vueform/multiselect'
+import '@vueform/multiselect/themes/default.css'
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -26,6 +28,7 @@ createInertiaApp({
     setup({ el, App, props, plugin }) {
         createApp({ render: () => h(App, props) })
             .use(plugin)
+            .component('Multiselect', Multiselect)
             .use(ZiggyVue)
             .use(Vue3Toastify, {
                 theme: 'colored',

@@ -20,6 +20,8 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnDelete();
             $table->unique(['period_id', 'specialty_id']);
+            $table->timestamps();
+            $table->softDeletes();
         });
     }
 

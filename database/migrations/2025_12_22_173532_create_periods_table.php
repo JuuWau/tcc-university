@@ -1,5 +1,6 @@
 <?php
 
+use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
@@ -16,11 +17,18 @@ return new class extends Migration
             $table->foreignId('university_id')
                 ->constrained()
                 ->cascadeOnDelete();
-            $table->string('name');
-            $table->integer('year');
+            $table->integer('academic_year');
+            $table->integer('semester');
+            $table->integer('calendar_year');
             $table->timestamps();
-            $table->unique(['university_id', 'name', 'year']);
+            $table->softDeletes();
         });
+
+        DB::statement("
+                CREATE UNIQUE INDEX periods_unique_active
+                ON periods (university_id, academic_year, semester, calendar_year)
+                WHERE deleted_at IS NULL
+            ");
     }
 
     /**
@@ -28,6 +36,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('periods');
+        Schema::dropIfExists('periods', function (Blueprint $table) {
+            $table->dropSoftDeletes();
+        });
     }
 };
