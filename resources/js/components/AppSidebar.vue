@@ -11,6 +11,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import periods from '@/routes/periods';
 import { index } from '@/routes/specialties';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
@@ -26,6 +27,11 @@ const mainNavItems: NavItem[] = [
     {
         title: 'Especialidades',
         href: index(),
+        icon: LayoutGrid,
+    },
+    {
+        title: 'Períodos',
+        href: periods.index(),
         icon: LayoutGrid,
     },
 ];

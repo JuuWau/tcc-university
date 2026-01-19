@@ -3,13 +3,17 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Period extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'university_id',
-        'name',
-        'year',
+        'calendar_year',
+        'academic_year',
+        'semester',
         'active',
     ];
 
@@ -23,8 +27,7 @@ class Period extends Model
         return $this->belongsToMany(
             Student::class,
             'student_periods'
-        )->withPivot(['started_at', 'ended_at', 'is_current'])
-            ->withTimestamps();
+        )->withPivot(['started_at', 'ended_at', 'is_current']);
     }
 
     public function specialties()
