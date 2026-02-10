@@ -15,8 +15,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->create();
-        University::factory()->create([
+        $university = University::factory()->create([
             'name' => 'Universidade Teste',
             'slug' => 'universidade-teste',
             'cnpj' => '12.345.678/0001-90',
@@ -25,16 +24,28 @@ class DatabaseSeeder extends Seeder
             'cellphone' => '(11) 91234-5678',
         ]);
 
-        Role::factory()->create([
-            'name' => 'Admin',
-            'name' => 'admin',
-        ]);
+        Role::firstOrCreate(
+            ['slug' => 'admin'],
+            ['name' => 'Admin']
+        );
+
+        Role::firstOrCreate(
+            ['slug' => 'student'],
+            ['name' => 'Student']
+        );
 
         User::factory()->create([
-            'university_id' => 1,
-            'role_id' => 1,
+            'university_id' => $university->id,
+            'role_id' => Role::where('slug', 'admin')->first()->id,
             'email' => 'juliawauters04@gmail.com',
             'password' => bcrypt('123'),
+            'two_factor_secret' => null,
+            'two_factor_recovery_codes' => null
+        ]);
+
+        $this->call([
+            StudentReasonSeeder::class,
+            StudentSeeder::class,
         ]);
     }
 }

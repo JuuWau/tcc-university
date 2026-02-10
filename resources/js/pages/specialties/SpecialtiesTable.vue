@@ -83,9 +83,16 @@ function goTo(url: string) {
 <template>
     <div class="p-6">
         <div
-            class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+            class="mb-6 flex flex-col gap-4 border-b border-gray-200 pb-4 sm:flex-row sm:items-center sm:justify-between"
         >
-            <h1 class="text-lg font-bold sm:text-xl">Especialidades</h1>
+            <div>
+                <h1 class="text-xl font-semibold tracking-tight text-gray-900">
+                    Especialidades
+                </h1>
+                <p class="text-sm text-gray-500">
+                    Gerencie as especialidades cadastradas no sistema
+                </p>
+            </div>
 
             <CreateButton
                 label="Nova Especialidade"
@@ -94,8 +101,13 @@ function goTo(url: string) {
                 @click="$emit('create')"
             />
         </div>
+
+        <!-- TABELA -->
         <div class="overflow-x-auto">
-            <div class="ag-theme-alpine" style="height: 500px; width: 100%">
+            <div
+                class="ag-theme-alpine relative rounded-xl border border-gray-200"
+                style="height: 520px; width: 100%"
+            >
                 <AgGridVue
                     class="ag-theme-alpine h-full"
                     :rowData="specialties"
@@ -105,22 +117,5 @@ function goTo(url: string) {
                 />
             </div>
         </div>
-
-        <!-- <div class="mt-4 flex justify-center space-x-2">
-            <button
-                v-if="specialties.prev_page_url"
-                @click="goTo(specialties.prev_page_url)"
-                class="rounded bg-gray-200 px-3 py-1 hover:bg-gray-300"
-            >
-                Anterior
-            </button>
-            <button
-                v-if="specialties.next_page_url"
-                @click="goTo(specialties.next_page_url)"
-                class="rounded bg-gray-200 px-3 py-1 hover:bg-gray-300"
-            >
-                Próxima
-            </button>
-        </div> -->
     </div>
 </template>

@@ -1,38 +1,68 @@
 <script setup lang="ts">
 import {
-    SidebarGroup,
-    SidebarGroupLabel,
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { urlIsActive } from '@/lib/utils';
-import { type NavItem } from '@/types';
-import { Link, usePage } from '@inertiajs/vue3';
+import type { NavItem } from '@/types';
+import { Link } from '@inertiajs/vue3';
+import { ChevronDown } from 'lucide-vue-next';
+import { ref } from 'vue';
 
 defineProps<{
     items: NavItem[];
 }>();
 
-const page = usePage();
+const openGroup = ref<string | null>(null);
 </script>
 
 <template>
-    <SidebarGroup class="px-2 py-0">
-        <SidebarGroupLabel></SidebarGroupLabel>
-        <SidebarMenu>
-            <SidebarMenuItem v-for="item in items" :key="item.title">
+    <SidebarMenu>
+        <SidebarMenuItem v-for="item in items" :key="item.title">
+            <SidebarMenuButton v-if="!item.children" as-child>
+                <Link :href="item.href">
+                    <component
+                        v-if="item.icon"
+                        :is="item.icon"
+                        class="mr-2 h-4 w-4"
+                    />
+                    {{ item.title }}
+                </Link>
+            </SidebarMenuButton>
+
+            <div v-else class="w-full">
                 <SidebarMenuButton
-                    as-child
-                    :is-active="urlIsActive(item.href, page.url)"
-                    :tooltip="item.title"
+                    @click="
+                        openGroup = openGroup === item.title ? null : item.title
+                    "
+                    class="w-full"
                 >
-                    <Link :href="item.href">
-                        <component :is="item.icon" />
-                        <span>{{ item.title }}</span>
-                    </Link>
+                    <component
+                        v-if="item.icon"
+                        :is="item.icon"
+                        class="mr-2 h-4 w-4"
+                    />
+                    {{ item.title }}
+
+                    <ChevronDown
+                        class="ml-auto h-4 w-4 transition-transform"
+                        :class="{ 'rotate-180': openGroup === item.title }"
+                    />
                 </SidebarMenuButton>
-            </SidebarMenuItem>
-        </SidebarMenu>
-    </SidebarGroup>
+
+                <ul
+                    v-show="openGroup === item.title"
+                    class="mt-1 ml-6 flex flex-col gap-1"
+                >
+                    <li v-for="child in item.children" :key="child.title">
+                        <SidebarMenuButton as-child size="sm">
+                            <Link :href="child.href">
+                                {{ child.title }}
+                            </Link>
+                        </SidebarMenuButton>
+                    </li>
+                </ul>
+            </div>
+        </SidebarMenuItem>
+    </SidebarMenu>
 </template>

@@ -23,6 +23,7 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnDelete();
             $table->string('registration');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

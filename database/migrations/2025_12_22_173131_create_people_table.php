@@ -20,14 +20,11 @@ return new class extends Migration
                 ->nullable()
                 ->constrained()
                 ->nullOnDelete();
-            $table->foreignId('address_id')
-                ->nullable()
-                ->constrained()
-                ->nullOnDelete();
             $table->string('name');
             $table->string('cpf')->nullable()->unique();
             $table->date('birth_date')->nullable();
             $table->string('phone')->nullable();
+            $table->softDeletes();
             $table->timestamps();
         });
     }

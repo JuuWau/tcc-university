@@ -26,7 +26,7 @@ class Period extends Model
     {
         return $this->belongsToMany(
             Student::class,
-            'student_periods'
+            'student_period'
         )->withPivot(['started_at', 'ended_at', 'is_current']);
     }
 
