@@ -128,9 +128,16 @@ function onCellClicked(event: any) {
 <template>
     <div class="p-6">
         <div
-            class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between"
+            class="mb-6 flex flex-col gap-4 border-b border-gray-200 pb-4 sm:flex-row sm:items-center sm:justify-between"
         >
-            <h1 class="text-lg font-bold sm:text-xl">Períodos</h1>
+            <div>
+                <h1 class="text-xl font-semibold tracking-tight text-gray-900">
+                    Períodos
+                </h1>
+                <p class="text-sm text-gray-500">
+                    Gerencie anos acadêmicos, semestres e especialidades
+                </p>
+            </div>
 
             <CreateButton
                 label="Novo Período"
@@ -139,8 +146,12 @@ function onCellClicked(event: any) {
                 @click="$emit('create')"
             />
         </div>
+
         <div class="overflow-x-auto">
-            <div class="ag-theme-alpine" style="height: 500px; width: 100%">
+            <div
+                class="ag-theme-alpine relative rounded-xl border border-gray-200"
+                style="height: 520px; width: 100%"
+            >
                 <AgGridVue
                     class="ag-theme-alpine h-full"
                     :rowData="periods"
@@ -150,22 +161,5 @@ function onCellClicked(event: any) {
                 />
             </div>
         </div>
-
-        <!-- <div class="mt-4 flex justify-center space-x-2">
-            <button
-                v-if="periods.prev_page_url"
-                @click="goTo(periods.prev_page_url)"
-                class="rounded bg-gray-200 px-3 py-1 hover:bg-gray-300"
-            >
-                Anterior
-            </button>
-            <button
-                v-if="periods.next_page_url"
-                @click="goTo(periods.next_page_url)"
-                class="rounded bg-gray-200 px-3 py-1 hover:bg-gray-300"
-            >
-                Próxima
-            </button>
-        </div> -->
     </div>
 </template>

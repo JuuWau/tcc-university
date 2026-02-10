@@ -13,9 +13,10 @@ import {
 import { dashboard } from '@/routes';
 import periods from '@/routes/periods';
 import { index } from '@/routes/specialties';
+import students from '@/routes/students';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { LayoutGrid } from 'lucide-vue-next';
+import { LayoutGrid, ListPlus } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 
 const mainNavItems: NavItem[] = [
@@ -25,14 +26,22 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
     {
-        title: 'Especialidades',
-        href: index(),
-        icon: LayoutGrid,
-    },
-    {
-        title: 'Períodos',
-        href: periods.index(),
-        icon: LayoutGrid,
+        title: 'Cadastros',
+        icon: ListPlus,
+        children: [
+            {
+                title: 'Especialidades',
+                href: index(),
+            },
+            {
+                title: 'Períodos',
+                href: periods.index(),
+            },
+            {
+                title: 'Estudantes',
+                href: students.index(),
+            },
+        ],
     },
 ];
 </script>

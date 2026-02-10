@@ -165,6 +165,10 @@
     height: 100%;
 }
 
+.ag-row {
+  overflow: visible !important;
+}
+
 .dark {
     --background: hsl(0 0% 3.9%);
     --foreground: hsl(0 0% 98%);

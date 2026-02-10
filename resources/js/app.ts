@@ -10,10 +10,11 @@ import Vue3Toastify, { toast } from 'vue3-toastify'
 import 'vue3-toastify/dist/index.css'
 import Multiselect from '@vueform/multiselect'
 import '@vueform/multiselect/themes/default.css'
+import VueTheMask from 'vue-the-mask'
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
-import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community'; 
+import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
 
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);
@@ -42,6 +43,7 @@ createInertiaApp({
                     secondary: '#fff'
                 }
             })
+            .use(VueTheMask)
             .mount(el);
     },
     progress: {

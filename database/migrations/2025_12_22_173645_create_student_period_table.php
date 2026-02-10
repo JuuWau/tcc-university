@@ -19,6 +19,9 @@ return new class extends Migration
             $table->foreignId('period_id')
                 ->constrained()
                 ->cascadeOnDelete();
+            $table->date('started_at');
+            $table->date('ended_at')->nullable();
+            $table->boolean('is_current')->default(false);
             $table->timestamps();
             $table->unique(['student_id', 'period_id']);
         });

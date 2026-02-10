@@ -3,18 +3,22 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Student extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'person_id',
         'university_id',
         'registration',
+        'user_id',
     ];
 
     public function person()
     {
-        return $this->belongsTo(Person::class);
+        return $this->belongsTo(Person::class)->withTrashed();
     }
 
     public function university()
@@ -22,11 +26,16 @@ class Student extends Model
         return $this->belongsTo(University::class);
     }
 
+    public function user()
+    {
+        return $this->belongsTo(User::class)->withTrashed();
+    }
+
     public function periods()
     {
         return $this->belongsToMany(
             Period::class,
-            'student_periods'
+            'student_period'
         )->withPivot(['started_at', 'ended_at', 'is_current'])
             ->withTimestamps();
     }
@@ -35,5 +44,12 @@ class Student extends Model
     {
         return $this->hasOne(StudentPeriod::class)
             ->where('is_current', true);
+    }
+
+    public function reasons()
+    {
+        return $this->belongsToMany(StudentReason::class)
+            ->withTimestamps()
+            ->withPivot('created_by');
     }
 }
