@@ -12,6 +12,7 @@ import {
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
 import periods from '@/routes/periods';
+import procedures from '@/routes/procedures';
 import { index } from '@/routes/specialties';
 import students from '@/routes/students';
 import { type NavItem } from '@/types';
@@ -36,6 +37,10 @@ const mainNavItems: NavItem[] = [
             {
                 title: 'Períodos',
                 href: periods.index(),
+            },
+            {
+                title: 'Procedimentos',
+                href: procedures.index(),
             },
             {
                 title: 'Estudantes',

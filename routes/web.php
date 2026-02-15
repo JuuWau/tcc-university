@@ -1,8 +1,9 @@
 <?php
 
+use App\Http\Controllers\PeriodsController;
+use App\Http\Controllers\ProceduresController;
 use App\Http\Controllers\SpecialtiesController;
 use App\Http\Controllers\StudentsController;
-use App\Http\Controllers\PeriodsController;
 use App\Http\Controllers\UserInviteController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -32,7 +33,14 @@ Route::prefix('periods')->group(function () {
     Route::post('/', [PeriodsController::class, 'store'])->name('periods.store');
     Route::put('/{period}', [PeriodsController::class, 'update'])->name('periods.update');
     Route::delete('/{period}', [PeriodsController::class, 'destroy'])->name('periods.destroy');
-});
+})->middleware(['auth', 'verified']);
+
+Route::prefix('procedures')->group(function () {
+    Route::get('/', [ProceduresController::class, 'index'])->name('procedures.index');
+    Route::post('/', [ProceduresController::class, 'store'])->name('procedures.store');
+    Route::put('/{procedure}', [ProceduresController::class, 'update'])->name('procedures.update');
+    Route::delete('/{procedure}', [ProceduresController::class, 'destroy'])->name('procedures.destroy');
+})->middleware(['auth', 'verified']);
 
 Route::prefix('students')->group(function () {
     Route::patch('/{student}/academic-data', [StudentsController::class, 'updateAcademicData'])->name('students.update.academic-data');

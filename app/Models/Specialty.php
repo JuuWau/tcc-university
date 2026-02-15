@@ -21,4 +21,9 @@ class Specialty extends BaseModel
             'period_specialty'
         )->withTimestamps();
     }
+
+    public function procedures()
+    {
+        return $this->hasMany(Procedure::class);
+    }
 }
