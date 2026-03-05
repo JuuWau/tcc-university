@@ -2,10 +2,8 @@
 
 namespace Database\Seeders;
 
-use App\Models\University;
-use App\Models\User;
 use App\Models\Role;
-// use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\University;
 use Illuminate\Database\Seeder;
 
 class DatabaseSeeder extends Seeder
@@ -15,7 +13,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        $university = University::factory()->create([
+        University::factory()->create([
             'name' => 'Universidade Teste',
             'slug' => 'universidade-teste',
             'cnpj' => '12.345.678/0001-90',
@@ -34,16 +32,13 @@ class DatabaseSeeder extends Seeder
             ['name' => 'Student']
         );
 
-        User::factory()->create([
-            'university_id' => $university->id,
-            'role_id' => Role::where('slug', 'admin')->first()->id,
-            'email' => 'juliawauters04@gmail.com',
-            'password' => bcrypt('123'),
-            'two_factor_secret' => null,
-            'two_factor_recovery_codes' => null
-        ]);
+        Role::firstOrCreate(
+            ['slug' => 'staff'],
+            ['name' => 'Staff']
+        );
 
         $this->call([
+            AdminUserSeeder::class,
             StudentSeeder::class,
         ]);
     }
