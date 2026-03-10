@@ -15,6 +15,7 @@ import periods from '@/routes/periods';
 import procedures from '@/routes/procedures';
 import { index } from '@/routes/specialties';
 import students from '@/routes/students';
+import users from '@/routes/users';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
 import { LayoutGrid, ListPlus } from 'lucide-vue-next';
@@ -45,6 +46,10 @@ const mainNavItems: NavItem[] = [
             {
                 title: 'Estudantes',
                 href: students.index(),
+            },
+            {
+                title: 'Usuários',
+                href: users.index(),
             },
         ],
     },
