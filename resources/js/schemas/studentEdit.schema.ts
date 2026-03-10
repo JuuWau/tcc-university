@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { cpfSchema } from './studentComplete.schema';
+import { cpfSchema } from './accessComplete.schema';
 
 export const studentEditSchema = z
     .object({
