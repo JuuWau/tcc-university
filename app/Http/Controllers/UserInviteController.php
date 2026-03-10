@@ -2,10 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\CompleteStaffRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Models\Role;
 use App\Services\UserInviteService;
 use Illuminate\Http\Request;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 
 class UserInviteController extends Controller
 {
@@ -18,7 +20,12 @@ class UserInviteController extends Controller
 
     public function show(string $token, UserInviteService $service)
     {
-        $invite = $service->findValidByToken($token);
+        try {
+            $invite = $service->findValidByToken($token);
+        } catch (ModelNotFoundException) {
+            return inertia('users/InviteExpired');
+        }
+
         $user = $invite->user;
 
         return match ($user->role_id) {
@@ -29,23 +36,23 @@ class UserInviteController extends Controller
             Role::ADMIN, Role::STAFF => inertia('users/CompleteStaffRegistration', [
                 'email' => $user->email,
                 'token' => $invite->token,
+                'name' => $user->person?->name,
             ]),
             default => abort(403),
         };
     }
 
     public function store(
-        Request $request,
+        CompleteStaffRequest $request,
         string $token,
         UserInviteService $userInviteService
     ) {
-        $request->validate([
-            'password' => 'required|min:8|confirmed',
-        ]);
-
-        $invite = $userInviteService->findValidByToken($token);
-
-        $userInviteService->completeRegistration($invite, $request->password);
+        try {
+            $userInviteService->updateStaff($token, $request->validated());
+        } catch (ModelNotFoundException) {
+            return redirect('/login')
+                ->withErrors(['token' => 'Link inválido ou expirado. Solicite um novo convite.']);
+        }
 
         return redirect('/login')
             ->with('success', 'Cadastro concluído com sucesso');
@@ -53,7 +60,6 @@ class UserInviteController extends Controller
 
     public function updateStudent(UpdateStudentRequest $request, string $token)
     {
-        // dd($token);
         $this->userInviteService->updateStudent($token, $request->validated());
 
         return response()->json([
