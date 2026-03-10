@@ -25,7 +25,8 @@ export const cpfSchema = z
   .regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, 'CPF inválido')
   .refine(isValidCPF, 'CPF inválido');
 
-export const studentCompleteSchema = z.object({
+const staffCompleteBaseSchema = z.object({
+  name: z.string().min(1, 'Nome obrigatório'),
   email: z.string().email('Email inválido'),
   phone: z.string().min(10, 'Telefone inválido'),
   cpf: z.string().regex(/^\d{3}\.\d{3}\.\d{3}-\d{2}$/, 'CPF inválido').max(100, 'CPF não pode ter mais de 14 caracteres'),
@@ -46,7 +47,14 @@ export const studentCompleteSchema = z.object({
   state: z.string().min(1, 'Estado obrigatório'),
   password: z.string().min(8, 'Senha deve ter no mínimo 8 caracteres').max(50, 'Rua não pode ter mais de 50 caracteres'),
   passwordConfirmation: z.string().min(1, 'Confirmação de senha obrigatória'),
-}).refine((data) => data.password === data.passwordConfirmation, {
-  message: 'As senhas não coincidem',
-  path: ['passwordConfirmation'],
 });
+
+export const studentCompleteSchema = staffCompleteBaseSchema.omit({ name: true }).refine(
+  (data) => data.password === data.passwordConfirmation,
+  { message: 'As senhas não coincidem', path: ['passwordConfirmation'] },
+);
+
+export const staffCompleteSchema = staffCompleteBaseSchema.refine(
+  (data) => data.password === data.passwordConfirmation,
+  { message: 'As senhas não coincidem', path: ['passwordConfirmation'] },
+);

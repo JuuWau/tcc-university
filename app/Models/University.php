@@ -26,11 +26,6 @@ class University extends Model
         return $this->hasMany(Student::class);
     }
 
-    public function employees()
-    {
-        return $this->hasMany(Employee::class);
-    }
-
     public function patients()
     {
         return $this->hasMany(Patient::class);

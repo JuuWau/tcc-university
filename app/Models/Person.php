@@ -33,11 +33,6 @@ class Person extends Model
         return $this->hasOne(Student::class);
     }
 
-    public function employee()
-    {
-        return $this->hasOne(Employee::class);
-    }
-
     public function address()
     {
         return $this->morphOne(Address::class, 'addressable');

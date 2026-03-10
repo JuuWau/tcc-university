@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration
 {
     /**
-     * Run the migrations.
+     * Restore Laravel cache tables (used when CACHE_STORE=database).
      */
     public function up(): void {}
 
@@ -16,7 +16,7 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('cache');
-        Schema::dropIfExists('cache_locks');
+        // Schema::dropIfExists('cache');
+        // Schema::dropIfExists('cache_locks');
     }
 };

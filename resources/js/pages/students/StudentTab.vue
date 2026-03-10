@@ -1,10 +1,8 @@
 <template>
     <AppLayout>
         <div class="w-full space-y-8 p-8">
-            <!-- Header -->
             <StudentHeader />
 
-            <!-- Tabs -->
             <nav class="flex flex-wrap gap-2 rounded-2xl bg-gray-100 p-1">
                 <button
                     v-for="tab in tabs"
@@ -21,16 +19,8 @@
                 </button>
             </nav>
 
-            <!-- Conteúdo -->
             <div>
                 <StudentPersonalData v-if="activeTab === 'personal'" />
-
-                <div
-                    v-else-if="activeTab === 'academic'"
-                    class="rounded-2xl border border-gray-200 bg-white p-6 shadow-sm"
-                >
-                    <p class="text-gray-500">Conteúdo acadêmico em breve.</p>
-                </div>
             </div>
         </div>
 
@@ -64,16 +54,13 @@ provide(StudentTabContextKey, {
     academicDataEditModalOpen,
 });
 
-const activeTab = ref<'personal' | 'academic' | 'calendar' | 'logs'>(
-    'personal',
-);
+const activeTab = ref<'personal' | 'calendar' | 'logs'>('personal');
 
 const tabs: {
-    key: 'personal' | 'academic' | 'calendar' | 'logs';
+    key: 'personal' | 'calendar' | 'logs';
     label: string;
 }[] = [
     { key: 'personal', label: 'Dados pessoais' },
-    { key: 'academic', label: 'Acadêmico' },
     { key: 'calendar', label: 'Agenda' },
     { key: 'logs', label: 'Logs' },
 ];

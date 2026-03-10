@@ -3,28 +3,24 @@ import { City, IbgeService, Uf } from '@/api/ibge';
 import { ViaCep } from '@/api/viacep';
 import {
     cpfSchema,
-    studentCompleteSchema,
+    staffCompleteSchema,
 } from '@/schemas/accessComplete.schema';
 import { router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 
-// const page = usePage();
-// console.log(page);
-// watch(
-//     () => page.props,
-//     (props) => {
-//         console.log(props);
-//     },
-// );
-
 const loading = ref(false);
 const passwordConfirmation = ref('');
 const states = ref<Uf[]>([]);
 const cities = ref<City[]>([]);
 const viaCep = ViaCep();
-const page = usePage<{ props: { email: string; token: string } }>();
+const page = usePage();
+const props = page.props as unknown as {
+    email: string;
+    token: string;
+    name?: string;
+};
 const cpfError = ref<string | null>(null);
 
 const stateOptions = computed(() =>
@@ -36,8 +32,8 @@ const cityOptions = computed(() =>
 );
 
 const form = reactive({
-    name: '' as string | null,
-    email: page.props.email || null,
+    name: props.name || '',
+    email: props.email || '',
     phone: '' as string | null,
     cpf: '' as string | null,
     birth_date: '' as string | null,
@@ -113,15 +109,14 @@ function validateCpf() {
 }
 
 async function submit() {
-    if (loading?.value) return;
+    if (loading.value) return;
 
-    const result = studentCompleteSchema.safeParse({
+    const result = staffCompleteSchema.safeParse({
         ...form,
         passwordConfirmation: passwordConfirmation.value,
     });
 
     if (!result.success) {
-        // Mostra o primeiro erro
         const error = result.error.issues[0];
         toast.error(error.message);
         return;
@@ -130,14 +125,30 @@ async function submit() {
     try {
         loading.value = true;
 
-        await axios.patch(`/invite/${page.props.token}`, {
-            ...form,
+        await axios.post(`/invite/${props.token}`, {
+            name: form.name,
+            phone: form.phone,
+            cpf: form.cpf,
+            birth_date: form.birth_date,
+            cep: form.cep,
+            street: form.street,
+            neighborhood: form.neighborhood,
+            number: form.number,
+            complement: form.complement ?? '',
+            city: form.city,
+            state: form.state,
+            password: form.password,
+            password_confirmation: passwordConfirmation.value,
         });
 
         toast.success('Cadastro concluído com sucesso!');
         router.visit('/login');
     } catch (err: any) {
-        toast.error(err.response?.data?.message || 'Erro ao enviar cadastro');
+        const msg =
+            (err.response?.data?.message ?? err.response?.data?.errors)
+                ? Object.values(err.response?.data?.errors).flat().join(', ')
+                : 'Erro ao enviar cadastro';
+        toast.error(msg);
     } finally {
         loading.value = false;
     }
@@ -152,13 +163,28 @@ async function submit() {
                     Complete seu cadastro
                 </h1>
                 <p class="mt-1 text-sm text-gray-500">
-                    Defina sua senha para acessar a plataforma
+                    Preencha seus dados e defina sua senha para acessar a
+                    plataforma
                 </p>
             </div>
 
             <form class="space-y-4">
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <!-- Email -->
+                    <div>
+                        <label
+                            class="mb-1 block text-sm font-medium text-gray-700"
+                        >
+                            Nome (*)
+                        </label>
+                        <input
+                            v-model="form.name"
+                            type="text"
+                            maxlength="255"
+                            class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+                            placeholder="Seu nome completo"
+                        />
+                    </div>
+
                     <div>
                         <label
                             class="mb-1 block text-sm font-medium text-gray-700"
@@ -172,8 +198,9 @@ async function submit() {
                             class="w-full cursor-not-allowed rounded border bg-gray-100 px-3 py-2 text-sm text-gray-600"
                         />
                     </div>
+                </div>
 
-                    <!-- Phone -->
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
                         <label
                             class="mb-1 block text-sm font-medium text-gray-700"
@@ -188,10 +215,7 @@ async function submit() {
                             class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                         />
                     </div>
-                </div>
 
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <!-- Email -->
                     <div>
                         <label
                             class="mb-1 block text-sm font-medium text-gray-700"
@@ -199,7 +223,7 @@ async function submit() {
                             CPF (*)
                         </label>
                         <input
-                            type="cpf"
+                            type="text"
                             v-model="form.cpf"
                             maxlength="14"
                             @blur="validateCpf"
@@ -207,8 +231,9 @@ async function submit() {
                             class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                         />
                     </div>
+                </div>
 
-                    <!-- Phone -->
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
                         <label
                             class="mb-1 block text-sm font-medium text-gray-700"
@@ -287,7 +312,7 @@ async function submit() {
                         <label
                             class="mb-1 block text-sm font-medium text-gray-700"
                         >
-                            Complemento (*)
+                            Complemento
                         </label>
                         <input
                             v-model="form.complement"
@@ -313,7 +338,7 @@ async function submit() {
                             :searchable="true"
                             :close-on-select="true"
                             :can-clear="true"
-                            placeholder="Selecione a cidade"
+                            placeholder="Selecione o estado"
                         />
                     </div>
 
@@ -349,7 +374,6 @@ async function submit() {
                         placeholder="Digite sua senha"
                     />
 
-                    <!-- Regras -->
                     <ul class="mt-2 space-y-1 text-xs text-gray-600">
                         <li :class="rules.length ? 'text-green-600' : ''">
                             • Mínimo de 8 caracteres
@@ -393,9 +417,10 @@ async function submit() {
                 <button
                     type="button"
                     @click="submit"
-                    class="mt-4 w-full rounded bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700"
+                    :disabled="loading"
+                    class="mt-4 w-full rounded bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:opacity-50"
                 >
-                    Concluir cadastro
+                    {{ loading ? 'Enviando...' : 'Concluir cadastro' }}
                 </button>
             </form>
 

@@ -1,7 +1,16 @@
 import { z } from 'zod';
 import { cpfSchema } from './accessComplete.schema';
 
-export const studentEditSchema = z
+export const userSchema = z.object({
+    name: z.string().min(1, 'Nome é obrigatório'),
+    email: z.string().email('Email inválido'),
+    role_id: z
+        .number()
+        .nullable()
+        .refine((val) => val !== null && val >= 1, { message: 'Selecione um perfil' }),
+});
+
+export const userPersonalDataEditSchema = z
     .object({
         name: z.string().min(1, 'Nome é obrigatório').max(255, 'Nome muito longo'),
         email: z.string().email('Email inválido'),
@@ -48,4 +57,6 @@ export const studentEditSchema = z
             ),
     });
 
-export type StudentEditForm = z.infer<typeof studentEditSchema>;
+export const userRoleEditSchema = z.object({
+    role_id: z.number({ required_error: 'Selecione um perfil' }).min(1, 'Selecione um perfil'),
+});

@@ -11,8 +11,8 @@
         <h2>Bem-vindo(a)</h2>
 
         <p>
-                Você foi convidado para acessar o sistema.
-                Para criar sua senha, clique no botão abaixo:
+                Você foi convidado para acessar o sistema como colaborador.
+                Para criar sua senha e ativar sua conta, clique no botão abaixo:
         </p>
 
         <p>

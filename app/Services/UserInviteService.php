@@ -21,7 +21,10 @@ class UserInviteService
 
                 $invite = UserInvite::create([
                         'user_id' => $user->id,
+                        'university_id' => $user->university_id,
+                        'email' => $user->email,
                         'token' => Str::uuid(),
+                        'expires_at' => now()->addDays(1),
                 ]);
 
                 Mail::to($user->email)->send(
@@ -83,7 +86,49 @@ class UserInviteService
         {
                 return UserInvite::where('token', $token)
                         ->whereNull('used_at')
+                        ->where('expires_at', '>', now())
                         ->firstOrFail();
+        }
+
+        public function updateStaff(string $token, array $data)
+        {
+                return DB::transaction(function () use ($token, $data) {
+                        $invite = UserInvite::where('token', $token)
+                                ->whereNull('used_at')
+                                ->where('expires_at', '>', now())
+                                ->firstOrFail();
+
+                        $user = User::with('person')->findOrFail($invite->user_id);
+
+                        $user->update([
+                                'password'    => Hash::make($data['password']),
+                                'email_verified_at' => now(),
+                        ]);
+
+                        $user->person->address()->updateOrCreate(
+                                [],
+                                [
+                                        'cep'          => $data['cep'] ?? null,
+                                        'street'       => $data['street'] ?? null,
+                                        'number'       => $data['number'] ?? null,
+                                        'neighborhood' => $data['neighborhood'] ?? null,
+                                        'city'         => $data['city'] ?? null,
+                                        'state'        => $data['state'] ?? null,
+                                        'complement'   => $data['complement'] ?? null,
+                                ]
+                        );
+
+                        $user->person->update([
+                                'name'       => $data['name'],
+                                'cpf'        => $data['cpf'],
+                                'phone'      => $data['phone'],
+                                'birth_date' => $data['birth_date'],
+                        ]);
+
+                        $invite->update(['used_at' => now()]);
+
+                        return $user->fresh(['person.address']);
+                });
         }
 
         public function completeRegistration(UserInvite $invite, string $password): void

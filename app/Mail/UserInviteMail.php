@@ -2,6 +2,7 @@
 
 namespace App\Mail;
 
+use App\Models\Role;
 use App\Models\UserInvite;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
@@ -26,11 +27,16 @@ class UserInviteMail extends Mailable
 
     public function content(): Content
     {
+        $this->invite->load('user.role');
+
+        $isStudent = $this->invite->user->role_id === Role::STUDENT;
+        $view = $isStudent ? 'emails.student-invite' : 'emails.staff-invite';
+
         return new Content(
-            view: 'emails.student-invite',
+            view: $view,
             with: [
                 'invite' => $this->invite,
-                'url' => config('app.backend_url') . '/invite/' . $this->invite->token,
+                'url' => url('/invite/' . $this->invite->token),
             ]
         );
     }
