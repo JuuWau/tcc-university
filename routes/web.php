@@ -5,6 +5,7 @@ use App\Http\Controllers\ProceduresController;
 use App\Http\Controllers\SpecialtiesController;
 use App\Http\Controllers\StudentsController;
 use App\Http\Controllers\UserInviteController;
+use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
@@ -55,6 +56,19 @@ Route::prefix('students')->group(function () {
     Route::delete('/deactivate/{student}', [StudentsController::class, 'deactivate'])->name('students.deactivate');
     Route::delete('/activate/{student}', [StudentsController::class, 'activate'])->name('students.activate');
 });
+
+Route::prefix('users')->group(function () {
+    Route::get('/', [UsersController::class, 'index'])->name('users.index');
+    Route::get('/table', [UsersController::class, 'table'])->name('users.table');
+    Route::get('/{user}', [UsersController::class, 'show'])->name('users.show');
+    Route::post('/', [UsersController::class, 'store'])->name('users.store');
+    Route::patch('/{user}', [UsersController::class, 'update'])->name('users.update');
+    Route::patch('/{user}/role', [UsersController::class, 'updateRole'])->name('users.update.role');
+    Route::post('/resend-invite/{user}', [UsersController::class, 'resendInvite'])->name('users.resend-invite');
+    Route::delete('/deactivate/{user}', [UsersController::class, 'deactivate'])->name('users.deactivate');
+    Route::delete('/activate/{user}', [UsersController::class, 'activate'])->name('users.activate');
+    Route::delete('/{user}', [UsersController::class, 'destroy'])->name('users.destroy');
+})->middleware(['auth', 'verified']);
 
 Route::prefix('invite')->group(function () {
     Route::get('/{token}', [UserInviteController::class, 'show'])->name('invite.show');
