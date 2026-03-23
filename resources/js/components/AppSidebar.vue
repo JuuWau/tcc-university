@@ -11,6 +11,7 @@ import {
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
 import { dashboard } from '@/routes';
+import patients from '@/routes/patients';
 import periods from '@/routes/periods';
 import procedures from '@/routes/procedures';
 import { index } from '@/routes/specialties';
@@ -46,6 +47,10 @@ const mainNavItems: NavItem[] = [
             {
                 title: 'Estudantes',
                 href: students.index(),
+            },
+            {
+                title: 'Pacientes',
+                href: patients.index(),
             },
             {
                 title: 'Usuários',
