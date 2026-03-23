@@ -11,7 +11,7 @@ import { Head, Link } from '@inertiajs/vue3';
         <header
             class="mx-auto flex max-w-7xl items-center justify-between px-8 py-6"
         >
-            <h1 class="text-xl font-bold text-sky-600">OdontoUni</h1>
+            <h1 class="text-xl font-bold text-sky-600">Acadent</h1>
 
             <nav class="flex gap-4">
                 <Link
