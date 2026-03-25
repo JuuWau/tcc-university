@@ -20,6 +20,7 @@ return new class extends Migration
                 ->constrained()
                 ->cascadeOnDelete();
             $table->timestamps();
+            $table->softDeletes();
 
             $table->unique(['schedule_slot_id', 'student_id']);
         });
