@@ -19,7 +19,9 @@ return new class extends Migration
             $table->foreignId('period_id')
                 ->constrained()
                 ->restrictOnDelete();
-            $table->string('clinic_name');
+            $table->foreignId('clinic_id')
+                ->constrained('clinics')
+                ->restrictOnDelete();
             $table->foreignId('responsible_id')
                 ->constrained('users')
                 ->restrictOnDelete();
@@ -28,8 +30,10 @@ return new class extends Migration
             $table->time('end_time');
             $table->unsignedInteger('available_slots');
             $table->timestamps();
+            $table->softDeletes();
 
             $table->index(['university_id', 'date']);
+            $table->index(['clinic_id', 'date']);
         });
     }
 

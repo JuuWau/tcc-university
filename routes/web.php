@@ -3,6 +3,8 @@
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PeriodsController;
 use App\Http\Controllers\ProceduresController;
+use App\Http\Controllers\ClinicController;
+use App\Http\Controllers\ScheduleSlotController;
 use App\Http\Controllers\SpecialtiesController;
 use App\Http\Controllers\StudentsController;
 use App\Http\Controllers\UserInviteController;
@@ -35,6 +37,16 @@ Route::prefix('periods')->group(function () {
     Route::post('/', [PeriodsController::class, 'store'])->name('periods.store');
     Route::put('/{period}', [PeriodsController::class, 'update'])->name('periods.update');
     Route::delete('/{period}', [PeriodsController::class, 'destroy'])->name('periods.destroy');
+})->middleware(['auth', 'verified']);
+
+Route::prefix('clinics')->group(function () {
+    Route::get('/', [ClinicController::class, 'index'])->name('clinics.index');
+    Route::get('/table', [ClinicController::class, 'table'])->name('clinics.table');
+    Route::post('/', [ClinicController::class, 'store'])->name('clinics.store');
+    Route::put('/{clinic}', [ClinicController::class, 'update'])->name('clinics.update');
+    Route::patch('/{clinic}/deactivate', [ClinicController::class, 'deactivate'])->name('clinics.deactivate');
+    Route::patch('/{clinic}/activate', [ClinicController::class, 'activate'])->name('clinics.activate');
+    Route::delete('/{clinic}', [ClinicController::class, 'destroy'])->name('clinics.destroy');
 })->middleware(['auth', 'verified']);
 
 Route::prefix('procedures')->group(function () {
