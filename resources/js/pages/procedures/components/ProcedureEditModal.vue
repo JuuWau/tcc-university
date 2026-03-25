@@ -93,18 +93,9 @@ async function submit() {
         }
         toast.success('Procedimento atualizado com sucesso');
         close();
-    } catch (error: unknown) {
-        const err = error as {
-            response?: {
-                data?: { message?: string; errors?: Record<string, string[]> };
-            };
-        };
-        const data = err.response?.data;
-        const firstError = data?.errors
-            ? Object.values(data.errors).flat()[0]
-            : null;
+    } catch (error: any) {
         toast.error(
-            firstError ?? data?.message ?? 'Erro ao atualizar procedimento',
+            error.response?.data?.message ?? 'Erro ao atualizar procedimento',
         );
     } finally {
         if (loading) loading.value = false;

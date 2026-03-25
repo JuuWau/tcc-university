@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PeriodsController;
 use App\Http\Controllers\ProceduresController;
 use App\Http\Controllers\SpecialtiesController;
@@ -56,6 +57,19 @@ Route::prefix('students')->group(function () {
     Route::delete('/deactivate/{student}', [StudentsController::class, 'deactivate'])->name('students.deactivate');
     Route::delete('/activate/{student}', [StudentsController::class, 'activate'])->name('students.activate');
 });
+
+Route::prefix('patients')->group(function () {
+    Route::get('/', [PatientController::class, 'index'])->name('patients.index');
+    Route::get('/table', [PatientController::class, 'table'])->name('patients.table');
+    Route::get('/{patient}', [PatientController::class, 'show'])->name('patients.show');
+    Route::post('/', [PatientController::class, 'store'])->name('patients.store');
+    Route::patch('/{patient}', [PatientController::class, 'update'])->name('patients.update');
+    Route::patch('/{patient}/student', [PatientController::class, 'updateStudent'])->name('patients.update.student');
+    Route::patch('/{patient}/student-data', [PatientController::class, 'updateStudentData'])->name('patients.update.student-data');
+    Route::delete('/deactivate/{patient}', [PatientController::class, 'deactivate'])->name('patients.deactivate');
+    Route::delete('/activate/{patient}', [PatientController::class, 'activate'])->name('patients.activate');
+    Route::delete('/{patient}', [PatientController::class, 'destroy'])->name('patients.destroy');
+})->middleware(['auth', 'verified']);
 
 Route::prefix('users')->group(function () {
     Route::get('/', [UsersController::class, 'index'])->name('users.index');

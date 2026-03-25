@@ -16,11 +16,17 @@ return new class extends Migration
             $table->foreignId('university_id')
                 ->constrained()
                 ->cascadeOnDelete();
+            $table->foreignId('student_id')
+                ->nullable()
+                ->constrained()
+                ->nullOnDelete();
             $table->string('name');
             $table->string('cpf')->nullable()->unique();
             $table->date('birth_date')->nullable();
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
+            $table->string('status', 30)->default('ativo');
+            $table->softDeletes();
             $table->timestamps();
         });
     }

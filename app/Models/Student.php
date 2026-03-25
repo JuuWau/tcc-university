@@ -46,10 +46,9 @@ class Student extends Model
             ->where('is_current', true);
     }
 
-    public function reasons()
+    public function patients()
     {
-        return $this->belongsToMany(StudentReason::class)
-            ->withTimestamps()
-            ->withPivot('created_by');
+        return $this->belongsToMany(Patient::class)
+            ->withTimestamps();
     }
 }
