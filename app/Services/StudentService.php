@@ -160,7 +160,7 @@ class StudentService
 
                         $periodId = (int) $data['period'];
 
-                        DB::table('student_period')
+                        DB::table('student_periods')
                                 ->where('student_id', $student->id)
                                 ->update(['is_current' => false]);
 

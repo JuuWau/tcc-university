@@ -202,4 +202,22 @@ class UserService
 
         return $user->fresh(['person', 'role', 'invite']);
     }
+
+    public function getResponsible(?int $universityId)
+    {
+        return User::query()
+            ->when($universityId, fn($q) => $q->where('university_id', $universityId))
+            ->whereHas('role', fn ($q) => 
+                $q->where('slug', '!=', 'student')
+            )
+            ->with('person:id,user_id,name')
+            ->with('role:id,user_id,name')
+            ->get(['id'])
+            ->map(fn($user) => [
+                'id' => $user->id,
+                'label' => $user->person?->name ?? '—',
+            ])
+            ->sortBy('label')
+            ->values();
+    }
 }

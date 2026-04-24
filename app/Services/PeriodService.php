@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Models\Period;
 use App\Models\PeriodSpecialty;
+use App\Models\User;
 
 class PeriodService
 {
@@ -57,5 +58,27 @@ class PeriodService
                         ->update(['deleted_at' => now()]);
 
                 $period->delete();
+        }
+
+        public function getPeriods(?int $universityId)
+        {
+                return Period::query()
+                ->when($universityId, fn($q) => $q->where('university_id', $universityId))
+                ->orderByDesc('calendar_year')
+                ->orderBy('academic_year')
+                ->orderBy('semester')
+                ->get(['id', 'academic_year', 'semester', 'calendar_year'])
+                ->map(fn($period) => [
+                        'id' => $period->id,
+                        'label' => "{$period->academic_year}º ano {$period->semester}º semestre de {$period->calendar_year}",
+                ]);
+        }
+
+        public function getIdByUserId(int $userId): ?int
+        {
+                return Period::query()
+                        ->whereHas('studentPeriods.student', fn($q) => $q->where('user_id', $userId))
+                        ->whereHas('studentPeriods', fn($q) => $q->where('is_current', true))
+                        ->value('id');
         }
 }
