@@ -10,7 +10,7 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { dashboard } from '@/routes';
+import { initialPage } from '@/routes';
 import patients from '@/routes/patients';
 import periods from '@/routes/periods';
 import procedures from '@/routes/procedures';
@@ -19,13 +19,15 @@ import students from '@/routes/students';
 import users from '@/routes/users';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { LayoutGrid, ListPlus } from 'lucide-vue-next';
+import { BarChart, Calendar, LayoutGrid, ListPlus } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
+import schedules from '@/routes/schedules';
+import clinics from '@/routes/clinics';
 
 const mainNavItems: NavItem[] = [
     {
-        title: 'Dashboard',
-        href: dashboard(),
+        title: 'Bem-vindo',
+        href: initialPage().url,
         icon: LayoutGrid,
     },
     {
@@ -39,6 +41,10 @@ const mainNavItems: NavItem[] = [
             {
                 title: 'Períodos',
                 href: periods.index(),
+            },
+            {
+                title: 'Clínicas',
+                href: clinics.index(),
             },
             {
                 title: 'Procedimentos',
@@ -58,6 +64,50 @@ const mainNavItems: NavItem[] = [
             },
         ],
     },
+    {
+        title: 'Agenda',
+        icon: Calendar,
+        children: [
+            {
+                title: 'Abrir agenda',
+                href: schedules.openSchedule(),
+            },
+            {
+                title: 'Gerenciar clínicas abertas',
+                href: '/schedules/open-clinics',
+            },
+            {
+                title: 'Clínicas abertas',
+                href: '/schedule-enrollment/open-clinics',
+            },
+            {
+                title: 'Confirmar agendamentos',
+                href: '/confirm-appointment/confirm-appointment',
+            },
+        ],
+    },
+    {
+        title: 'Relatórios',
+        icon: BarChart,
+        children: [
+            {
+                title: 'Relatórios de estudantes',
+                href: '/reports/students',
+            },
+            {
+                title: 'Relatórios de agendamentos',
+                href: '/reports/appointments',
+            },
+            {
+                title: 'Relatórios de clínicas por aluno',
+                href: '/reports/clinics-by-student',
+            },
+            {
+                title: 'Relatórios de pacientes',
+                href: '/reports/patients',
+            },
+        ],
+    },
 ];
 </script>
 
@@ -67,7 +117,7 @@ const mainNavItems: NavItem[] = [
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
-                        <Link :href="dashboard()">
+                        <Link :href="initialPage().url">
                             <AppLogo />
                         </Link>
                     </SidebarMenuButton>

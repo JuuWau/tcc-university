@@ -4,6 +4,8 @@ use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PeriodsController;
 use App\Http\Controllers\ProceduresController;
 use App\Http\Controllers\ClinicController;
+use App\Http\Controllers\ConfirmAppointmentController;
+use App\Http\Controllers\ScheduleEnrollmentController;
 use App\Http\Controllers\ScheduleSlotController;
 use App\Http\Controllers\SpecialtiesController;
 use App\Http\Controllers\StudentsController;
@@ -19,9 +21,52 @@ Route::get('/', function () {
     ]);
 })->name('home');
 
-Route::get('dashboard', function () {
-    return Inertia::render('Dashboard');
-})->middleware(['auth', 'verified'])->name('dashboard');
+Route::get('initialPage', function () {
+    return Inertia::render('InitialPage');
+})->middleware(['auth', 'verified'])->name('initialPage');
+
+Route::get('reports/students', function () {
+    return Inertia::render('reports/StudentsReportMock');
+})->middleware(['auth', 'verified'])->name('reports.students');
+
+Route::prefix('schedules')->group(function () {
+    Route::post('open', [ScheduleSlotController::class, 'storeOpenSchedule'])->name('schedules.open.store');
+    Route::get('open-schedule', [ScheduleSlotController::class, 'openSchedule'])->name('schedules.openSchedule');
+    Route::get('open-clinics', [ScheduleSlotController::class, 'openClinicsManagement'])->name('schedules.openClinics');
+    Route::get('open-clinics/{clinic}', [ScheduleSlotController::class, 'clinicOpenSchedules'])->name('schedules.openClinics.show');
+    Route::post('open-clinics/{clinic}', [ScheduleSlotController::class, 'storeOpenClinicDay'])->name('schedules.openClinics.storeDay');
+    Route::patch('slots/{slot}', [ScheduleSlotController::class, 'updateSlot'])->name('schedules.slots.update');
+    Route::put('multiple-slots', [ScheduleSlotController::class, 'updateMultipleSlots'])->name('schedules.slots.multiple.update');
+    Route::delete('slots/{slot}', [ScheduleSlotController::class, 'destroySlot'])->name('schedules.slots.destroy');
+    Route::delete('multiple-slots', [ScheduleSlotController::class, 'destroyMultipleSlots'])->name('schedules.slots.multiple.destroy');
+})->middleware(['auth', 'verified'])->name('schedules');
+
+Route::prefix('confirm-appointment')->group(function () {
+    Route::get('confirm-appointment', [ConfirmAppointmentController::class, 'index'])->name('confirmAppointment.index');
+})->middleware(['auth', 'verified'])->name('confirm-appointment');
+
+Route::prefix('schedule-enrollment')->group(function () {
+    Route::post('open', [ScheduleEnrollmentController::class, 'storeOpenSchedule'])->name('schedules.enrollment.open.store');
+    Route::get('open-clinics', [ScheduleEnrollmentController::class, 'openClinicsSchedullesEnrollmentManagement'])->name('schedules.enrollment.openClinics');
+    Route::get('open-clinic/{clinic}', [ScheduleEnrollmentController::class, 'clinicOpenSchedulesEnrollment'])->name('schedules.enrollment.openClinic.show');
+    Route::post('open-clinics/{clinic}', [ScheduleEnrollmentController::class, 'storeOpenClinicDay'])->name('schedules.enrollment.openClinics.storeDay');
+    Route::patch('slots/{slot}', [ScheduleEnrollmentController::class, 'updateSlot'])->name('schedules.enrollment.slots.update');
+    Route::put('multiple-slots', [ScheduleEnrollmentController::class, 'updateMultipleSlots'])->name('schedules.enrollment.slots.multiple.update');
+    Route::delete('slots/{slot}', [ScheduleEnrollmentController::class, 'destroySlot'])->name('schedules.enrollment.slots.destroy');
+    Route::delete('multiple-slots', [ScheduleEnrollmentController::class, 'destroyMultipleSlots'])->name('schedules.enrollment.slots.multiple.destroy');
+});
+
+Route::get('/reports/appointments', function () {
+    return Inertia::render('reports/AppointmentsReportMock');
+});
+
+Route::get('/reports/clinics-by-student', function () {
+    return Inertia::render('reports/ClinicsByStudentReportMock');
+});
+
+Route::get('/reports/patients', function () {
+    return Inertia::render('reports/PatientsReportMock');
+})->middleware(['auth', 'verified'])->name('reports.patients');
 
 Route::prefix('specialties')->group(function () {
     Route::get('/', [SpecialtiesController::class, 'index'])->name('specialties.index');
