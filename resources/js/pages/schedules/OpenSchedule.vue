@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { OpenScheduleKey } from '@/keys/schedules/openScheduleKeys';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { openScheduleSchema } from '@/schemas/openSchedule.schema';
+import { Switch } from '@headlessui/vue'
 import type {
     OpenScheduleErrorResponse,
     OpenScheduleOption,
@@ -72,6 +73,7 @@ const form = reactive({
     days: [] as string[],
     start_time: '',
     end_time: '',
+    allow_student_booking: false,
 });
 
 const monthLabel = computed(() =>
@@ -166,6 +168,7 @@ const formValidationResult = computed(() =>
         days: form.days,
         start_time: form.start_time,
         end_time: form.end_time,
+        allow_student_booking: form.allow_student_booking,
     }),
 );
 
@@ -327,6 +330,7 @@ async function submit() {
     const payload: OpenSchedulePayload = {
         clinic_id: result.data.clinic_id,
         available_chairs: result.data.available_chairs,
+        allow_student_booking: result.data.allow_student_booking,
         period_id: result.data.period_id,
         responsible_id: result.data.responsible_id,
         days: [...result.data.days].sort((a, b) => a.localeCompare(b)),
@@ -358,11 +362,6 @@ async function submit() {
         loading.value = false;
     }
 }
-
-watch(formValidationResult, (val) => {
-    console.log('VALIDAÇÃO:', val);
-    console.log(openScheduleSchema);
-});
 </script>
 
 <template>
@@ -416,6 +415,31 @@ watch(formValidationResult, (val) => {
                                     placeholder="Ex: 6"
                                     class="w-full rounded border border-gray-300 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                                 />
+                            </div>
+                            <div class="md:col-span-2 flex items-center justify-between rounded-md border border-gray-200 px-3 py-2">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">
+                                        Permitir inscrição de alunos
+                                    </p>
+                                    <p class="text-xs text-gray-500">
+                                        Se desativado, os alunos não poderão se inscrever nesses horários, deverá ser gerenciada manualmente a ocupação das vagas pela equipe da clínica.
+                                    </p>
+                                </div>
+
+                                <Switch
+                                    v-model="form.allow_student_booking"
+                                    :class="[
+                                        form.allow_student_booking ? 'bg-sky-600' : 'bg-gray-300',
+                                        'relative inline-flex h-6 w-11 items-center rounded-full transition'
+                                    ]"
+                                >
+                                    <span
+                                        :class="[
+                                            form.allow_student_booking ? 'translate-x-6' : 'translate-x-1',
+                                            'inline-block h-4 w-4 transform rounded-full bg-white transition'
+                                        ]"
+                                    />
+                                </Switch>
                             </div>
                         </div>
 
@@ -503,8 +527,8 @@ watch(formValidationResult, (val) => {
                                         day.isFiller
                                             ? 'border-transparent bg-transparent'
                                             : day.isPast
-                                              ? 'cursor-not-allowed border-gray-100 bg-gray-100 text-gray-400'
-                                              : day.isSelected
+                                            ? 'cursor-not-allowed border-gray-100 bg-gray-100 text-gray-400'
+                                            : day.isSelected
                                                 ? 'border-sky-600 bg-sky-600 font-semibold text-white'
                                                 : 'border-gray-200 bg-white text-gray-700 hover:border-sky-400 hover:text-sky-700',
                                     ]"

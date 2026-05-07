@@ -255,6 +255,7 @@ class ScheduleSlotService
                     'start_time' => $data['start_time'],
                     'end_time' => $data['end_time'],
                     'available_slots' => $data['available_chairs'] ?? 0,
+                    'allow_student_booking' => $data['allow_student_booking'] ?? false,
                 ]);
             }
 

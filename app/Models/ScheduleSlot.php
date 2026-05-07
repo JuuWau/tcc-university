@@ -18,6 +18,7 @@ class ScheduleSlot extends Model
         'start_time',
         'end_time',
         'available_slots',
+        'allow_student_booking',
     ];
 
     public function university()
