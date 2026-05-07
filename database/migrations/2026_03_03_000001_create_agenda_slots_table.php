@@ -29,6 +29,7 @@ return new class extends Migration
             $table->time('start_time');
             $table->time('end_time');
             $table->unsignedInteger('available_slots');
+            $table->boolean('allow_student_booking')->default(false);
             $table->timestamps();
             $table->softDeletes();
 

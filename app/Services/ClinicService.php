@@ -94,4 +94,17 @@ class ClinicService
             $clinic->delete();
         });
     }
+
+    public function getClinics(?int $universityId)
+    {
+        return Clinic::query()
+            ->when($universityId, fn($q) => $q->where('university_id', $universityId))
+            ->where('active', true)
+            ->orderBy('name')
+            ->get(['id', 'name'])
+            ->map(fn($clinic) => [
+                'id' => $clinic->id,
+                'label' => $clinic->name,
+            ]);
+    }
 }

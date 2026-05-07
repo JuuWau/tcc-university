@@ -20,91 +20,91 @@ defineProps<{
 </script>
 
 <template>
-    <AuthBase
-        title="Log in to your account"
-        description="Enter your email and password below to log in"
-    >
-        <Head title="Log in" />
+    <AuthBase>
+        <Head title="Login" />
 
-        <div
-            v-if="status"
-            class="mb-4 text-center text-sm font-medium text-green-600"
-        >
-            {{ status }}
-        </div>
-
-        <Form
-            v-bind="store.form()"
-            :reset-on-success="['password']"
-            v-slot="{ errors, processing }"
-            class="flex flex-col gap-6"
-        >
-            <div class="grid gap-6">
-                <div class="grid gap-2">
-                    <Label for="email">Email address</Label>
-                    <Input
-                        id="email"
-                        type="email"
-                        name="email"
-                        required
-                        autofocus
-                        :tabindex="1"
-                        autocomplete="email"
-                        placeholder="email@example.com"
-                    />
-                    <InputError :message="errors.email" />
-                </div>
-
-                <div class="grid gap-2">
-                    <div class="flex items-center justify-between">
-                        <Label for="password">Password</Label>
-                        <TextLink
-                            v-if="canResetPassword"
-                            :href="request()"
-                            class="text-sm"
-                            :tabindex="5"
-                        >
-                            Forgot password?
-                        </TextLink>
-                    </div>
-                    <Input
-                        id="password"
-                        type="password"
-                        name="password"
-                        required
-                        :tabindex="2"
-                        autocomplete="current-password"
-                        placeholder="Password"
-                    />
-                    <InputError :message="errors.password" />
-                </div>
-
-                <div class="flex items-center justify-between">
-                    <Label for="remember" class="flex items-center space-x-3">
-                        <Checkbox id="remember" name="remember" :tabindex="3" />
-                        <span>Remember me</span>
-                    </Label>
-                </div>
-
-                <Button
-                    type="submit"
-                    class="mt-4 w-full"
-                    :tabindex="4"
-                    :disabled="processing"
-                    data-test="login-button"
-                >
-                    <Spinner v-if="processing" />
-                    Log in
-                </Button>
-            </div>
-
+        <div class="flex min-h-[70vh] items-center justify-center">
             <div
-                class="text-center text-sm text-muted-foreground"
-                v-if="canRegister"
+                class="w-full max-w-md rounded-2xl border border-zinc-200 bg-white p-8 shadow-xl dark:border-zinc-800 dark:bg-zinc-900"
             >
-                Don't have an account?
-                <TextLink :href="register()" :tabindex="5">Sign up</TextLink>
+                <div class="mb-6 text-center">
+                    <img src="/favicon.png" class="mx-auto mb-3 h-10" />
+
+                    <h1
+                        class="text-2xl font-bold text-zinc-800 dark:text-zinc-100"
+                    >
+                        Bem-vindo de volta
+                    </h1>
+                    <p class="mt-1 text-sm text-zinc-500">
+                        Entre com seu email e senha para continuar
+                    </p>
+                </div>
+
+                <div
+                    v-if="status"
+                    class="mb-4 text-center text-sm font-medium text-green-600"
+                >
+                    {{ status }}
+                </div>
+
+                <Form
+                    :action="store().url"
+                    method="post"
+                    :reset-on-success="['password']"
+                    v-slot="{ errors, processing }"
+                    class="flex flex-col gap-5"
+                >
+                    <div class="grid gap-2">
+                        <Label for="email">Email</Label>
+                        <Input
+                            id="email"
+                            type="email"
+                            name="email"
+                            required
+                            autofocus
+                            autocomplete="email"
+                            placeholder="seu@email.com"
+                            class="h-11 rounded-lg"
+                        />
+                        <InputError :message="errors.email" />
+                    </div>
+
+                    <div class="grid gap-2">
+                        <Label for="password">Senha</Label>
+
+                        <Input
+                            id="password"
+                            type="password"
+                            name="password"
+                            required
+                            autocomplete="current-password"
+                            placeholder="••••••••"
+                            class="h-11 rounded-lg"
+                        />
+
+                        <div class="flex justify-end">
+                            <TextLink
+                                v-if="canResetPassword"
+                                :href="request()"
+                                class="text-xs text-primary hover:underline"
+                            >
+                                Esqueci minha senha
+                            </TextLink>
+                        </div>
+
+                        <InputError :message="errors.password" />
+                    </div>
+
+                    <Button
+                        type="submit"
+                        class="mt-2 h-11 w-full rounded-lg bg-sky-600 text-base font-semibold transition-all hover:scale-[1.02] hover:bg-sky-700"
+                        :disabled="processing"
+                    >
+                        <Spinner v-if="processing" class="mr-2" />
+                        Entrar
+                    </Button>
+                </Form>
             </div>
-        </Form>
+        </div>
     </AuthBase>
 </template>

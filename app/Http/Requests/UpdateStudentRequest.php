@@ -22,7 +22,6 @@ class UpdateStudentRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['sometimes', 'string', 'max:255'],
             'email' => ['required', 'email'],
             'phone' => ['required', 'min:10'],
             'cpf' => [

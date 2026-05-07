@@ -22,7 +22,7 @@ const IconComponent = computed(() => {
         <button
             :id="id"
             type="button"
-            class="me-2 mb-2 flex cursor-pointer items-center rounded bg-blue-400 px-5 py-2 font-medium text-white hover:bg-sky-700 focus:outline-none"
+            class="me-2 mb-2 flex h-9 w-full cursor-pointer items-center rounded-lg bg-sky-600 px-4 py-2 text-sm font-medium text-white hover:bg-sky-700 focus:outline-none"
             @click="emit('click')"
         >
             <component

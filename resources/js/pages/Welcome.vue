@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { dashboard, login, register } from '@/routes';
+import { initialPage, login, register } from '@/routes';
 import { Head, Link } from '@inertiajs/vue3';
 </script>
 
@@ -16,10 +16,10 @@ import { Head, Link } from '@inertiajs/vue3';
             <nav class="flex gap-4">
                 <Link
                     v-if="$page.props.auth.user"
-                    :href="dashboard()"
+                    :href="initialPage()"
                     class="rounded border border-sky-600 px-4 py-2 text-sky-600 hover:bg-sky-50"
                 >
-                    Dashboard
+                    Início
                 </Link>
 
                 <template v-else>
