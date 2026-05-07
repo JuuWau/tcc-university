@@ -27,6 +27,7 @@ class StoreOpenScheduleRequest extends FormRequest
                     ->whereNull('deleted_at')),
             ],
             'available_chairs' => ['nullable', 'integer', 'min:0'],
+            'allow_student_booking' => ['required', 'boolean'],
             'period_id' => ['required', 'integer', 'exists:periods,id'],
             'responsible_id' => ['required', 'integer', 'exists:users,id'],
             'days' => ['required', 'array', 'min:1'],
