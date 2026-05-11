@@ -1,14 +1,14 @@
-import type { OpenClinicScheduleRow } from '@/types/schedule/openClinicSchedules';
+import type { OpenClinicScheduleEnrollmentRow } from '@/types/schedule-enrollment/openClinicSchedulesEnrollment.ts';
 import type { InjectionKey, Ref } from 'vue';
 
 export interface ScheduleSlotEditModal {
     isOpen: Ref<boolean>;
-    row: Ref<OpenClinicScheduleRow | null>;
+    row: Ref<OpenClinicScheduleEnrollmentRow | null>;
 }
 
 export interface ScheduleSlotDeleteModal {
     isOpen: Ref<boolean>;
-    row: Ref<OpenClinicScheduleRow | null>;
+    row: Ref<OpenClinicScheduleEnrollmentRow | null>;
 }
 
 export interface ScheduleSlotCreateModal {
@@ -19,20 +19,14 @@ export interface ScheduleSlotCreateModal {
 
 export interface ScheduleSlotDeleteMultipleModal {
     isOpen: Ref<boolean>;
-    slots: Ref<OpenClinicScheduleRow[]>;
+    slots: Ref<OpenClinicScheduleEnrollmentRow[]>;
 }
 
-export interface ScheduleSlotEditMultipleModal {
+export interface ScheduleSlotEnrollmenrMultipleModal {
     isOpen: Ref<boolean>;
-    slots: Ref<OpenClinicScheduleRow[]>;
+    slots: Ref<OpenClinicScheduleEnrollmentRow[]>;
 }
 
-export interface ScheduleSlotAddStudentsModal {
-    isOpen: Ref<boolean>;
-    slots: Ref<OpenClinicScheduleRow[]>;
-}
-export const ScheduleSlotAddStudentsKey: InjectionKey<ScheduleSlotAddStudentsModal> =
-    Symbol('ScheduleSlotAddStudentsKey');
 export const ScheduleSlotEditKey: InjectionKey<ScheduleSlotEditModal> =
     Symbol('ScheduleSlotEditKey');
 
@@ -45,5 +39,5 @@ export const ScheduleSlotCreateKey: InjectionKey<ScheduleSlotCreateModal> =
 export const ScheduleSlotDeleteMultipleKey: InjectionKey<ScheduleSlotDeleteMultipleModal> =
     Symbol('ScheduleSlotDeleteMultipleKey');
 
-export const ScheduleSlotEditMultipleKey: InjectionKey<ScheduleSlotEditMultipleModal> =
-    Symbol('ScheduleSlotEditMultipleModal');
+export const ScheduleSlotEnrollmentMultipleKey: InjectionKey<ScheduleSlotEnrollmenrMultipleModal> =
+    Symbol('ScheduleSlotEnrollmenrMultipleModal');

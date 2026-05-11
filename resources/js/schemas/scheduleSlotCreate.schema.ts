@@ -13,6 +13,8 @@ export const scheduleSlotCreateSchema = z
         date: z.string().min(1, 'Informe a data.'),
         start_time: z.string().min(1, 'Informe o horário de início.'),
         end_time: z.string().min(1, 'Informe o horário de fim.'),
+        allow_student_enrollment: z.boolean(),
+        allow_student_booking: z.boolean(),
     })
     .refine((data) => data.end_time > data.start_time, {
         message: 'O horário de fim deve ser depois do início.',

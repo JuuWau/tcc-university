@@ -40,6 +40,7 @@ export const openScheduleSchema = z
             .min(1, 'Informe o horário de fim')
             .regex(/^\d{2}:\d{2}$/, 'Horário de fim inválido'),
         allow_student_booking: z.boolean(),
+        allow_student_enrollment: z.boolean(),
     })
     .refine((data) => data.end_time > data.start_time, {
         message: 'Horário de fim deve ser maior que o horário de início',

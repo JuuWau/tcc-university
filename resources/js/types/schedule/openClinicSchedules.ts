@@ -1,6 +1,8 @@
-/** Linha da grade de agendas abertas por clínica (OpenClinicSchedules). */
+
 export interface OpenClinicScheduleRow {
     id: number;
+    clinic_id: number;
+    clinic_name: string;
     date: string;
     start_time: string;
     end_time: string;
@@ -9,6 +11,7 @@ export interface OpenClinicScheduleRow {
     responsible_id: number;
     period_label: string;
     responsible_name: string;
+    enrolled_students_count?: number;
 }
 
 export interface OpenClinicScheduleResponsibleOption {
