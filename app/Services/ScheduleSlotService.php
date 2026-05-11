@@ -2,7 +2,11 @@
 
 namespace App\Services;
 
+use App\Jobs\ProcessDeleteScheduleSlotsJob;
+use App\Jobs\ProcessOpenScheduleJob;
+use App\Models\Appointment;
 use App\Models\Clinic;
+use App\Models\ScheduleEnrollment;
 use App\Models\ScheduleSlot;
 use Illuminate\Support\Facades\DB;
 
@@ -213,9 +217,16 @@ class ScheduleSlotService
             ], JSON_UNESCAPED_UNICODE));
         }
 
-        $days = collect($data['days'])->unique()->sort()->values()->all();
+        $days = collect($data['days'])
+            ->unique()
+            ->sort()
+            ->values()
+            ->all();
 
         return DB::transaction(function () use ($data, $days, $universityId) {
+
+            $created = [];
+
             foreach ($days as $day) {
                 $conflict = $this->findConflict(
                     $universityId,
@@ -242,10 +253,7 @@ class ScheduleSlotService
                         ],
                     ], JSON_UNESCAPED_UNICODE));
                 }
-            }
 
-            $created = [];
-            foreach ($days as $day) {
                 $created[] = ScheduleSlot::create([
                     'university_id' => $universityId,
                     'period_id' => $data['period_id'],
@@ -258,6 +266,8 @@ class ScheduleSlotService
                     'allow_student_booking' => $data['allow_student_booking'] ?? false,
                 ]);
             }
+
+            ProcessOpenScheduleJob::dispatch($created, $data)->afterCommit();
 
             return collect($created)
                 ->sortBy(fn (ScheduleSlot $slot) => sprintf('%s %s', $slot->date, $slot->start_time))
@@ -338,20 +348,24 @@ class ScheduleSlotService
 
     public function deleteSlot(ScheduleSlot $slot, int $universityId): void
     {
-        if ($slot->university_id !== $universityId) {
-            throw new \DomainException(json_encode([
-                'message' => 'Agenda não encontrada.',
-            ], JSON_UNESCAPED_UNICODE));
-        }
-
-        $slot->delete();
+        ProcessDeleteScheduleSlotsJob::dispatch([$slot->id])
+        ->afterCommit();
     }
 
-    public function deleteMultipleSlots(array $ids, $universityId)
+    public function deleteMultipleSlots(array $ids, int $universityId): void
     {
-        ScheduleSlot::whereIn('id', $ids)
+        $slotIds = ScheduleSlot::query()
+            ->whereIn('id', $ids)
             ->where('university_id', $universityId)
-            ->delete();
+            ->pluck('id')
+            ->toArray();
+
+        if (empty($slotIds)) {
+            return;
+        }
+
+        ProcessDeleteScheduleSlotsJob::dispatch($slotIds)
+            ->afterCommit();
     }
 
     private function findConflict(
