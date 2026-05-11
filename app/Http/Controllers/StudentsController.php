@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\ActivateStudentRequest;
 use App\Http\Requests\DeactivateStudentRequest;
+use App\Http\Requests\OptionsStudentRequest;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\UpdateStudentAcademicDataRequest;
 use App\Http\Requests\UpdateStudentRequest;
@@ -163,5 +164,15 @@ class StudentsController extends Controller
         return response()->json([
             'message' => 'Convite reenviado com sucesso',
         ]);
+    }
+
+    public function options(OptionsStudentRequest $request)
+    {
+        $students = $this->studentService->options(
+            $request->period_id,
+            $request->user()->university_id
+        );
+
+        return response()->json($students);
     }
 }
