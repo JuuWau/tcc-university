@@ -19,6 +19,12 @@ return new class extends Migration
             $table->foreignId('student_id')
                 ->constrained()
                 ->cascadeOnDelete();
+            $table->enum('status', [
+                'active',
+                'cancelled',
+                'missed',
+                'attended',
+            ])->default('active');
             $table->timestamps();
             $table->softDeletes();
 
