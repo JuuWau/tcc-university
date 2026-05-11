@@ -24,6 +24,7 @@ const emit = defineEmits<{
     (e: 'remove', slot: OpenClinicScheduleRow): void;
     (e: 'removeMultiple', slots: OpenClinicScheduleRow[]): void;
     (e: 'editMultiple', slots: OpenClinicScheduleRow[]): void;
+    (e: 'addStudents', slots: OpenClinicScheduleRow[]): void;
 }>();
 
 const hasPeriodSelected = computed(() => !!form.period_id);
@@ -183,6 +184,7 @@ const columnDefs = [
         cellRendererParams: {
             onEdit: (row: OpenClinicScheduleRow) => emit('edit', row),
             onRemove: (row: OpenClinicScheduleRow) => emit('remove', row),
+            onAddStudents: (slots: OpenClinicScheduleRow[]) => emit('addStudents', slots),
         },
     },
 ];
@@ -266,7 +268,7 @@ const defaultColDef = {
             <div class="flex h-full flex-col justify-end gap-2">
                 <Button
                     variant="outline"
-                    class="flex w-full items-center justify-center gap-2"
+                    class="flex w-full items-center justify-center gap-2 cursor-pointer"
                     @click="clearFilters"
                 >
                     <X class="h-4 w-4" />
@@ -320,7 +322,8 @@ const defaultColDef = {
                     :defaultColDef="defaultColDef"
                     :components="{ OpenClinicSchedulesActionsButtons }"
                     rowSelection="multiple"
-                    :rowMultiSelectWithClick="true"
+                    :rowMultiSelectWithClick="false"
+                    :suppressRowClickSelection="true"
                     @selection-changed="onSelectionChanged"
                     @grid-ready="onGridReady"
                 />

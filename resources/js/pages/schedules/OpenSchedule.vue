@@ -13,7 +13,7 @@ import type {
 } from '@/types/schedule/openSchedule';
 import { usePage } from '@inertiajs/vue3';
 import Multiselect from '@vueform/multiselect';
-import axios from 'axios';
+import axios, { all } from 'axios';
 import { computed, provide, reactive, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 import { formatDateBr } from '@/src/utils/formatters';
@@ -74,6 +74,7 @@ const form = reactive({
     start_time: '',
     end_time: '',
     allow_student_booking: false,
+    allow_student_enrollment: false,
 });
 
 const monthLabel = computed(() =>
@@ -169,6 +170,7 @@ const formValidationResult = computed(() =>
         start_time: form.start_time,
         end_time: form.end_time,
         allow_student_booking: form.allow_student_booking,
+        allow_student_enrollment: form.allow_student_enrollment,
     }),
 );
 
@@ -331,6 +333,7 @@ async function submit() {
         clinic_id: result.data.clinic_id,
         available_chairs: result.data.available_chairs,
         allow_student_booking: result.data.allow_student_booking,
+        allow_student_enrollment: result.data.allow_student_enrollment,
         period_id: result.data.period_id,
         responsible_id: result.data.responsible_id,
         days: [...result.data.days].sort((a, b) => a.localeCompare(b)),
@@ -416,7 +419,7 @@ async function submit() {
                                     class="w-full rounded border border-gray-300 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                                 />
                             </div>
-                            <div class="md:col-span-2 flex items-center justify-between rounded-md border border-gray-200 px-3 py-2">
+                            <div class="md:col-span-2 flex items-center justify-between gap-4 rounded-md border border-gray-200 px-3 py-3">
                                 <div>
                                     <p class="text-sm font-medium text-gray-700">
                                         Permitir inscrição de alunos
@@ -430,12 +433,38 @@ async function submit() {
                                     v-model="form.allow_student_booking"
                                     :class="[
                                         form.allow_student_booking ? 'bg-sky-600' : 'bg-gray-300',
-                                        'relative inline-flex h-6 w-11 items-center rounded-full transition'
+                                        'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition'
                                     ]"
                                 >
                                     <span
                                         :class="[
                                             form.allow_student_booking ? 'translate-x-6' : 'translate-x-1',
+                                            'inline-block h-4 w-4 transform rounded-full bg-white transition'
+                                        ]"
+                                    />
+                                </Switch>
+                            </div>
+
+                            <div class="md:col-span-2 flex items-center justify-between gap-4 rounded-md border border-gray-200 px-3 py-3">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">
+                                        Ativar incrição de alunos do período automaticamente para os horarios selecionados
+                                    </p>
+                                    <p class="text-xs text-gray-500">
+                                        Se ativo, os alunos do período selecionado serão inscritos automaticamente em todos os horários que abrirem para a clínica nessa página, sem necessidade de inscrição manual, se for necessário edição ou cancelamento de inscrição desses alunos, isso deverá ser feito manualmente pela equipe da clínica.
+                                    </p>
+                                </div>
+
+                                <Switch
+                                    v-model="form.allow_student_enrollment"
+                                    :class="[
+                                        form.allow_student_enrollment ? 'bg-sky-600' : 'bg-gray-300',
+                                        'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition'
+                                    ]"
+                                >
+                                    <span
+                                        :class="[
+                                            form.allow_student_enrollment ? 'translate-x-6' : 'translate-x-1',
                                             'inline-block h-4 w-4 transform rounded-full bg-white transition'
                                         ]"
                                     />
@@ -522,15 +551,15 @@ async function submit() {
                                     :key="day.key"
                                     type="button"
                                     :disabled="day.isFiller || day.isPast"
-                                    class="flex h-10 items-center justify-center rounded-md border text-sm transition"
+                                    class="flex h-10 items-center justify-center rounded-md border text-sm transition cursor-pointer"
                                     :class="[
                                         day.isFiller
                                             ? 'border-transparent bg-transparent'
                                             : day.isPast
                                             ? 'cursor-not-allowed border-gray-100 bg-gray-100 text-gray-400'
                                             : day.isSelected
-                                                ? 'border-sky-600 bg-sky-600 font-semibold text-white'
-                                                : 'border-gray-200 bg-white text-gray-700 hover:border-sky-400 hover:text-sky-700',
+                                                ? 'border-sky-600 bg-sky-600 font-semibold text-white cursor-pointer'
+                                                : 'border-gray-200 bg-white text-gray-700 hover:border-sky-400  hover:text-sky-700',
                                     ]"
                                     @click="toggleDay(day)"
                                 >
@@ -627,11 +656,11 @@ async function submit() {
                         </div>
 
                         <div class="mt-2 flex flex-wrap gap-2">
-                            <Button variant="outline" @click="clearSelection">
+                            <Button variant="outline" class="cursor-pointer" @click="clearSelection">
                                 Limpar seleção
                             </Button>
                             <Button
-                                class="flex items-center justify-center gap-2 bg-sky-600 text-white"
+                                class="flex items-center justify-center gap-2 bg-sky-600 cursor-pointer text-white"
                                 :disabled="!isFormReady || loading"
                                 @click="submit"
                             >
