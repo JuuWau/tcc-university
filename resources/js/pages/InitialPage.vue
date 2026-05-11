@@ -6,7 +6,7 @@ import { Head } from '@inertiajs/vue3';
 const breadcrumbs: BreadcrumbItem[] = [
     {
         title: 'Bem-vindo',
-        href: initialPage().url,
+        href: initialPage(),
     },
 ];
 </script>
