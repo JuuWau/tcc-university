@@ -9,13 +9,15 @@
                         <ScheduleSlotCreateModal />
                         <ScheduleSlotDeleteMultipleModal />
                         <ScheduleSlotsEditModal />
+                        <ScheduleSlotAddStudentsModal />
 
                         <OpenClinicSchedulesTable
                             @edit="onEditSlot"
                             @remove="onRemoveSlot"
-                            @remove-multiple="onRemoveMultipleSlots"
+                            @removeMultiple="onRemoveMultipleSlots"
                             @create="onRegisterNewDay"
-                            @edit-multiple="onEditMultipleSlots"
+                            @editMultiple="onEditMultipleSlots"
+                            @addStudents="onAddStudentsToSlots"
                         />
                     </div>
                 </div>
@@ -31,6 +33,7 @@ import {
     ScheduleSlotDeleteMultipleKey,
     ScheduleSlotEditMultipleKey,
     ScheduleSlotEditKey,
+    ScheduleSlotAddStudentsKey
 } from '@/keys/schedules/scheduleSlotKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -40,6 +43,7 @@ import ScheduleSlotEditModal from '@/pages/schedules/components/ScheduleSlotEdit
 import ScheduleSlotsEditModal from '@/pages/schedules/components/ScheduleSlotsEditModal.vue';
 import ScheduleSlotDeleteMultipleModal from '@/pages/schedules/components/ScheduleSlotsDeleteModal.vue';
 import OpenClinicSchedulesTable from '@/pages/schedules/OpenClinicSchedulesTable.vue';
+import ScheduleSlotAddStudentsModal from '@/pages/schedules/components/ScheduleSlotAddStudentsModal.vue';
 import type { OpenClinicScheduleRow } from '@/types/schedule/openClinicSchedules';
 import { provide, ref } from 'vue';
 
@@ -71,11 +75,17 @@ const editMultipleModal = {
     slots: ref<OpenClinicScheduleRow[]>([]),
 };
 
+const addStudentsModal = {
+    isOpen: ref(false),
+    slots: ref<OpenClinicScheduleRow[]>([]),
+};
+
 provide(ScheduleSlotEditKey, editModal);
 provide(ScheduleSlotDeleteKey, deleteModal);
 provide(ScheduleSlotCreateKey, createModal);
 provide(ScheduleSlotDeleteMultipleKey, deleteMultipleModal);
 provide(ScheduleSlotEditMultipleKey, editMultipleModal);
+provide(ScheduleSlotAddStudentsKey, addStudentsModal);
 provide(LoadingKey, loading);
 
 function onEditSlot(row: OpenClinicScheduleRow) {
@@ -102,5 +112,10 @@ function onRemoveMultipleSlots(slots: OpenClinicScheduleRow[]) {
 function onEditMultipleSlots(slots: OpenClinicScheduleRow[]) {
     editMultipleModal.slots.value = slots;
     editMultipleModal.isOpen.value = true;
+}
+
+function onAddStudentsToSlots(slots: OpenClinicScheduleRow[]) {
+    addStudentsModal.slots.value = slots;
+    addStudentsModal.isOpen.value = true;
 }
 </script>

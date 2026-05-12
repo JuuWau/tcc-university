@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import type { OpenClinicScheduleRow } from '@/types/schedule/openClinicSchedules';
-import { Pencil, Trash2 } from 'lucide-vue-next';
+import { Pencil, Trash2, UserPlus } from 'lucide-vue-next';
 
 const props = defineProps<{
     params: {
         data?: OpenClinicScheduleRow;
         onEdit?: (row: OpenClinicScheduleRow) => void;
         onRemove?: (row: OpenClinicScheduleRow) => void;
+        onAddStudents?: (slots: OpenClinicScheduleRow[]) => void;
     };
 }>();
 
@@ -19,6 +20,12 @@ function remove() {
     if (!props.params.data) return;
     props.params.onRemove?.(props.params.data);
 }
+
+function addStudents() {
+    if (!props.params.data) return;
+    props.params.onAddStudents?.([props.params.data]);
+}
+
 </script>
 
 <template>
@@ -34,6 +41,12 @@ function remove() {
             :size="18"
             title="Excluir agenda"
             @click="remove"
+        />
+        <UserPlus
+            class="cursor-pointer text-green-500 hover:text-green-700"
+            :size="18"
+            title="Adicionar estudantes"
+            @click="addStudents"
         />
     </div>
 </template>

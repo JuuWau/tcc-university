@@ -51,17 +51,17 @@ class StudentService
                                 'user.invite:id,user_id,used_at,expires_at,token',
                                 'periods:id,academic_year,semester,calendar_year',
                         ])
-                        ->when($universityId, fn ($q) => $q->where('university_id', $universityId));
+                        ->when($universityId, fn($q) => $q->where('university_id', $universityId));
 
                 if ($status === 'pending') {
                         $query->whereNull('students.deleted_at')
-                                ->whereHas('user.invite', fn ($q) => $q->whereNull('used_at'));
+                                ->whereHas('user.invite', fn($q) => $q->whereNull('used_at'));
                 } elseif ($status === 'active') {
                         $query->whereNull('students.deleted_at')
                                 ->where(function ($q) {
                                         $q->whereDoesntHave('user')
                                                 ->orWhereDoesntHave('user.invite')
-                                                ->orWhereHas('user.invite', fn ($q) => $q->whereNotNull('used_at'));
+                                                ->orWhereHas('user.invite', fn($q) => $q->whereNotNull('used_at'));
                                 });
                 } elseif ($status === 'inactive') {
                         $query->whereNotNull('students.deleted_at');
@@ -358,5 +358,35 @@ class StudentService
                 Mail::to($student->user->email)->send(
                         new UserInviteMail($invite)
                 );
+        }
+
+        public function options(int $periodId, int $universityId)
+        {
+                return Student::query()
+                        ->with([
+                                'person:id,name',
+                        ])
+                        ->when($universityId, function ($query) use ($universityId) {
+                                $query->where('university_id', $universityId);
+                        })
+                        ->when($periodId, function ($query) use ($periodId) {
+                                $query->whereHas('periods', function ($q) use ($periodId) {
+                                        $q->where('periods.id', $periodId)
+                                                ->where('student_periods.is_current', true);
+                                });
+                        })
+                        ->orderBy('registration')
+                        ->get([
+                                'id',
+                                'registration',
+                                'person_id',
+                        ])
+                        ->map(function ($student) {
+                                return [
+                                        'value' => $student->id,
+                                        'label' => "{$student->registration} - {$student->person?->name}",
+                                ];
+                        })
+                        ->values();
         }
 }

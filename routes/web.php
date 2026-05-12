@@ -54,6 +54,9 @@ Route::prefix('schedule-enrollment')->group(function () {
     Route::put('multiple-slots', [ScheduleEnrollmentController::class, 'updateMultipleSlots'])->name('schedules.enrollment.slots.multiple.update');
     Route::delete('slots/{slot}', [ScheduleEnrollmentController::class, 'destroySlot'])->name('schedules.enrollment.slots.destroy');
     Route::delete('multiple-slots', [ScheduleEnrollmentController::class, 'destroyMultipleSlots'])->name('schedules.enrollment.slots.multiple.destroy');
+    Route::post('enroll', [ScheduleEnrollmentController::class, 'store'])->name('schedules.enrollment.store');
+    Route::get('slots/{slot}/students', [ScheduleEnrollmentController::class, 'slotStudents'])->name('schedules.enrollment.slots.students');
+    Route::delete('slots/{slot}/students/{student}', [ScheduleEnrollmentController::class, 'removeStudentFromSlot'])->name('schedules.enrollment.slots.students.destroy');
 });
 
 Route::get('/reports/appointments', function () {
@@ -109,6 +112,7 @@ Route::prefix('students')->group(function () {
     Route::get('/create', [StudentsController::class, 'create'])->name('students.create');
     Route::post('/', [StudentsController::class, 'store'])->name('students.store');
     Route::post('/resend-invite/{student}', [StudentsController::class, 'resendInvite'])->name('students.resend-invite');
+    Route::get('/options', [StudentsController::class, 'options'])->name('students.options');
     Route::get('/{student}', [StudentsController::class, 'show'])->name('students.show');
     Route::delete('/{student}', [StudentsController::class, 'destroy'])->name('students.destroy');
     Route::delete('/deactivate/{student}', [StudentsController::class, 'deactivate'])->name('students.deactivate');

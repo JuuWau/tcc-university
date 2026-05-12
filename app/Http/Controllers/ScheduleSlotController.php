@@ -210,6 +210,8 @@ class ScheduleSlotController extends Controller
                 'days' => [$data['date']],
                 'start_time' => $data['start_time'],
                 'end_time' => $data['end_time'],
+                'allow_student_enrollment' => $data['allow_student_enrollment'],
+                'allow_student_booking' => $data['allow_student_booking'],
             ], $universityId);
         } catch (\DomainException $e) {
             $payload = json_decode($e->getMessage(), true);

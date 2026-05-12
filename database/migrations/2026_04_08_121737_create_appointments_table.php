@@ -28,7 +28,7 @@ return new class extends Migration
                 ->nullOnDelete();
             $table->dateTime('scheduled_at');
             $table->enum('status', [
-               ' scheduled',
+                'scheduled',
                 'confirmed',
                 'completed',
                 'canceled',
