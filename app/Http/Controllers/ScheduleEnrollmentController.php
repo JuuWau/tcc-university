@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Http\Requests\EnrollMultipleSlotsRequest;
+use App\Http\Requests\EnrollSlotRequest;
 use App\Http\Requests\RemoveStudentFromSlotRequest;
 use App\Http\Requests\SlotStudentsRequest;
 use App\Http\Requests\StoreStudentsToScheduleEnrollmentRequest;
@@ -69,25 +71,35 @@ class ScheduleEnrollmentController extends Controller
     public function clinicOpenSchedulesEnrollment(Request $request, Clinic $clinic)
     {
         $universityId = $request->user()?->university_id;
+
         if (! $universityId || $clinic->university_id !== $universityId) {
             abort(404);
         }
-        
+
+        $studentId = $request->user()?->student?->id;
+
         $periodId = $request->integer('period_id') ?: null;
         $date = $request->input('date');
-        
+
         $payload = $this->scheduleSlotService->listOpenSchedulesForClinic(
             $universityId,
             $clinic->id,
             $periodId,
-            $date ?: null
+            $date ?: null,
+            $studentId,
         );
 
         return Inertia::render('schedules-enrollment/OpenClinicSchedulesEnrollment', [
-            'clinic' => $payload['clinic'] ?? ['id' => $clinic->id, 'name' => $clinic->name],
+            'clinic' => $payload['clinic'] ?? [
+                'id' => $clinic->id,
+                'name' => $clinic->name,
+            ],
+
             'periods' => $payload['periods'] ?? [],
             'slots' => $payload['slots'] ?? [],
+
             'responsible' => $this->userService->getResponsible($universityId),
+
             'filters' => [
                 'period_id' => $periodId,
                 'date' => $date,
@@ -112,6 +124,54 @@ class ScheduleEnrollmentController extends Controller
 
         return response()->json([
             'message' => 'Aluno removido com sucesso'
+        ]);
+    }
+
+    public function enrollMultipleSlots(EnrollMultipleSlotsRequest $request): JsonResponse 
+    {
+        $user = $request->user();
+
+        $studentId = $user?->student?->id;
+        $universityId = $user?->university_id;
+
+        if (! $studentId || ! $universityId) {
+            return response()->json([
+                'message' => 'Aluno não encontrado.'
+            ], 422);
+        }
+
+        $this->scheduleEnrollmentService->enrollMultipleSlots(
+            $request->slot_ids,
+            $studentId,
+            $universityId
+        );
+
+        return response()->json([
+            'message' => 'Inscrição realizada com sucesso.'
+        ]);
+    }
+
+    public function enrollSlot(EnrollSlotRequest $request): JsonResponse
+    {
+        $user = $request->user();
+
+        $studentId = $user?->student?->id;
+        $universityId = $user?->university_id;
+
+        if (! $studentId || ! $universityId) {
+            return response()->json([
+                'message' => 'Aluno não encontrado.'
+            ], 422);
+        }
+
+        $this->scheduleEnrollmentService->enrollSlot(
+            $request->slot_id,
+            $studentId,
+            $universityId
+        );
+
+        return response()->json([
+            'message' => 'Inscrição realizada com sucesso.'
         ]);
     }
 }
