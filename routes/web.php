@@ -51,10 +51,11 @@ Route::prefix('schedule-enrollment')->group(function () {
     Route::get('open-clinic/{clinic}', [ScheduleEnrollmentController::class, 'clinicOpenSchedulesEnrollment'])->name('schedules.enrollment.openClinic.show');
     Route::post('open-clinics/{clinic}', [ScheduleEnrollmentController::class, 'storeOpenClinicDay'])->name('schedules.enrollment.openClinics.storeDay');
     Route::patch('slots/{slot}', [ScheduleEnrollmentController::class, 'updateSlot'])->name('schedules.enrollment.slots.update');
-    Route::put('multiple-slots', [ScheduleEnrollmentController::class, 'updateMultipleSlots'])->name('schedules.enrollment.slots.multiple.update');
+    Route::post('multiple-slots', [ScheduleEnrollmentController::class, 'enrollMultipleSlots'])->name('schedules.enrollment.slots.enrollment.multiple');
     Route::delete('slots/{slot}', [ScheduleEnrollmentController::class, 'destroySlot'])->name('schedules.enrollment.slots.destroy');
     Route::delete('multiple-slots', [ScheduleEnrollmentController::class, 'destroyMultipleSlots'])->name('schedules.enrollment.slots.multiple.destroy');
     Route::post('enroll', [ScheduleEnrollmentController::class, 'store'])->name('schedules.enrollment.store');
+    Route::post('student-enroll',[ScheduleEnrollmentController::class, 'enrollSlot'])->name('schedules.enrollment.enrollSlot');
     Route::get('slots/{slot}/students', [ScheduleEnrollmentController::class, 'slotStudents'])->name('schedules.enrollment.slots.students');
     Route::delete('slots/{slot}/students/{student}', [ScheduleEnrollmentController::class, 'removeStudentFromSlot'])->name('schedules.enrollment.slots.students.destroy');
 });
