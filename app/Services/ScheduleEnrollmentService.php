@@ -82,4 +82,70 @@ class ScheduleEnrollmentService
         Appointment::where('schedule_enrollment_id', $enrollment->id)
                 ->delete();
         }
+
+        public function enrollMultipleSlots(array $slotIds, int $studentId, int $universityId ): void 
+        {
+                $slots = ScheduleSlot::query()
+                        ->where('university_id', $universityId)
+                        ->whereIn('id', $slotIds)
+                        ->get();
+
+                foreach ($slots as $slot) {
+
+                        if (! $slot->allow_student_booking) {
+                        continue;
+                        }
+
+                        $alreadyEnrolled = ScheduleEnrollment::withTrashed()
+                                ->where('schedule_slot_id', $slot->id)
+                                ->where('student_id', $studentId)
+                                ->first();
+
+                        if ($alreadyEnrolled) {
+
+                        if ($alreadyEnrolled->trashed()) {
+                                $alreadyEnrolled->restore();
+                        }
+
+                        continue;
+                        }
+
+                        ScheduleEnrollment::create([
+                                'schedule_slot_id' => $slot->id,
+                                'student_id' => $studentId,
+                                'status' => ScheduleEnrollment::STATUS_ACTIVE,
+                        ]);
+                }
+        }
+
+        public function enrollSlot(int $slotId, int $studentId, int $universityId): void 
+        {
+                $slot = ScheduleSlot::query()
+                        ->where('university_id', $universityId)
+                        ->where('id', $slotId)
+                        ->first();
+
+                if (! $slot) {
+                        return;
+                }
+
+                if (! $slot->allow_student_booking) {
+                        return;
+                }
+
+                $alreadyEnrolled = ScheduleEnrollment::query()
+                        ->where('schedule_slot_id', $slot->id)
+                        ->where('student_id', $studentId)
+                        ->exists();
+
+                if ($alreadyEnrolled) {
+                        return;
+                }
+
+                ScheduleEnrollment::create([
+                        'schedule_slot_id' => $slot->id,
+                        'student_id' => $studentId,
+                        'status' => ScheduleEnrollment::STATUS_ACTIVE,
+                ]);
+        }
 }

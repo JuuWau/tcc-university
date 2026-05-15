@@ -16,7 +16,8 @@ class ScheduleSlotService
         int $universityId,
         int $clinicId,
         ?int $periodId = null,
-        ?string $date = null
+        ?string $date = null,
+        ?int $studentId = null,
     ): array {
         $clinic = Clinic::query()
             ->where('university_id', $universityId)
@@ -57,6 +58,11 @@ class ScheduleSlotService
                 'period:id,calendar_year,semester,academic_year',
                 'responsible.person:id,user_id,name',
             ])
+            ->withExists([
+                'enrollments as is_enrolled' => fn ($query) => $query
+                    ->where('student_id', $studentId)
+                    ->where('status', 'active')
+            ])
             ->orderBy('date')
             ->orderBy('start_time')
             ->get()
@@ -66,11 +72,15 @@ class ScheduleSlotService
                 'start_time' => $slot->start_time,
                 'end_time' => $slot->end_time,
                 'available_slots' => $slot->available_slots,
+                'allow_student_booking' => (bool) $slot->allow_student_booking,
+                'is_enrolled' => (bool) $slot->is_enrolled,
                 'period_id' => $slot->period_id,
                 'responsible_id' => $slot->responsible_id,
+
                 'period_label' => $slot->period
                     ? "{$slot->period->calendar_year}/{$slot->period->semester} - {$slot->period->academic_year}º ano"
                     : '—',
+
                 'responsible_name' => $slot->responsible?->person?->name ?? '—',
             ])
             ->toArray();
