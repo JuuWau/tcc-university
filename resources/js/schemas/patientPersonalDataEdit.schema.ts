@@ -14,6 +14,13 @@ export const patientPersonalDataEditSchema = z.object({
             .min(1, 'Nome é obrigatório')
             .max(255, 'Nome não pode ter mais de 255 caracteres'),
     ),
+    patient_type: z.preprocess(
+        normalizeOptionalString,
+        z.enum(['adulto', 'pediatria'], {
+            required_error: 'Tipo do paciente é obrigatório',
+            invalid_type_error: 'Tipo do paciente inválido',
+        }),
+    ),
     email: z.preprocess(
         normalizeOptionalString,
         z

@@ -153,7 +153,6 @@ const columnDefs = [
         },
     },
 ];
-console.log(UserTableActionsButtons);
 
 const defaultColDef = {
     flex: 1,

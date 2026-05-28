@@ -8,6 +8,7 @@
                         <PatientDeactivateModal />
                         <PatientDeleteModal />
                         <PatientActivateModal />
+                        <PatientsImportModal />
 
                         <PatientsTable
                             @create="openCreateModal"
@@ -15,6 +16,7 @@
                             @deactivate="openDeactivateModal"
                             @activate="openActivateModal"
                             @delete="openDeleteModal"
+                            @import="openImportModal"
                         />
                     </div>
                 </div>
@@ -29,6 +31,7 @@ import {
     PatientCreateKey,
     PatientDeactivateKey,
     PatientDeleteKey,
+    PatientsImportKey,
     RefreshTableKey,
 } from '@/keys/patients/patientKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
@@ -41,6 +44,7 @@ import PatientsTable from '@/pages/patients/PatientsTable.vue';
 import type { PatientWithInvite } from '@/types/patient/patient';
 import { router } from '@inertiajs/vue3';
 import { provide, ref } from 'vue';
+import PatientsImportModal from '@/pages/patients/components/PatientsImportModal.vue';
 
 const loading = ref(false);
 const refreshTableRef = ref<(() => void) | null>(null);
@@ -58,12 +62,16 @@ const activateModal = {
     isOpen: ref(false),
     patient: ref<PatientWithInvite | null>(null),
 };
+const importModal = {
+    isOpen: ref(false),
+};
 
 provide(RefreshTableKey, refreshTableRef);
 provide(PatientCreateKey, createModal);
 provide(PatientDeactivateKey, deactivateModal);
 provide(PatientDeleteKey, deleteModal);
 provide(PatientActivateKey, activateModal);
+provide(PatientsImportKey, importModal);
 provide(LoadingKey, loading);
 
 function openCreateModal() {
@@ -88,4 +96,9 @@ function openActivateModal(patient: PatientWithInvite) {
     activateModal.patient.value = patient;
     activateModal.isOpen.value = true;
 }
+
+function openImportModal() {
+    importModal.isOpen.value = true;
+}
+
 </script>

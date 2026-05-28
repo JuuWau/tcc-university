@@ -45,6 +45,8 @@ class Patient extends Model
         'phone',
         'email',
         'status',
+        'code',
+        'patient_type',
     ];
 
     public function university()
@@ -60,5 +62,19 @@ class Patient extends Model
     public function student()
     {
         return $this->belongsTo(Student::class);
+    }
+
+    public function patientStudents()
+    {
+        return $this->hasMany(PatientStudent::class);
+    }
+
+    public function students()
+    {
+        return $this->belongsToMany(
+            Student::class,
+            'patient_students'
+        )->withTimestamps()
+        ->wherePivotNull('deleted_at');
     }
 }

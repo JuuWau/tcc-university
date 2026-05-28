@@ -30,7 +30,8 @@ const studentOptions = computed(() =>
 );
 
 const form = reactive({
-    student_id: null as number | null,
+    code: '',
+    student_ids: [] as number[],
     status: 'ativo' as PatientStatusKey,
 });
 
@@ -42,8 +43,8 @@ watch(
     () => editStudentModalOpen.value,
     (isOpen) => {
         if (isOpen && patient.value) {
-            form.student_id =
-                patient.value.student_id ?? patient.value.student?.id ?? null;
+            form.code = patient.value.code ?? '';
+            form.student_ids = patient.value.student_ids || [];
             form.status = (patient.value.status ?? 'ativo') as PatientStatusKey;
         }
     },
@@ -57,7 +58,8 @@ async function submit() {
     if (loading.value) return;
 
     const result = patientStudentEditSchema.safeParse({
-        student_id: form.student_id,
+        code: form.code,
+        student_ids: form.student_ids,
         status: form.status,
     });
     if (!result.success) {
@@ -71,8 +73,9 @@ async function submit() {
         await axios.patch<{ message: string; patient: PatientForTab }>(
             `/patients/${id}/student-data`,
             {
-                student_id: result.data.student_id,
+                student_ids: result.data.student_ids,
                 status: result.data.status,
+                code: result.data.code,
             },
         );
         toast.success('Estudante e status atualizados com sucesso');
@@ -99,21 +102,35 @@ async function submit() {
         <div
             class="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg bg-white p-6"
         >
-            <h2 class="mb-4 text-lg font-bold">Editar estudante do paciente</h2>
+            <h2 class="mb-4 text-lg font-bold">Editar</h2>
             <hr />
 
             <form class="space-y-4 pt-4" @submit.prevent="submit">
                 <div>
                     <label class="mb-1 block text-sm font-medium text-gray-700">
-                        Estudante
+                        Código do paciente (*)
+                    </label>
+                    <input
+                        id="code"
+                        type="text"
+                        v-model="form.code"
+                        maxlength="20"
+                        class="w-full rounded border px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+                        placeholder="Código do paciente"
+                    />
+                </div>
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">
+                        Estudantes
                     </label>
                     <Multiselect
-                        v-model="form.student_id"
+                        v-model="form.student_ids"
                         :options="studentOptions"
+                        mode="tags"
                         label="label"
                         value-prop="value"
                         :searchable="true"
-                        :close-on-select="true"
+                        :close-on-select="false"
                         :can-clear="true"
                         :append-to-body="true"
                         placeholder="Selecione o estudante (opcional)"

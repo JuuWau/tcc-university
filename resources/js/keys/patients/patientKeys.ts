@@ -39,6 +39,10 @@ export interface PatientTabContext {
     students: ComputedRef<StudentOption[]> | Ref<StudentOption[]>;
 }
 
+export interface PatientsImportModal {
+    isOpen: Ref<boolean>;
+}
+
 export const PatientTabContextKey: InjectionKey<PatientTabContext> = Symbol('PatientTabContextKey');
 
 export const PatientCreateKey: InjectionKey<PatientCreateModal> = Symbol('PatientCreateKey');
@@ -47,3 +51,4 @@ export const PatientDeactivateKey: InjectionKey<PatientDeactivateModal> = Symbol
 export const PatientViewKey: InjectionKey<PatientViewModal> = Symbol('PatientViewKey');
 export const PatientDeleteKey: InjectionKey<PatientDeleteModal> = Symbol('PatientDeleteKey');
 export const PatientActivateKey: InjectionKey<PatientActivateModal> = Symbol('PatientActivateKey');
+export const PatientsImportKey: InjectionKey<PatientsImportModal> = Symbol('PatientsImportKey');

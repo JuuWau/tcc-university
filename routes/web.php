@@ -5,6 +5,7 @@ use App\Http\Controllers\PeriodsController;
 use App\Http\Controllers\ProceduresController;
 use App\Http\Controllers\ClinicController;
 use App\Http\Controllers\ConfirmAppointmentController;
+use App\Http\Controllers\ScheduleAttendanceController;
 use App\Http\Controllers\ScheduleEnrollmentController;
 use App\Http\Controllers\ScheduleSlotController;
 use App\Http\Controllers\SpecialtiesController;
@@ -59,6 +60,10 @@ Route::prefix('schedule-enrollment')->group(function () {
     Route::get('slots/{slot}/students', [ScheduleEnrollmentController::class, 'slotStudents'])->name('schedules.enrollment.slots.students');
     Route::delete('slots/{slot}/students/{student}', [ScheduleEnrollmentController::class, 'removeStudentFromSlot'])->name('schedules.enrollment.slots.students.destroy');
 });
+
+Route::prefix('schedule-attendance')->group(function () {
+    Route::get('schedule-attendance', [ScheduleAttendanceController::class, 'index'])->name('schedule.attendance.index');
+})->middleware(['auth', 'verified'])->name('schedule-attendance');
 
 Route::get('/reports/appointments', function () {
     return Inertia::render('reports/AppointmentsReportMock');
@@ -123,7 +128,9 @@ Route::prefix('students')->group(function () {
 Route::prefix('patients')->group(function () {
     Route::get('/', [PatientController::class, 'index'])->name('patients.index');
     Route::get('/table', [PatientController::class, 'table'])->name('patients.table');
-    Route::get('/{patient}', [PatientController::class, 'show'])->name('patients.show');
+    Route::post('/import', [PatientController::class, 'import'])->name('patients.import');
+    Route::get('/imports/{import}', [PatientController::class, 'importStatus'])->name('patients.import.status');
+    Route::get('/{patient}', [PatientController::class, 'show'])->name('patients.show')->whereNumber('patient');
     Route::post('/', [PatientController::class, 'store'])->name('patients.store');
     Route::patch('/{patient}', [PatientController::class, 'update'])->name('patients.update');
     Route::patch('/{patient}/student', [PatientController::class, 'updateStudent'])->name('patients.update.student');

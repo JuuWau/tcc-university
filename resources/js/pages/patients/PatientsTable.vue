@@ -11,6 +11,7 @@ import type {
 import { AgGridVue } from 'ag-grid-vue3';
 import axios from 'axios';
 import { computed, inject, onMounted, ref, watch } from 'vue';
+import ImportExcelButton from '@/components/buttons/ImportExcelButton.vue';
 
 const emit = defineEmits([
     'create',
@@ -18,6 +19,7 @@ const emit = defineEmits([
     'deactivate',
     'activate',
     'delete',
+    'import',
 ]);
 
 type StatusFilter = 'all' | PatientStatusKey;
@@ -120,6 +122,14 @@ function goToPage(p: number) {
 
 const columnDefs = [
     {
+        headerName: 'Código',
+        colId: 'code',
+        field: 'code',
+        flex: 2,
+        sortable: true,
+        filter: true,
+    },
+    {
         headerName: 'Nome',
         colId: 'name',
         field: 'name',
@@ -136,12 +146,52 @@ const columnDefs = [
         valueGetter: (params: any) => params.data?.email ?? '—',
     },
     {
-        headerName: 'Estudante',
-        colId: 'student',
-        flex: 1,
-        sortable: true,
+        headerName: 'Estudantes',
+        colId: 'students',
+        flex: 2,
+        sortable: false,
         filter: true,
-        valueGetter: (params: any) => params.data?.student?.name ?? '—',
+        autoHeight: true,
+
+        valueGetter: (params: any) => {
+            const students = params.data?.students ?? [];
+
+            return students
+                .map((student: any) => student.name)
+                .join(', ');
+        },
+
+        cellRenderer: (params: any) => {
+            const students = params.data?.students ?? [];
+
+            if (!students.length) {
+                return '—';
+            }
+
+            return `
+                <div class="flex flex-wrap gap-1 py-1">
+                    ${students
+                        .map(
+                            (student: any) => `
+                                <span
+                                    class="
+                                        rounded-full
+                                        bg-sky-100
+                                        px-2
+                                        py-0.5
+                                        text-xs
+                                        font-medium
+                                        text-sky-700
+                                    "
+                                >
+                                    ${student.name}
+                                </span>
+                            `,
+                        )
+                        .join('')}
+                </div>
+            `;
+        },
     },
     {
         headerName: 'Status',
@@ -191,12 +241,16 @@ const defaultColDef = {
                 </p>
             </div>
 
-            <CreateButton
-                label="Novo Paciente"
-                icon="Plus"
-                class="w-full sm:w-auto"
-                @click="$emit('create')"
-            />
+            <div class="flex gap-2">
+                <ImportExcelButton @click="$emit('import')" />
+
+                <CreateButton
+                    label="Novo Paciente"
+                    icon="Plus"
+                    class="w-full sm:w-auto"
+                    @click="$emit('create')"
+                />
+            </div>
         </div>
         <div class="overflow-x-auto">
             <div

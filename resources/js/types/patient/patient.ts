@@ -46,11 +46,13 @@ export interface PatientWithInvite {
 export interface PatientForTab {
     id: number;
     university_id: number;
-    student_id: number;
+    student_ids: number[];
+    code: string;
     name: string;
     cpf: string | null;
     birth_date: string | null;
-    phone: string | null;
+    patient_type: 'adulto' | 'pediatria';
+    phone: string | null;   
     email: string | null;
     status?: PatientStatusKey;
     created_at?: string;

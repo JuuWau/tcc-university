@@ -15,6 +15,7 @@ use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Ramsey\Collection\Collection;
 
 class StudentService
 {
@@ -388,5 +389,20 @@ class StudentService
                                 ];
                         })
                         ->values();
+        }
+
+        public function getOptionsByUniversity(?int $universityId)
+        {
+        return Student::query()
+                ->when(
+                $universityId,
+                fn($query) => $query->where(
+                        'university_id',
+                        $universityId
+                )
+                )
+                ->with('person:id,name')
+                ->orderBy('id')
+                ->get();
         }
 }
