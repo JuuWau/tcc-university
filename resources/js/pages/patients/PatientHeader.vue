@@ -19,10 +19,14 @@
                 class="mt-2 flex flex-wrap items-center gap-x-6 gap-y-1 text-sm text-gray-500"
             >
                 <span>
+                    <strong class="font-medium text-gray-700">Código:</strong>
+                    {{ patient?.code ?? '—' }}
+                </span>
+                <span>
                     <strong class="font-medium text-gray-700"
-                        >Estudante:</strong
+                        >Estudantes:</strong
                     >
-                    {{ patient?.student?.name ?? '—' }}
+                    {{ patient?.students?.map((s) => s.name).join(', ') ?? '—' }}
                 </span>
                 <span>
                     <strong class="font-medium text-gray-700">Status:</strong>
@@ -41,7 +45,7 @@
                 @click="openEditStudentModal"
             >
                 <Pencil class="mr-2 h-4 w-4" />
-                Editar estudante
+                Editar
             </Button>
 
             <div class="relative w-full sm:w-auto">
