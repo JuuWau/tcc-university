@@ -5,6 +5,7 @@ import { PeriodCreateKey, PeriodsGroupKey } from '@/keys/periods/periodKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import { periodSchema } from '@/schemas/period.schema';
 import { usePage } from '@inertiajs/vue3';
+import Multiselect from '@vueform/multiselect';
 import axios from 'axios';
 import { inject, onMounted, reactive, ref } from 'vue';
 import { toast } from 'vue3-toastify';

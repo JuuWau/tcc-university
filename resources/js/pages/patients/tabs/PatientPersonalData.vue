@@ -62,6 +62,14 @@
                     {{ birthDate }}
                 </p>
             </div>
+            <div>
+                <p class="text-xs tracking-wide text-gray-400 uppercase">
+                    Tipo de atendimento
+                </p>
+                <p class="mt-1 text-sm font-medium text-gray-900">
+                    {{ formatPatientType(patient?.patient_type) }}
+                </p>
+            </div>
         </div>
 
         <div
@@ -143,6 +151,20 @@ const { patient, editPersonalDataModalOpen } = ctx;
 
 function openEditModal() {
     editPersonalDataModalOpen.value = true;
+}
+
+
+function formatPatientType(type: string | null) {
+    switch (type) {
+        case 'adulto':
+            return 'Adulto';
+
+        case 'pediatria':
+            return 'Pediatria';
+
+        default:
+            return '-';
+    }
 }
 
 const birthDate = computed(() => {
