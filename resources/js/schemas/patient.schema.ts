@@ -7,6 +7,13 @@ const normalizeOptionalString = (value: unknown) => {
 };
 
 export const patientCreateSchema = z.object({
+    code: z.preprocess(
+        (value) => (typeof value === 'string' ? value.trim() : value),
+        z
+            .string()
+            .min(1, 'Código é obrigatório')
+            .max(50, 'Código não pode ter mais de 50 caracteres'),
+    ),
     name: z.preprocess(
         (value) => (typeof value === 'string' ? value.trim() : value),
         z
@@ -23,12 +30,10 @@ export const patientCreateSchema = z.object({
             .optional()
             .nullable(),
     ),
-    student_id: z
-        .number({
+    student_ids: z.array(z.number({
             invalid_type_error: 'Estudante inválido',
-        })
-        .int('Estudante inválido')
-        .positive('Estudante inválido')
+        }))
+        .min(0, 'Estudante inválido')
         .optional()
         .nullable(),
     cpf: z.preprocess(
@@ -71,6 +76,12 @@ export const patientCreateSchema = z.object({
         normalizeOptionalString,
         z.string().max(50, 'Complemento não pode ter mais de 50 caracteres').optional().nullable(),
     ),
+    patient_type: z
+        .enum(['adulto', 'pediatria'])
+        .nullable()
+        .refine((value) => value !== null, {
+            message: 'Tipo do paciente é obrigatório',
+        }),
 });
 
 export type PatientCreateForm = z.infer<typeof patientCreateSchema>;

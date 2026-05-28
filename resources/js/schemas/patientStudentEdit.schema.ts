@@ -1,7 +1,12 @@
 import { z } from 'zod';
 
 export const patientStudentEditSchema = z.object({
-    student_id: z.number().int().positive().nullable(),
+    code: z
+        .string()
+        .trim()
+        .min(1, 'Código do paciente é obrigatório')
+        .max(20, 'Código não pode ter mais de 20 caracteres'),
+    student_ids: z.number().array().min(0).nullable(),
     status: z.enum([
         'ativo',
         'inativo',
