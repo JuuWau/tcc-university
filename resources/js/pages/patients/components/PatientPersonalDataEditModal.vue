@@ -21,6 +21,11 @@ if (!context) {
 const patient = computed(() => context.patient.value);
 const editPersonalDataModalOpen = context.editPersonalDataModalOpen;
 
+const patientTypeOptions = [
+    { label: 'Adulto', value: 'adulto' },
+    { label: 'Pediatria', value: 'pediatria' },
+];
+
 const emit = defineEmits<{
     updated: [];
 }>();
@@ -44,6 +49,7 @@ const form = reactive({
     phone: '',
     cpf: '',
     birth_date: '',
+    patient_type: null as 'adulto' | 'pediatria' | null,
     cep: '',
     street: '',
     neighborhood: '',
@@ -72,6 +78,7 @@ function populateForm() {
     form.cep = addr?.cep ?? '';
     form.street = addr?.street ?? '';
     form.neighborhood = addr?.neighborhood ?? '';
+    form.patient_type = p?.patient_type ?? null;
     form.number = addr?.number ?? '';
     form.complement = addr?.complement ?? null;
     form.city = addr?.city ?? '';
@@ -139,6 +146,7 @@ async function submit() {
         phone: form.phone,
         cpf: form.cpf,
         birth_date: form.birth_date,
+        patient_type: form.patient_type,
         cep: form.cep,
         street: form.street,
         neighborhood: form.neighborhood,
@@ -178,7 +186,7 @@ async function submit() {
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
     >
         <div
-            class="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-6"
+            class="max-h-[90vh] w-full max-w-2xl rounded-lg bg-white p-6"
         >
             <h2 class="mb-4 text-lg font-bold">Editar dados do paciente</h2>
             <hr />
@@ -186,11 +194,10 @@ async function submit() {
             <form class="space-y-4 pt-4" @submit.prevent="submit">
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
+                        <label class="mb-1 block text-sm font-medium text-gray-700">
                             Nome completo (*)
                         </label>
+
                         <input
                             v-model="form.name"
                             type="text"
@@ -199,12 +206,12 @@ async function submit() {
                             placeholder="Nome completo"
                         />
                     </div>
+
                     <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            E-mail (*)
+                        <label class="mb-1 block text-sm font-medium text-gray-700">
+                            E-mail
                         </label>
+
                         <input
                             v-model="form.email"
                             type="email"
@@ -219,7 +226,7 @@ async function submit() {
                         <label
                             class="mb-1 block text-sm font-medium text-gray-700"
                         >
-                            Telefone (*)
+                            Telefone
                         </label>
                         <input
                             v-model="form.phone"
@@ -233,7 +240,7 @@ async function submit() {
                         <label
                             class="mb-1 block text-sm font-medium text-gray-700"
                         >
-                            CPF (*)
+                            CPF
                         </label>
                         <input
                             v-model="form.cpf"
@@ -253,6 +260,24 @@ async function submit() {
                         v-model="form.birth_date"
                         type="date"
                         class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+                    />
+                </div>
+
+                <div>
+                    <label class="mb-1 block text-sm font-medium text-gray-700">
+                        Tipo de atendimento (*)
+                    </label>
+
+                    <Multiselect
+                        v-model="form.patient_type"
+                        :options="patientTypeOptions"
+                        label="label"
+                        value-prop="value"
+                        :searchable="false"
+                        :close-on-select="true"
+                        :can-clear="false"
+                        :append-to-body="true"
+                        placeholder="Selecione o tipo"
                     />
                 </div>
 

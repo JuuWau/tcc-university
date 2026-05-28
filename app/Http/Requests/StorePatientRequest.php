@@ -18,9 +18,11 @@ class StorePatientRequest extends FormRequest
     public function rules(): array
     {
         return [
+            'code' => ['required', 'string', 'max:50', Rule::unique('patients', 'code')],
             'name' => ['required', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
-            'student_id' => ['nullable', 'integer', 'exists:students,id'],
+            'student_ids' => ['nullable', 'array', 'exists:students,id'],
+            'student_ids.*' => ['integer', 'exists:students,id'],
             'cpf' => ['nullable', 'string', 'max:14', Rule::unique('patients', 'cpf')],
             'phone' => ['nullable', 'string', 'max:20'],
             'birth_date' => ['nullable', 'date'],
@@ -31,6 +33,7 @@ class StorePatientRequest extends FormRequest
             'city' => ['nullable', 'string', 'max:50'],
             'state' => ['nullable', 'string', 'max:2'],
             'complement' => ['nullable', 'string', 'max:50'],
+            'patient_type' => ['required', 'string', 'max:50'],
         ];
     }
 

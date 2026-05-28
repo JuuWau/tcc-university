@@ -48,7 +48,9 @@ class Student extends Model
 
     public function patients()
     {
-        return $this->belongsToMany(Patient::class)
-            ->withTimestamps();
+        return $this->belongsToMany(
+            Patient::class,
+            'patient_students'
+        )->wherePivotNull('deleted_at');
     }
 }

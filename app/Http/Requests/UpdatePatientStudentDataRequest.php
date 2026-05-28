@@ -17,7 +17,9 @@ class UpdatePatientStudentDataRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'student_id' => ['nullable', 'integer', 'exists:students,id'],
+            'code' => ['required', 'string', 'max:20'],
+            'student_ids' => ['nullable', 'array'],
+            'student_ids.*' => ['integer', 'exists:students,id'],
             'status' => ['required', 'string', 'in:ativo,inativo,tratamento,pausa_tratamento,abandono,concluido,transferencia'],
         ];
     }

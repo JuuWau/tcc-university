@@ -22,6 +22,7 @@ class UpdatePatientRequest extends FormRequest
         $patientId = $patient instanceof Patient ? $patient->id : $patient;
 
         return [
+            'code' => ['sometimes', 'string', 'max:50', Rule::unique('patients', 'code')->ignore($patientId)],
             'name' => ['sometimes', 'string', 'max:255'],
             'email' => ['nullable', 'email', 'max:255'],
             'phone' => ['nullable', 'string', 'max:20'],
@@ -34,6 +35,7 @@ class UpdatePatientRequest extends FormRequest
             'city' => ['nullable', 'string', 'max:50'],
             'state' => ['nullable', 'string', 'max:2'],
             'complement' => ['nullable', 'string', 'max:50'],
+            'patient_type' => ['sometimes', 'string', 'max:50'],
         ];
     }
 

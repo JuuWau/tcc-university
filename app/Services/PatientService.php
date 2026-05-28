@@ -24,7 +24,7 @@ class PatientService
                 ?int $universityId = null
         ): LengthAwarePaginator {
                 $query = Patient::withTrashed()
-                        ->with(['student.person', 'address'])
+                        ->with(['students.person', 'address'])
                         ->when($universityId, fn($q) => $q->where('university_id', $universityId));
 
                 $query->whereNull('patients.deleted_at');
@@ -43,14 +43,15 @@ class PatientService
                 return $query->paginate($perPage, ['patients.*'], 'page', $page);
         }
 
-        public function find(int $id, ?int $universityId = null): array
+        public function find(int $id, ?int $universityId = null): Patient
         {
-                $patient = Patient::withTrashed()
-                        ->with(['student.person', 'address'])
-                        ->when($universityId, fn($q) => $q->where('university_id', $universityId))
-                        ->findOrFail($id);
-
-                return $this->formatForTab($patient);
+        return Patient::withTrashed()
+                ->with(['students.person', 'address'])
+                ->when(
+                $universityId,
+                fn($q) => $q->where('university_id', $universityId)
+                )
+                ->findOrFail($id);
         }
 
         public function create(array $data, int $universityId): Patient
@@ -60,16 +61,32 @@ class PatientService
                 }
 
                 return DB::transaction(function () use ($data, $universityId) {
+
                         $patient = Patient::create([
                                 'university_id' => $universityId,
-                                'student_id' => $data['student_id'] ?? null,
                                 'name' => $data['name'],
                                 'cpf' => $data['cpf'] ?? null,
                                 'birth_date' => $data['birth_date'] ?? null,
                                 'phone' => $data['phone'] ?? null,
                                 'email' => $data['email'] ?? null,
                                 'status' => $data['status'] ?? Patient::STATUS_ATIVO,
+                                'code' => $data['code'],
+                                'patient_type' => $data['patient_type'],
                         ]);
+
+                        if (! empty($data['student_ids'])) {
+
+                                $patient->students()->attach(
+                                        collect($data['student_ids'])
+                                                ->mapWithKeys(fn($id) => [
+                                                        $id => [
+                                                                'created_at' => now(),
+                                                                'updated_at' => now(),
+                                                        ]
+                                                ])
+                                                ->toArray()
+                                );
+                        }
 
                         $addressData = [
                                 'cep' => $data['cep'] ?? null,
@@ -80,16 +97,21 @@ class PatientService
                                 'state' => $data['state'] ?? null,
                                 'complement' => $data['complement'] ?? null,
                         ];
+
                         $hasAddress = collect($addressData)->filter()->isNotEmpty();
+
                         if ($hasAddress) {
                                 $patient->address()->create($addressData);
                         }
 
-                        return $patient->load(['student.person', 'address']);
+                        return $patient->load([
+                                'students.person',
+                                'address',
+                        ]);
                 });
         }
 
-        public function update(int $id, array $data, ?int $universityId = null): array
+        public function update(int $id, array $data, ?int $universityId = null): Patient
         {
                 $patient = Patient::withTrashed()
                         ->when($universityId, fn($q) => $q->where('university_id', $universityId))
@@ -102,6 +124,7 @@ class PatientService
                                 'phone' => $data['phone'] ?? $patient->phone,
                                 'cpf' => $data['cpf'] ?? $patient->cpf,
                                 'birth_date' => isset($data['birth_date']) ? $data['birth_date'] : $patient->birth_date,
+                                'patient_type' => $data['patient_type'] ?? $patient->patient_type,
                         ];
                         if (array_key_exists('status', $data) && in_array($data['status'], Patient::statuses(), true)) {
                                 $update['status'] = $data['status'];
@@ -125,10 +148,13 @@ class PatientService
                         }
                 });
 
-                return $this->formatForTab($patient->fresh(['student.person', 'address']));
+                return $patient->fresh([
+                        'students.person',
+                        'address',
+                ]);
         }
 
-        public function updateStudent(int $id, ?int $studentId, ?int $universityId = null): array
+        public function updateStudent(int $id, ?int $studentId, ?int $universityId = null): Patient
         {
                 $patient = Patient::withTrashed()
                         ->when($universityId, fn($q) => $q->where('university_id', $universityId))
@@ -136,7 +162,10 @@ class PatientService
 
                 $patient->update(['student_id' => $studentId]);
 
-                return $this->formatForTab($patient->fresh(['student.person', 'address']));
+                return $patient->fresh([
+                        'students.person',
+                        'address',
+                ]);
         }
 
         public function deactivate(int $id, ?int $universityId = null): void
@@ -159,24 +188,81 @@ class PatientService
                 }
         }
 
-        public function updateStudentData(int $id, ?int $studentId, string $status, ?int $universityId = null): array
+        public function updateStudentData(int $id, array $studentIds, string $status, string $code,?int $universityId = null): Patient
         {
                 if (! in_array($status, Patient::statuses(), true)) {
                         throw new \InvalidArgumentException('Status inválido');
                 }
 
                 $patient = Patient::withTrashed()
-                        ->when($universityId, fn($q) => $q->where('university_id', $universityId))
+                        ->when(
+                                $universityId,
+                                fn($q) => $q->where('university_id', $universityId)
+                        )
                         ->findOrFail($id);
 
-                DB::transaction(function () use ($patient, $studentId, $status) {
+                DB::transaction(function () use (
+                        $patient,
+                        $studentIds,
+                        $status,
+                        $code
+                ) {
+
                         $patient->update([
-                                'student_id' => $studentId,
                                 'status' => $status,
+                                'code' => $code,
                         ]);
+
+                        $currentIds = $patient->students()
+                                ->pluck('students.id')
+                                ->toArray();
+
+                        $toRemove = array_diff($currentIds, $studentIds);
+                        $toAdd = array_diff($studentIds, $currentIds);
+
+                        if (! empty($toRemove)) {
+                                DB::table('patient_students')
+                                        ->where('patient_id', $patient->id)
+                                        ->whereIn('student_id', $toRemove)
+                                        ->update([
+                                                'deleted_at' => now(),
+                                                'updated_at' => now(),
+                                        ]);
+                        }
+
+                        foreach ($toAdd as $studentId) {
+
+                                $existing = DB::table('patient_students')
+                                        ->where('patient_id', $patient->id)
+                                        ->where('student_id', $studentId)
+                                        ->first();
+
+                                if ($existing) {
+
+                                        DB::table('patient_students')
+                                                ->where('patient_id', $patient->id)
+                                                ->where('student_id', $studentId)
+                                                ->update([
+                                                        'deleted_at' => null,
+                                                        'updated_at' => now(),
+                                                ]);
+                                } else {
+
+                                        DB::table('patient_students')
+                                                ->insert([
+                                                        'patient_id' => $patient->id,
+                                                        'student_id' => $studentId,
+                                                        'created_at' => now(),
+                                                        'updated_at' => now(),
+                                                ]);
+                                }
+                        }
                 });
 
-                return $this->formatForTab($patient->fresh(['student.person', 'address']));
+                return $patient->fresh([
+                        'students.person',
+                        'address',
+                ]);
         }
 
         public function destroy(int $id, ?int $universityId = null): void
@@ -186,40 +272,5 @@ class PatientService
                         ->findOrFail($id);
 
                 $patient->forceDelete();
-        }
-
-        /**
-         * Format patient for table or tab (student as { id, name }).
-         */
-        public function formatForTab(Patient $patient): array
-        {
-                $student = null;
-                if ($patient->relationLoaded('student') && $patient->student) {
-                        $student = [
-                                'id' => $patient->student->id,
-                                'name' => $patient->student->person?->name ?? '—',
-                        ];
-                }
-
-                $item = $patient->toArray();
-                $item['student'] = $student;
-
-                if ($patient->relationLoaded('address') && $patient->address) {
-                        $item['address'] = $patient->address->toArray();
-                }
-
-                return $item;
-        }
-
-        /**
-         * Format paginated items for table.
-         */
-        public function formatPaginatedItems(LengthAwarePaginator $paginator): array
-        {
-                $items = collect($paginator->items())->map(function (Patient $patient) {
-                        return $this->formatForTab($patient);
-                })->all();
-
-                return $items;
         }
 }

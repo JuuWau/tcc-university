@@ -6,28 +6,33 @@ use App\Http\Requests\StorePatientRequest;
 use App\Http\Requests\UpdatePatientStudentDataRequest;
 use App\Http\Requests\UpdatePatientStudentRequest;
 use App\Http\Requests\UpdatePatientRequest;
+use App\Http\Resources\PatientCollection;
+use App\Http\Resources\PatientResource;
+use App\Http\Resources\StudentOptionResource;
+use App\Models\PatientImport;
+use App\Imports\PatientsImport;
 use App\Models\Student;
 use App\Services\PatientService;
+use App\Services\StudentService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Maatwebsite\Excel\Facades\Excel;
+use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class PatientController extends Controller
 {
     public function __construct(
-        protected PatientService $patientService
+        protected PatientService $patientService,
+        protected StudentService $studentService
     ) {}
 
     public function index(Request $request)
     {
         $universityId = $request->user()?->university_id;
-        $students = Student::when($universityId, fn($q) => $q->where('university_id', $universityId))
-            ->with('person:id,name')
-            ->orderBy('id')
-            ->get()
-            ->map(fn($s) => ['id' => $s->id, 'name' => $s->person?->name ?? '—']);
+        $students = $this->studentService->getOptionsByUniversity($universityId);
 
         return Inertia::render('patients/PatientsIndex', [
-            'students' => $students,
+            'students' => StudentOptionResource::collection($students)->resolve(),
         ]);
     }
 
@@ -41,50 +46,27 @@ class PatientController extends Controller
             'status' => ['sometimes', 'string', 'in:all,ativo,inativo,tratamento,pausa_tratamento,abandono,concluido,transferencia'],
         ]);
 
-        $page = $validated['page'] ?? 1;
-        $perPage = $validated['per_page'] ?? 15;
-        $sortField = $validated['sort_field'] ?? 'created_at';
-        $sortDir = $validated['sort_dir'] ?? 'desc';
-        $status = $validated['status'] ?? 'all';
-
         $paginator = $this->patientService->paginate(
-            $page,
-            $perPage,
-            $sortField,
-            $sortDir,
-            $status,
+            $validated['page'] ?? 1,
+            $validated['per_page'] ?? 15,
+            $validated['sort_field'] ?? 'created_at',
+            $validated['sort_dir'] ?? 'desc',
+            $validated['status'] ?? 'all',
             $request->user()?->university_id
         );
 
-        $data = $this->patientService->formatPaginatedItems($paginator);
-
-        return response()->json([
-            'data' => $data,
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'last_page' => $paginator->lastPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'from' => $paginator->firstItem(),
-                'to' => $paginator->lastItem(),
-            ],
-        ]);
+        return new PatientCollection($paginator);
     }
 
     public function show(Request $request, int $patient)
     {
         $universityId = $request->user()?->university_id;
-        $patientData = $this->patientService->find($patient, $universityId);
-
-        $students = Student::when($universityId, fn($q) => $q->where('university_id', $universityId))
-            ->with('person:id,name')
-            ->orderBy('id')
-            ->get()
-            ->map(fn($s) => ['id' => $s->id, 'name' => $s->person?->name ?? '—']);
+        $patient = $this->patientService->find($patient, $universityId);
+        $students = $this->studentService->getOptionsByUniversity($universityId);
 
         return Inertia::render('patients/PatientTab', [
-            'patient' => $patientData,
-            'students' => $students,
+            'patient' => PatientResource::make($patient)->resolve(),
+            'students' => StudentOptionResource::collection($students)->resolve(),
         ]);
     }
 
@@ -99,9 +81,8 @@ class PatientController extends Controller
 
         $patient = $this->patientService->create($validated, $universityId);
 
-        return response()->json([
+        return PatientResource::make($patient)->additional([
             'message' => 'Paciente cadastrado com sucesso',
-            'patient' => $this->patientService->formatForTab($patient),
         ]);
     }
 
@@ -109,15 +90,14 @@ class PatientController extends Controller
     {
         $validated = $request->validated();
 
-        $patientData = $this->patientService->update(
+        $patient = $this->patientService->update(
             $patient,
             $validated,
             $request->user()?->university_id
         );
 
-        return response()->json([
+        return PatientResource::make($patient)->additional([
             'message' => 'Dados atualizados com sucesso',
-            'patient' => $patientData,
         ]);
     }
 
@@ -125,15 +105,14 @@ class PatientController extends Controller
     {
         $validated = $request->validated();
 
-        $patientData = $this->patientService->updateStudent(
+        $patient = $this->patientService->updateStudent(
             $patient,
             isset($validated['student_id']) ? (int) $validated['student_id'] : null,
             $request->user()?->university_id
         );
 
-        return response()->json([
+        return PatientResource::make($patient)->additional([
             'message' => 'Estudante atualizado com sucesso',
-            'patient' => $patientData,
         ]);
     }
 
@@ -141,16 +120,16 @@ class PatientController extends Controller
     {
         $validated = $request->validated();
 
-        $patientData = $this->patientService->updateStudentData(
+        $patient = $this->patientService->updateStudentData(
             $patient,
-            isset($validated['student_id']) ? (int) $validated['student_id'] : null,
+            $validated['student_ids'] ?? [],
             $validated['status'],
+            $validated['code'],
             $request->user()?->university_id
         );
 
-        return response()->json([
-            'message' => 'Estudante e status atualizados com sucesso',
-            'patient' => $patientData,
+        return PatientResource::make($patient)->additional([
+            'message' => 'Estudantes e status atualizados com sucesso',
         ]);
     }
 
@@ -178,6 +157,57 @@ class PatientController extends Controller
 
         return response()->json([
             'message' => 'Paciente excluído com sucesso',
+        ]);
+    }
+
+    public function import(Request $request)
+    {
+        $request->validate([
+            'file' => ['required', 'file', 'mimes:xlsx,xls,csv'],
+        ]);
+
+        $path = $request->file('file')->store('imports');
+
+        $import = PatientImport::create([
+            'user_id' => auth()->id(),
+            'file' => $path,
+            'status' => 'processing',
+        ]);
+
+        $fullPath = storage_path('app/private/' . $path);
+
+        $reader = IOFactory::createReaderForFile($fullPath);
+
+        $spreadsheet = $reader->load($fullPath);
+
+        $sheetNames = $spreadsheet->getSheetNames();
+
+        $spreadsheet->disconnectWorksheets();
+
+        unset($spreadsheet);
+
+        Excel::queueImport(
+            new PatientsImport(
+                $import,
+                $request->user()?->university_id,
+                $sheetNames,
+            ),
+            $fullPath
+        );
+
+        return response()->json([
+            'message' => 'Importação iniciada', 
+            'import_id' => $import->id,
+        ]);
+    }
+
+    public function importStatus(PatientImport $import)
+    {
+        return response()->json([
+            'status' => $import->status,
+            'imported' => $import->imported,
+            'failed' => $import->failed,
+            'errors' => $import->errors ?? [],
         ]);
     }
 }

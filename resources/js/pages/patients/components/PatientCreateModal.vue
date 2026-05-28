@@ -20,6 +20,10 @@ const page = usePage();
 const viaCep = ViaCep();
 const states = ref<Uf[]>([]);
 const cities = ref<City[]>([]);
+const patientTypeOptions = [
+    { label: 'Adulto', value: 'adulto' },
+    { label: 'Pediatria', value: 'pediatria' },
+];
 
 const students = computed(
     () => (page.props as { students?: StudentOption[] }).students ?? [],
@@ -40,9 +44,10 @@ if (!createModal) {
 const modal = createModal;
 
 const form = reactive({
-    name: '',
+    code: '' as string | null,
+    name: '' as string | null,
     email: '' as string | null,
-    student_id: null as number | null,
+    student_ids: [] as number[],
     cpf: '' as string | null,
     phone: '' as string | null,
     birth_date: '' as string | null,
@@ -53,6 +58,7 @@ const form = reactive({
     complement: null as string | null,
     city: '' as string | null,
     state: '' as string | null,
+    patient_type: null as 'adulto' | 'pediatria' | null,
 });
 
 watch(
@@ -104,9 +110,10 @@ watch(
 
 function close() {
     modal.isOpen.value = false;
+    form.code = '';
     form.name = '';
     form.email = null;
-    form.student_id = null;
+    form.student_ids = [];
     form.cpf = null;
     form.phone = null;
     form.birth_date = null;
@@ -117,6 +124,7 @@ function close() {
     form.complement = null;
     form.city = null;
     form.state = null;
+    form.patient_type = null;
 }
 
 async function submit() {
@@ -161,6 +169,23 @@ async function submit() {
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
                         <label
+                            for="patient-code"
+                            class="mb-2 block text-sm font-medium text-gray-700"
+                        >
+                            Código (*)
+                        </label>
+                        <input
+                            id="patient-code"
+                            v-model="form.code"
+                            type="text"
+                            maxlength="50"
+                            class="w-full rounded border px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+                            placeholder="Código do paciente"
+                        />
+                    </div>
+
+                    <div>
+                        <label
                             for="patient-name"
                             class="mb-2 block text-sm font-medium text-gray-700"
                         >
@@ -175,22 +200,24 @@ async function submit() {
                             placeholder="Nome do paciente"
                         />
                     </div>
-                    <div>
-                        <label
-                            for="patient-email"
-                            class="mb-2 block text-sm font-medium text-gray-700"
-                        >
-                            Email
-                        </label>
-                        <input
-                            id="patient-email"
-                            v-model="form.email"
-                            type="email"
-                            maxlength="255"
-                            class="w-full rounded border px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                            placeholder="email@exemplo.com"
-                        />
-                    </div>
+                </div>
+
+                <div>
+                    <label
+                        for="patient-email"
+                        class="mb-2 block text-sm font-medium text-gray-700"
+                    >
+                        Email
+                    </label>
+
+                    <input
+                        id="patient-email"
+                        v-model="form.email"
+                        type="email"
+                        maxlength="255"
+                        class="w-full rounded border px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+                        placeholder="email@exemplo.com"
+                    />
                 </div>
 
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -225,7 +252,7 @@ async function submit() {
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 gap-4 pb-4 md:grid-cols-2">
+                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
                         <label
                             class="mb-2 block text-sm font-medium text-gray-700"
@@ -238,22 +265,43 @@ async function submit() {
                             class="w-full rounded border px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                         />
                     </div>
+
+                    <div>
+                        <label class="mb-2 block text-sm font-medium text-gray-700">
+                            Tipo de atendimento (*)
+                        </label>
+
+                        <Multiselect
+                            v-model="form.patient_type"
+                            :options="patientTypeOptions"
+                            label="label"
+                            value-prop="value"
+                            :searchable="false"
+                            :close-on-select="true"
+                            :can-clear="false"
+                            :append-to-body="true"
+                            placeholder="Selecione o tipo"
+                        />
+                    </div>
+                </div>
+                <div class="grid grid-cols-1 gap-4 pb-4 md:grid-cols-1">
                     <div>
                         <label
                             class="mb-2 block text-sm font-medium text-gray-700"
                         >
-                            Estudante
+                            Estudantes
                         </label>
                         <Multiselect
-                            v-model="form.student_id"
+                            v-model="form.student_ids"
                             :options="studentsOptions"
+                            mode="tags"
                             label="label"
                             value-prop="value"
                             :append-to-body="true"
                             :searchable="true"
-                            :close-on-select="true"
+                            :close-on-select="false"
                             :can-clear="true"
-                            placeholder="Escolha o estudante"
+                            placeholder="Escolha os estudantes"
                         />
                     </div>
                 </div>

@@ -25,6 +25,8 @@ return new class extends Migration
             $table->date('birth_date')->nullable();
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
+            $table->string('patient_type');
+            $table->string('code')->unique();
             $table->string('status', 30)->default('ativo');
             $table->softDeletes();
             $table->timestamps();
