@@ -139,6 +139,31 @@
   --ms-tag-remove: hsl(201 94% 37%);
 }
 
+.fc-timegrid-col {
+  background-color: #eff6ff;
+}
+
+.fc-timegrid-slot {
+  background-color: #ffffff;
+}
+
+.fc {
+  background-color: #f9fafb;
+}
+
+.fc-timegrid-slot {
+  background-color: #ffffff;
+}
+
+.fc-theme-standard td,
+.fc-theme-standard th {
+  border-color: #e5e7eb;
+}
+
+.fc-timegrid-col {
+  background-color: #f3f4f6;
+}
+
 .multiselect {
     @apply w-full rounded border px-3;
     border-color: theme('colors.gray.300');

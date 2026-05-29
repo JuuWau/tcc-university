@@ -1,0 +1,92 @@
+<script setup lang="ts">
+import type { MonthDay } from '@/types/student/studentSchedule';
+import { StudentScheduleContextKey, type StudentScheduleContext } from '@/keys/students/studentScheduleKeys';
+import { inject, computed } from 'vue';
+
+const schedule = inject(StudentScheduleContextKey) as StudentScheduleContext;
+
+
+if (!schedule) {
+    throw new Error('StudentScheduleCalendar must be used inside StudentScheduleTab');
+}
+
+const weekDays = ['D', 'S', 'T', 'Q', 'Q', 'S', 'S'];
+
+const visibleMonths = computed(() => schedule.visibleMonths?.value || []);
+const selectedDate = computed(() => schedule.selectedDate?.value);
+
+function getDayClass(day: MonthDay) {
+    if (selectedDate.value === day.date) {
+        return 'bg-sky-600 text-white';
+    }
+    return 'bg-sky-100 text-sky-700 hover:bg-sky-200';
+}
+
+function selectDay(day: MonthDay) {
+    schedule.selectDay(day);
+}
+
+const openDays = computed(() => schedule.openDays?.value ?? []);
+console.log('openDays', openDays.value);
+console.log('sample day', visibleMonths.value?.[0]?.days?.[10]?.date);
+function isOpenDay(date: string) {
+    return openDays.value.includes(date);
+}
+</script>
+
+<template>
+    <div class="grid grid-cols-1 gap-4 xl:grid-cols-3">
+        <div
+            v-for="month in visibleMonths"
+            :key="month.month"
+            class="rounded-2xl border border-gray-100 bg-gray-50 p-4"
+        >
+            <div
+                class="mb-4 flex items-center justify-between border-b border-gray-200 pb-3"
+            >
+                <h3 class="text-sm font-semibold capitalize text-gray-800">
+                    {{ month.label }}
+                </h3>
+
+                <span
+                    class="rounded-md bg-white px-2 py-1 text-xs text-gray-500"
+                >
+                    {{ month.days.length }} dias
+                </span>
+            </div>
+
+            <div class="grid grid-cols-7 gap-1 text-center text-xs">
+                <div
+                    v-for="d in weekDays"
+                    :key="d"
+                    class="pb-2 font-semibold text-gray-400"
+                >
+                    {{ d }}
+                </div>
+
+                <div
+                    v-for="day in month.days"
+                    :key="day.date"
+                    class="flex h-10 items-center justify-center rounded-lg text-sm font-medium transition"
+                    :class="
+                        day.day === 0
+                            ? 'pointer-events-none invisible'
+                            : selectedDate === null
+                                ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
+                                : isOpenDay(day.date)
+                                    ? getDayClass(day)
+                                    : 'bg-gray-100 text-gray-300 cursor-not-allowed'
+                    "
+                    @click="
+                        day.day !== 0 &&
+                        selectedDate !== null &&
+                        isOpenDay(day.date) &&
+                        selectDay(day)
+                    "
+                >
+                    {{ day.day !== 0 ? day.day : '' }}
+                </div>
+            </div>
+        </div>
+    </div>
+</template>

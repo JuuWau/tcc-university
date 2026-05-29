@@ -84,6 +84,10 @@ const mainNavItems: NavItem[] = [
                 title: 'Confirmar agendamentos',
                 href: '/confirm-appointment/confirm-appointment',
             },
+            {
+                title: 'Chamada de alunos',
+                href: '/schedule-attendance/schedule-attendance',
+            },
         ],
     },
     {

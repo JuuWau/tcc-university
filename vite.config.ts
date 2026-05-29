@@ -4,6 +4,9 @@ import vue from '@vitejs/plugin-vue';
 import laravel from 'laravel-vite-plugin';
 import { defineConfig } from 'vite';
 
+const isSail = process.env.LARAVEL_SAIL === '1';
+const vitePort = Number(process.env.VITE_PORT ?? 5173);
+
 export default defineConfig({
     plugins: [
         laravel({
@@ -23,5 +26,39 @@ export default defineConfig({
                 },
             },
         }),
+        {
+            name: 'force-sail-hot-file',
+            configureServer(server) {
+                import('fs').then((fs) => {
+                    const hotPath = 'public/hot';
+                    fs.writeFileSync(hotPath, `http://localhost:${vitePort}`);
+                });
+            }
+        }
     ],
+    server: {
+        host: '0.0.0.0',
+        port: vitePort,
+        strictPort: true,
+        cors: true,
+        hmr: {
+            host: '127.0.0.1',
+            protocol: 'ws',
+            clientPort: vitePort,
+        },
+        // Polling só no Docker/Windows; sem interval/ignored gera falsos positivos → reload infinito.
+        watch: isSail
+            ? {
+                  usePolling: true,
+                  interval: 1000,
+                  ignored: [
+                      '**/node_modules/**',
+                      '**/vendor/**',
+                      '**/storage/**',
+                      '**/bootstrap/cache/**',
+                      '**/.git/**',
+                  ],
+              }
+            : undefined,
+    },
 });

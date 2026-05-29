@@ -123,6 +123,8 @@ Route::prefix('students')->group(function () {
     Route::delete('/{student}', [StudentsController::class, 'destroy'])->name('students.destroy');
     Route::delete('/deactivate/{student}', [StudentsController::class, 'deactivate'])->name('students.deactivate');
     Route::delete('/activate/{student}', [StudentsController::class, 'activate'])->name('students.activate');
+    Route::get('/{student}/clinics', [StudentsController::class, 'availableClinics'])->name('students.availableClinics');
+    Route::get('/{student}/schedule', [StudentsController::class,'schedule'])->name('students.schedule');
 });
 
 Route::prefix('patients')->group(function () {
