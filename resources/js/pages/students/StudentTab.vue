@@ -21,8 +21,8 @@
 
             <div>
                 <StudentPersonalData v-if="activeTab === 'personal'" />
-                <StudentCalendar v-if="activeTab === 'calendar'" />
-                <StudentLogs v-if="activeTab === 'logs'" />
+                <!-- <StudentCalendar v-if="activeTab === 'calendar'" /> -->
+                <!-- <StudentLogs v-if="activeTab === 'logs'" /> -->
             </div>
         </div>
 
@@ -37,9 +37,9 @@ import StudentAcademicDataEditModal from '@/pages/students/components/StudentAca
 import StudentsEditModal from '@/pages/students/components/StudentsEditModal.vue';
 import StudentHeader from '@/pages/students/StudentHeader.vue';
 import StudentPersonalData from '@/pages/students/tabs/StudentPersonalData.vue';
-import StudentLogs from '@/pages/students/tabs/StudentLogs.vue';
+// import StudentLogs from '@/pages/students/tabs/StudentLogs.vue';
 import { StudentTabContextKey } from '@/keys/students/studentKeys';
-import StudentCalendar from '@/pages/students/tabs/StudentCalendar.vue';
+// import StudentCalendar from '@/pages/students/tabs/StudentCalendar.vue';
 import type { Student } from '@/types/student/student';
 import { router, usePage } from '@inertiajs/vue3';
 import { computed, provide, ref } from 'vue';
