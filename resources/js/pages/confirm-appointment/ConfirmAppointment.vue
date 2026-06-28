@@ -16,7 +16,6 @@
                 </div>
             </div>
 
-            <!-- 🟡 FILTROS -->
             <div
                 class="grid grid-cols-1 gap-4 rounded-xl border bg-gray-50 p-4 md:grid-cols-5"
             >
@@ -104,7 +103,6 @@
                 </div>
             </div>
 
-            <!-- 🟢 TABELA -->
             <div class="overflow-x-auto rounded-xl border mt-4  ">
                 <table class="w-full text-sm">
                     <thead class="bg-gray-100 text-gray-600">
@@ -125,7 +123,6 @@
                             :key="item.id"
                             class="border-t hover:bg-gray-50"
                         >
-                            <!-- BOTÃO CONFIRMAR -->
                             <td class="p-3">
                                 <button
                                     @click="confirm(item)"
@@ -180,7 +177,6 @@ import Multiselect from '@vueform/multiselect';
 import { Filter, PhoneOutgoing, SendHorizontal, X } from 'lucide-vue-next';
 import { computed, reactive } from 'vue';
 
-/* 🔵 MOCK FILTROS */
 const filters = reactive({
     clinic: null,
     period: null,
@@ -188,7 +184,6 @@ const filters = reactive({
     date: '',
 });
 
-/* 🟣 OPTIONS */
 const clinicOptions = [
     { label: 'Clínica A', value: 1 },
     { label: 'Clínica B', value: 2 },
@@ -204,7 +199,6 @@ const studentOptions = [
     { label: 'João', value: 2 },
 ];
 
-/* 🟢 DADOS MOCK */
 const data = [
     {
         id: 1,
@@ -230,7 +224,6 @@ const data = [
     },
 ];
 
-/* 🧠 FILTRO */
 const filteredData = computed(() => {
     return data.filter((item) => {
         return (
@@ -242,9 +235,7 @@ const filteredData = computed(() => {
     });
 });
 
-/* 🔧 FUNÇÕES */
 function applyFilters() {
-    // aqui depois vira API
 }
 
 function clearFilters() {

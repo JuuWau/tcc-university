@@ -18,7 +18,6 @@
                     :key="log.id"
                     class="flex items-start gap-3 rounded-xl border p-4"
                 >
-                    <!-- STATUS ICON -->
                     <div
                         class="mt-1 h-3 w-3 rounded-full"
                         :class="getColor(log.type)"
@@ -35,7 +34,6 @@
                         </div>
                     </div>
 
-                    <!-- TAG -->
                     <span
                         class="rounded-full px-2 py-1 text-xs font-medium"
                         :class="getBadge(log.type)"

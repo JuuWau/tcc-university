@@ -20,8 +20,8 @@
             </nav>
 
             <div>
-                <PatientPersonalData v-if="activeTab === 'personal'" />
-                <PatientSchedules v-if="activeTab === 'schedules'" />
+                <!-- <PatientPersonalData v-if="activeTab === 'personal'" /> -->
+                <!-- <PatientSchedules v-if="activeTab === 'schedules'" /> -->
             </div>
         </div>
 

@@ -40,13 +40,6 @@ function handleEventClick(info: any) {
     const eventId = info.event.id;
 
     console.log('abrir modal', eventId);
-
-    /*
-        aqui você:
-        - abre dialog
-        - busca evento
-        - etc
-    */
 }
 
 const calendarOptions = computed(() => ({

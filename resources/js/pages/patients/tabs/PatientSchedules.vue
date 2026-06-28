@@ -14,7 +14,6 @@
         </div>
 
         <div class="space-y-8">
-            <!-- ===================== FUTUROS ===================== -->
             <div>
                 <h2 class="mb-3 text-lg font-semibold text-gray-700">
                     Próximos Agendamentos
@@ -80,7 +79,6 @@
             </div>
         </div>
 
-        <!-- ===================== PASSADOS ===================== -->
         <div>
             <h2 class="mb-3 text-lg font-semibold text-gray-700">
                 Histórico de Atendimentos
@@ -153,7 +151,6 @@
                     <p><strong>Área:</strong> {{ selected.area }}</p>
                 </div>
 
-                <!-- Horários -->
                 <div class="space-y-1 text-sm">
                     <p><strong>Data:</strong> {{ selected.date }}</p>
                     <p><strong>Início:</strong> {{ selected.start }}</p>
@@ -161,7 +158,6 @@
                     <p><strong>Dentista:</strong> {{ selected.dentist }}</p>
                 </div>
 
-                <!-- STATUS (SOMENTE LEITURA SE FOR PASSADO) -->
                 <div>
                     <label class="text-sm font-medium">Status</label>
 
@@ -250,7 +246,6 @@ const statusList = [
     'Cancelou',
 ];
 
-/* ===================== MODAL ===================== */
 
 const selected = ref<any | null>(null);
 
@@ -262,7 +257,6 @@ function closeModal() {
     selected.value = null;
 }
 
-/* ===================== REGRAS ===================== */
 
 function isPast(item: any) {
     return past.value.some((p) => p.id === item.id);

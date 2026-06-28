@@ -46,19 +46,5 @@ export default defineConfig({
             protocol: 'ws',
             clientPort: vitePort,
         },
-        // Polling só no Docker/Windows; sem interval/ignored gera falsos positivos → reload infinito.
-        watch: isSail
-            ? {
-                  usePolling: true,
-                  interval: 1000,
-                  ignored: [
-                      '**/node_modules/**',
-                      '**/vendor/**',
-                      '**/storage/**',
-                      '**/bootstrap/cache/**',
-                      '**/.git/**',
-                  ],
-              }
-            : undefined,
     },
 });
