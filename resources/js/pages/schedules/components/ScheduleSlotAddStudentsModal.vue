@@ -5,7 +5,7 @@ import { ScheduleSlotAddStudentsKey } from '@/keys/schedules/scheduleSlotKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import type { OpenClinicScheduleRow } from '@/types/schedule/openClinicSchedules';
 import axios from 'axios';
-import Multiselect from '@vueform/multiselect';
+import AppMultiselect from '@/components/AppMultiselect.vue';
 import { computed, inject, reactive, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 import { X } from 'lucide-vue-next';
@@ -231,7 +231,7 @@ async function submit() {
                         Buscar estudantes
                     </label>
 
-                    <Multiselect
+                    <AppMultiselect
                         v-model="selectedStudent"
                         :options="availableStudents"
                         :searchable="true"

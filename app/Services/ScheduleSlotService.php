@@ -47,7 +47,7 @@ class ScheduleSlotService
             ->values()
             ->map(fn ($period) => [
                 'id' => $period->id,
-                'label' => "{$period->calendar_year}/{$period->semester} - {$period->academic_year}º ano",
+                'label' => "{$period->academic_year}º ano {$period->semester}º semestre de {$period->calendar_year}",
             ])
             ->toArray();
 
@@ -73,12 +73,14 @@ class ScheduleSlotService
                 'end_time' => $slot->end_time,
                 'available_slots' => $slot->available_slots,
                 'allow_student_booking' => (bool) $slot->allow_student_booking,
+                'allow_student_enrollment' => (bool) $slot->allow_student_enrollment,
+                'allow_procedure_booking' => (bool) $slot->allow_procedure_booking,
                 'is_enrolled' => (bool) $slot->is_enrolled,
                 'period_id' => $slot->period_id,
                 'responsible_id' => $slot->responsible_id,
 
                 'period_label' => $slot->period
-                    ? "{$slot->period->calendar_year}/{$slot->period->semester} - {$slot->period->academic_year}º ano"
+                    ? "{$slot->period->academic_year}º ano {$slot->period->semester}º semestre de {$slot->period->calendar_year}"
                     : '—',
 
                 'responsible_name' => $slot->responsible?->person?->name ?? '—',
@@ -204,7 +206,7 @@ class ScheduleSlotService
     /**
      * @param array{
      *   clinic_id: int,
-     *   available_chairs?: int|null,
+     *   available_slots?: int|null,
      *   period_id: int,
      *   responsible_id: int,
      *   days: array<int,string>,
@@ -272,8 +274,10 @@ class ScheduleSlotService
                     'date' => $day,
                     'start_time' => $data['start_time'],
                     'end_time' => $data['end_time'],
-                    'available_slots' => $data['available_chairs'] ?? 0,
+                    'available_slots' => $data['available_slots'] ?? 0,
                     'allow_student_booking' => $data['allow_student_booking'] ?? false,
+                    'allow_student_enrollment' => $data['allow_student_enrollment'] ?? false,
+                    'allow_procedure_booking' => $data['allow_procedure_booking'] ?? false,
                 ]);
             }
 
@@ -296,7 +300,7 @@ class ScheduleSlotService
      *   available_slots: int
      * } $data
      */
-    public function updateSlot(ScheduleSlot $slot, array $data, int $universityId): ScheduleSlot
+    public function updateSlot(ScheduleSlot $slot, array $data, int $universityId, int|array|null $exceptIds = null): ScheduleSlot
     {
         if ($slot->university_id !== $universityId) {
             throw new \DomainException(json_encode([
@@ -314,7 +318,7 @@ class ScheduleSlotService
             $date,
             $startTime,
             $endTime,
-            $slot->id
+            $exceptIds ?? $slot->id
         );
 
         if ($conflict) {
@@ -338,22 +342,34 @@ class ScheduleSlotService
             'start_time' => $startTime,
             'end_time' => $endTime,
             'available_slots' => $data['available_slots'] ?? $slot->available_slots,
+            'allow_student_booking' => $data['allow_student_booking'] ?? $slot->allow_student_booking,
+            'allow_student_enrollment' => $data['allow_student_enrollment'] ?? $slot->allow_student_enrollment,
+            'allow_procedure_booking' => $data['allow_procedure_booking'] ?? $slot->allow_procedure_booking,
         ]);
 
+        // dd($slot->fresh());
         return $slot->fresh(['period', 'responsible.person']);
     }
 
-    public function updateMultipleSlots(array $data, int $universityId)
+    public function updateMultipleSlots(array $data, int $universityId): void
     {
-        $ids = collect($data['ids'])
-            ->map(fn($id) => (int) $id)
-            ->toArray();
+        DB::transaction(function () use ($data, $universityId) {
 
-        $slots = ScheduleSlot::whereIn('id', $ids)->get();
+            $ids = collect($data['ids'])
+                ->map(fn ($id) => (int) $id)
+                ->toArray();
 
-        foreach ($slots as $slot) {
-            $this->updateSlot($slot, $data, $universityId);
-        }
+            $slots = ScheduleSlot::whereIn('id', $ids)->get();
+
+            foreach ($slots as $slot) {
+                $this->updateSlot(
+                    $slot,
+                    $data,
+                    $universityId,
+                    $ids
+                );
+            }
+        });
     }
 
     public function deleteSlot(ScheduleSlot $slot, int $universityId): void
@@ -384,7 +400,7 @@ class ScheduleSlotService
         string $date,
         string $startTime,
         string $endTime,
-        ?int $exceptSlotId = null
+        int|array|null $exceptIds = null
     ): ?ScheduleSlot {
         $query = ScheduleSlot::query()
             ->with('clinic:id,name')
@@ -395,8 +411,12 @@ class ScheduleSlotService
             ->where('end_time', '>', $startTime)
             ->orderBy('start_time');
 
-        if ($exceptSlotId !== null) {
-            $query->where('id', '!=', $exceptSlotId);
+        if (is_int($exceptIds)) {
+            $query->where('id', '!=', $exceptIds);
+        }
+
+        if (is_array($exceptIds) && !empty($exceptIds)) {
+            $query->whereNotIn('id', $exceptIds);
         }
 
         return $query->first();

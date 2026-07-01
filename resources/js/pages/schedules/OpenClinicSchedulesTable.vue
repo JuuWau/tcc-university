@@ -11,7 +11,7 @@ import type {
     OpenClinicSchedulesFilters,
 } from '@/types/schedule/openClinicSchedules';
 import { Link, router, usePage } from '@inertiajs/vue3';
-import Multiselect from '@vueform/multiselect';
+import AppMultiselect from '@/components/AppMultiselect.vue';
 import { AgGridVue } from 'ag-grid-vue3';
 import { ArrowLeft, Filter, Pencil, Trash2, X } from 'lucide-vue-next';
 import { computed, reactive, ref, watch } from 'vue';
@@ -29,6 +29,7 @@ const emit = defineEmits<{
 
 const hasPeriodSelected = computed(() => !!form.period_id);
 const isUpdatingFromServer = ref(false);
+const selectedDates = ref<Set<string>>(new Set());
 
 type OpenClinicSchedulesPage = AppPageProps<{
     clinic: OpenClinicScheduleClinic;
@@ -43,7 +44,16 @@ const selectedRows = ref<OpenClinicScheduleRow[]>([]);
 
 const clinic = computed(() => page.props.clinic);
 const periods = computed(() => page.props.periods);
-const slots = computed(() => page.props.slots);
+console.log('periods', periods.value);
+const slots = ref([...page.props.slots]);
+
+watch(
+    () => page.props.slots,
+    (value) => {
+        slots.value = [...value];
+    }
+);
+
 const filters = computed(() => page.props.filters);
 console.log(slots);
 
@@ -55,6 +65,12 @@ const form = reactive({
 });
 
 const isLoading = ref(false);
+
+const isRowSelectable = (rowNode: any) => {
+    const date = rowNode.data?.date;
+
+    return !selectedDates.value.has(date);
+};
 
 watch(
     filters,
@@ -84,7 +100,55 @@ function onGridReady(params: any) {
 
 function onSelectionChanged() {
     if (!gridApi.value) return;
-    selectedRows.value = gridApi.value.getSelectedRows();
+
+    const selectedNodes = gridApi.value.getSelectedNodes();
+
+    // Se não houver nós selecionados, limpa e retorna
+    if (selectedNodes.length === 0) {
+        selectedRows.value = [];
+        return;
+    }
+
+    // Verifica se é uma seleção em massa (selecionar todos)
+    const allRows = gridApi.value.getRenderedNodes();
+    const isSelectAll = selectedNodes.length === allRows.length;
+
+    if (isSelectAll) {
+        // Se for selecionar todos, mantém todos selecionados
+        selectedRows.value = selectedNodes.map((n: any) => n.data);
+        return;
+    }
+
+    // Para seleção manual, agrupa por data e mantém apenas 1 por data
+    const map = new Map<string, any[]>();
+
+    for (const node of selectedNodes) {
+        const date = node.data.date;
+
+        if (!map.has(date)) {
+            map.set(date, []);
+        }
+
+        map.get(date)!.push(node);
+    }
+
+    const finalSelection: any[] = [];
+
+    map.forEach((nodes) => {
+        // mantém apenas 1 por data
+        finalSelection.push(nodes[0]);
+    });
+
+    // Força o estado correto no grid
+    gridApi.value.forEachNode((node: any) => {
+        const shouldBeSelected = finalSelection.some(
+            (n) => n.data.id === node.data.id
+        );
+
+        node.setSelected(shouldBeSelected);
+    });
+
+    selectedRows.value = finalSelection.map((n) => n.data);
 }
 
 function applyFilters() {
@@ -129,10 +193,13 @@ function clearFilters() {
 
 const columnDefs = [
     {
-        headerCheckboxSelection: true,
+        headerCheckboxSelection: (params: any) => {
+    return true;
+},
         checkboxSelection: true,
         width: 50,
         pinned: 'left',
+        headerCheckboxSelectionFilteredOnly: true,
     },
     {
         headerName: 'Data',
@@ -236,7 +303,7 @@ const defaultColDef = {
                 >
                     Período
                 </label>
-                <Multiselect
+                <AppMultiselect
                     id="period_id"
                     v-model="form.period_id"
                     :options="periodOptions"
@@ -320,6 +387,7 @@ const defaultColDef = {
                     :rowData="slots"
                     :columnDefs="columnDefs"
                     :defaultColDef="defaultColDef"
+                    :isRowSelectable="isRowSelectable"
                     :components="{ OpenClinicSchedulesActionsButtons }"
                     rowSelection="multiple"
                     :rowMultiSelectWithClick="false"
