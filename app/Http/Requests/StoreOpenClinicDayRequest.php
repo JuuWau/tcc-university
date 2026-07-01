@@ -38,6 +38,7 @@ class StoreOpenClinicDayRequest extends FormRequest
             'available_slots' => ['sometimes', 'integer', 'min:0'],
             'allow_student_enrollment' => ['required', 'boolean'],
             'allow_student_booking' => ['required', 'boolean'],
+            'allow_procedure_booking' => ['required', 'boolean'],
         ];
     }
 }
