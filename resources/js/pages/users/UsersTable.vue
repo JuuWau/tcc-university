@@ -7,6 +7,7 @@ import type { UserWithInvite } from '@/types/user/user';
 import { AgGridVue } from 'ag-grid-vue3';
 import axios from 'axios';
 import { computed, inject, onMounted, ref, watch } from 'vue';
+import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale';
 
 const emit = defineEmits(['create', 'resend', 'view', 'deactivate', 'activate', 'delete']);
 
@@ -205,7 +206,7 @@ function onAction(payload: { action: string; user: UserWithInvite }) {
                         ] as StatusFilter[]"
                         :key="s"
                         @click="filterByStatus(s)"
-                        class="relative rounded-full px-4 py-1.5 text-sm font-medium transition-all"
+                        class="relative rounded-full px-4 py-1.5 text-sm font-medium transition-all cursor-pointer"
                         :class="
                             activeStatus === s
                                 ? 'bg-white text-gray-900 shadow'
@@ -235,6 +236,7 @@ function onAction(payload: { action: string; user: UserWithInvite }) {
                     :context="{ emit: onAction }"
                     :components="{ UserTableActionsButtons }"
                     @grid-ready="onGridReady"
+                    :localeText="AG_GRID_LOCALE_BR"
                 />
             </div>
         </div>

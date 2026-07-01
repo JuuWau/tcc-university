@@ -69,7 +69,7 @@ class User extends Authenticatable
 
     public function invite()
     {
-        return $this->hasOne(UserInvite::class);
+        return $this->hasOne(UserInvite::class)->latestOfMany();
     }
 
     public function university()

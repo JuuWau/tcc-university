@@ -8,6 +8,7 @@ import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { inject, onMounted, reactive, ref } from 'vue';
 import { toast } from 'vue3-toastify';
+import AppMultiselect from '@/components/AppMultiselect.vue';
 
 const createModal = inject(UserCreateKey);
 const refreshTableRef = inject<{ value: (() => void) | null }>(RefreshTableKey);
@@ -117,7 +118,7 @@ async function submit() {
                 <label class="mb-2 block text-sm font-medium text-gray-700">
                     Perfil (*)
                 </label>
-                <Multiselect
+                <AppMultiselect
                     v-model="form.role_id"
                     :options="rolesOptions"
                     label="label"

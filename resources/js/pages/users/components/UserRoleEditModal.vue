@@ -1,10 +1,10 @@
 <script setup lang="ts">
+import AppMultiselect from '@/components/AppMultiselect.vue';
 import CancelButton from '@/components/buttons/CancelButton.vue';
 import SaveButton from '@/components/buttons/SaveButton.vue';
 import { UserTabContextKey } from '@/keys/users/userKeys';
 import { userRoleEditSchema } from '@/schemas/user.schema';
 import type { UserForTab } from '@/types/user/user';
-import Multiselect from '@vueform/multiselect';
 import axios from 'axios';
 import { computed, inject, reactive, ref, unref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
@@ -92,7 +92,7 @@ async function submit() {
                     <label class="mb-1 block text-sm font-medium text-gray-700">
                         Perfil (*)
                     </label>
-                    <Multiselect
+                    <AppMultiselect
                         v-model="form.role_id"
                         :options="roleOptions"
                         label="label"

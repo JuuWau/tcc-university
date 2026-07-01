@@ -61,6 +61,7 @@
                     <a
                         v-if="user?.email"
                         :href="`mailto:${user.email}`"
+                        target="_blank"
                         class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
                         <MailPlus class="h-4 w-4" />

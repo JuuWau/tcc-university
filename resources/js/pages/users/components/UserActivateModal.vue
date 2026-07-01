@@ -5,6 +5,7 @@ import { LoadingKey } from '@/keys/ui/loadingKey';
 import axios from 'axios';
 import { inject } from 'vue';
 import { toast } from 'vue3-toastify';
+import ActivationButton from '@/components/buttons/ActivationButton.vue';
 
 const activateModal = inject(UserActivateKey);
 const refreshTableRef = inject(RefreshTableKey);
@@ -61,14 +62,13 @@ async function confirmActivate() {
 
             <div class="flex justify-end gap-2 pt-6">
                 <CancelButton @click="close" />
-                <button
+                <ActivationButton
                     type="button"
                     :disabled="loading"
-                    class="flex items-center gap-2 rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:opacity-60"
                     @click="confirmActivate"
                 >
                     {{ loading ? 'Ativando...' : 'Ativar' }}
-                </button>
+                </ActivationButton>
             </div>
         </div>
     </div>

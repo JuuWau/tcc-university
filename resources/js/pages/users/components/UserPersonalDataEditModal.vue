@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { City, IbgeService, Uf } from '@/api/ibge';
 import { ViaCep } from '@/api/viacep';
+import AppMultiselect from '@/components/AppMultiselect.vue';
 import CancelButton from '@/components/buttons/CancelButton.vue';
 import SaveButton from '@/components/buttons/SaveButton.vue';
 import { UserTabContextKey } from '@/keys/users/userKeys';
 import { userPersonalDataEditSchema } from '@/schemas/user.schema';
 import type { UserForTab } from '@/types/user/user';
-import Multiselect from '@vueform/multiselect';
+import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { computed, inject, reactive, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
@@ -15,6 +16,8 @@ const context = inject(UserTabContextKey);
 if (!context) {
     throw new Error('UserPersonalDataEditModal must be used inside UserTab');
 }
+
+const page = usePage();
 
 const user = computed(() => context.user.value);
 const editPersonalDataModalOpen = context.editPersonalDataModalOpen;
@@ -35,6 +38,10 @@ const stateOptions = computed(() =>
 const cityOptions = computed(() =>
     cities.value.map((c) => ({ label: c.nome, value: c.nome })),
 );
+
+const isOwnProfile = computed(() => {
+    return page.props.auth.user.id === user.value.id;
+});
 
 const form = reactive({
     name: '' as string,
@@ -271,7 +278,8 @@ async function submit() {
                         <input
                             v-model="form.password"
                             type="password"
-                            class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+                            :disabled="!isOwnProfile"
+                            class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none disabled:bg-gray-100 disabled:text-gray-500 disabled:cursor-not-allowed"
                             placeholder="Mínimo 8 caracteres"
                         />
                     </div>
@@ -355,7 +363,7 @@ async function submit() {
                         >
                             Estado (*)
                         </label>
-                        <Multiselect
+                        <AppMultiselect
                             v-model="form.state"
                             :options="stateOptions"
                             label="label"
@@ -372,7 +380,7 @@ async function submit() {
                         >
                             Cidade (*)
                         </label>
-                        <Multiselect
+                        <AppMultiselect
                             v-model="form.city"
                             :options="cityOptions"
                             label="label"
