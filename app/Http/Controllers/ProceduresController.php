@@ -22,9 +22,11 @@ class ProceduresController extends Controller
 
     public function index()
     {
+        $universityId = request()->user()?->university_id;
+        
         return Inertia::render('procedures/ProceduresIndex', [
-            'procedures' => $this->procedureService->all(),
-            'specialties' => $this->specialtyService->all(),
+            'procedures' => $this->procedureService->all($universityId),
+            'specialties' => $this->specialtyService->all($universityId),
         ]);
     }
 

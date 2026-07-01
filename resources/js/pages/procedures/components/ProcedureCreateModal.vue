@@ -5,10 +5,10 @@ import { ProcedureCreateKey, ProceduresGroupKey, ProceduresSpecialtiesKey } from
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import { procedureSchema } from '@/schemas/procedure.schema';
 import axios from 'axios';
-import Multiselect from '@vueform/multiselect';
 import type { ProcedureSpecialtyOption } from '@/keys/procedures/procedureKeys';
 import { computed, inject, reactive } from 'vue';
 import { toast } from 'vue3-toastify';
+import AppMultiselect from '@/components/AppMultiselect.vue';
 
 const createModal = inject(ProcedureCreateKey);
 const procedures = inject(ProceduresGroupKey);
@@ -93,7 +93,7 @@ async function submit() {
                     <label class="mb-2 block text-sm font-medium text-gray-700">
                         Especialidade (*)
                     </label>
-                    <Multiselect
+                    <AppMultiselect
                         v-model="form.specialty_id"
                         :options="specialtiesOptions"
                         label="label"

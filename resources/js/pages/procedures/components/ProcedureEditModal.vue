@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppMultiselect from '@/components/AppMultiselect.vue';
 import CancelButton from '@/components/buttons/CancelButton.vue';
 import SaveButton from '@/components/buttons/SaveButton.vue';
 import type { ProcedureSpecialtyOption } from '@/keys/procedures/procedureKeys';
@@ -10,7 +11,6 @@ import {
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import { procedureSchema } from '@/schemas/procedure.schema';
 import type { Procedure } from '@/types/procedure';
-import Multiselect from '@vueform/multiselect';
 import axios from 'axios';
 import { computed, inject, reactive, watch } from 'vue';
 import { toast } from 'vue3-toastify';
@@ -132,7 +132,7 @@ async function submit() {
                     <label class="mb-2 block text-sm font-medium text-gray-700">
                         Especialidade (*)
                     </label>
-                    <Multiselect
+                    <AppMultiselect
                         v-model="form.specialty_id"
                         :options="specialtiesOptions"
                         label="label"

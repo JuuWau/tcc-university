@@ -1,7 +1,7 @@
 <template>
     <AppLayout>
-        <div class="mt-25 flex justify-center">
-            <div class="w-full max-w-7xl">
+        <div class="mt-10 mb-10 flex justify-center">
+            <div class="w-full max-w-6xl">
                 <div class="overflow-hidden rounded-lg bg-white shadow-lg">
                     <div class="p-6 text-gray-900">
                         <ProcedureEditModal />
