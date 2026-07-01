@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppMultiselect from '@/components/AppMultiselect.vue';
 import ActivationButton from '@/components/buttons/ActivationButton.vue';
 import CancelButton from '@/components/buttons/CancelButton.vue';
 import { STUDENT_ACTIVATION_REASONS } from '@/constants/studentActivationReason';
@@ -101,7 +102,7 @@ async function confirmActivation() {
                     Motivo da ativação
                 </label>
 
-                <Multiselect
+                <AppMultiselect
                     v-model="selectedReason"
                     :options="reasonOptions"
                     label="label"
@@ -133,7 +134,6 @@ async function confirmActivation() {
                 <CancelButton @click="close" />
                 <ActivationButton
                     :loading="loading"
-                    class="bg-green-600 hover:bg-green-700"
                     @click="confirmActivation()"
                 >
                     Ativar

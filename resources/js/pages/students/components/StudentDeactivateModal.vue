@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppMultiselect from '@/components/AppMultiselect.vue';
 import CancelButton from '@/components/buttons/CancelButton.vue';
 import DeactivateButton from '@/components/buttons/DeactivateButton.vue';
 import { STUDENT_REASONS } from '@/constants/studentReason';
@@ -99,7 +100,7 @@ async function confirmDelete() {
                     Motivo da inativação
                 </label>
 
-                <Multiselect
+                <AppMultiselect
                     v-model="selectedReason"
                     :options="reasonOptions"
                     label="label"

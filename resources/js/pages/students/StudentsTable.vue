@@ -7,6 +7,7 @@ import { Student } from '@/types/student/student';
 import { AgGridVue } from 'ag-grid-vue3';
 import axios from 'axios';
 import { computed, inject, onMounted, ref, watch } from 'vue';
+import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale';
 
 const emit = defineEmits([
     'create',
@@ -28,7 +29,7 @@ const gridApi = ref<any>(null);
 const rowData = ref<Student[]>([]);
 const loading = ref(false);
 const page = ref(1);
-const perPage = ref(15);
+const perPage = ref(10);
 const total = ref(0);
 const totalPages = ref(0);
 const sortField = ref<SortField>('created_at');
@@ -247,6 +248,7 @@ function onAction(payload: { action: string; student: Student }) {
                     :context="{ emit: onAction }"
                     :components="{ StudentTableActionsButtons }"
                     @grid-ready="onGridReady"
+                    :localeText="AG_GRID_LOCALE_BR"
                 />
             </div>
         </div>
