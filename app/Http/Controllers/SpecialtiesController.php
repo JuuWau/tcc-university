@@ -8,6 +8,7 @@ use Inertia\Inertia;
 use App\Services\SpecialtyService;
 use App\Http\Requests\UpdateSpecialtyRequest;
 use App\Models\Specialty;
+use Illuminate\Http\JsonResponse;
 
 class SpecialtiesController extends Controller
 {
@@ -18,51 +19,69 @@ class SpecialtiesController extends Controller
         $this->specialtyService = $specialtyService;
     }
 
-    /**
-     * Lista especialidades de uma universidade
-     */
     public function index()
     {
+        $universityId = request()->user()?->university_id;
+
         return Inertia::render('specialties/SpecialtiesIndex', [
-            'specialties' => $this->specialtyService->all(),
+            'specialties' => $this->specialtyService->all($universityId),
         ]);
     }
 
-    public function update(UpdateSpecialtyRequest $request, Specialty $specialty)
+    public function update(UpdateSpecialtyRequest $request, Specialty $specialty): JsonResponse 
     {
-        $this->specialtyService->update($specialty, $request->validated());
+        try {
+            $this->specialtyService->update(
+                $specialty,
+                $request->validated()
+            );
 
-        return response()->json([
-            'message' => 'Especialidade atualizada com sucesso',
-        ]);
+            return response()->json([
+                'message' => 'Especialidade atualizada com sucesso',
+            ]);
+        } catch (Throwable $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        }
     }
 
-    public function store(StoreSpecialtyRequest $request)
+    public function store(StoreSpecialtyRequest $request): JsonResponse
     {
-        $specialty = $this->specialtyService->create(
-            $request->validated(),
-            $request->user()->university_id
-        );
+        try {
+            $specialty = $this->specialtyService->create(
+                $request->validated(),
+                $request->user()->university_id
+            );
 
-        return response()->json([
-            'message' => 'Especialidade criada com sucesso',
-            'specialty' => $specialty,
-        ]);
+            return response()->json([
+                'message' => 'Especialidade criada com sucesso',
+                'specialty' => $specialty,
+            ]);
+        } catch (Throwable $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        }
     }
 
-    public function destroy(Specialty $specialty)
+    public function destroy(Specialty $specialty): JsonResponse
     {
-        /** @var \App\Models\User|null $user */
+        try {
+            abort_if(
+                $specialty->university_id !== request()->user()->university_id,
+                403
+            );
 
-        abort_if(
-            $specialty->university_id !== request()->user()->university_id,
-            403
-        );
+            $this->specialtyService->delete($specialty);
 
-        $this->specialtyService->delete($specialty);
-
-        return response()->json([
-            'message' => 'Especialidade removida com sucesso',
-        ]);
+            return response()->json([
+                'message' => 'Especialidade removida com sucesso',
+            ]);
+        } catch (Throwable $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        }
     }
 }
