@@ -119,8 +119,8 @@
     --sidebar-foreground: hsl(240 5.3% 26.1%);
     --sidebar-primary: hsl(0 0% 10%);
     --sidebar-primary-foreground: hsl(0 0% 98%);
-    --sidebar-accent: hsl(212, 100%, 84%);
-    --sidebar-accent-foreground: hsl(214, 66%, 33%);
+    --sidebar-accent: lch(93.64% 11.4 238.37);
+    --sidebar-accent-foreground: lch(32.84% 40.35 280.93);
     --sidebar-border: hsl(0 0% 91%);
     --sidebar-ring: hsl(217.2 91.2% 59.8%);
     --sidebar: hsl(0 0% 98%);

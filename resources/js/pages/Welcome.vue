@@ -4,86 +4,91 @@ import { Head, Link } from '@inertiajs/vue3';
 </script>
 
 <template>
-    <Head title="Sistema Odontológico Universitário" />
+    <Head title="Acadent" />
 
-    <div class="min-h-screen bg-white text-gray-800">
-        <!-- HEADER -->
-        <header
-            class="mx-auto flex max-w-7xl items-center justify-between px-8 py-6"
-        >
-            <h1 class="text-xl font-bold text-sky-600">Acadent</h1>
+    <div class="min-h-screen bg-gray-50 text-gray-800">
+        <header class="bg-gray-50 shadow-xl">
+            <div
+                class="mx-auto flex max-w-7xl items-center justify-between px-8 py-6"
+            >
+                <div class="flex items-center gap-2">
+                    <img
+                        src="/favicon.png"
+                        alt="Acadent Logo"
+                        class="h-10 w-10"
+                    />
+                    <h1 class="pt-1 text-xl font-bold text-sky-600">
+                        Acadent
+                    </h1>
+                </div>
 
-            <nav class="flex gap-4">
-                <Link
-                    v-if="$page.props.auth.user"
-                    :href="initialPage()"
-                    class="rounded border border-sky-600 px-4 py-2 text-sky-600 hover:bg-sky-50"
-                >
-                    Início
-                </Link>
-
-                <template v-else>
+                <nav class="flex gap-4">
                     <Link
-                        :href="login()"
-                        class="px-4 py-2 text-gray-600 hover:text-sky-600"
+                        v-if="$page.props.auth.user"
+                        :href="initialPage()"
+                        class="rounded border border-sky-600 px-4 py-2 text-sky-600 hover:bg-sky-50"
                     >
-                        Entrar
+                        Início
                     </Link>
 
-                    <Link
-                        :href="register()"
-                        class="rounded bg-sky-600 px-4 py-2 text-white hover:bg-sky-700"
-                    >
-                        Solicitar acesso
-                    </Link>
-                </template>
-            </nav>
+                    <template v-else>
+                        <Link
+                            :href="login()"
+                            class="px-4 py-2 text-gray-600 hover:text-sky-600"
+                        >
+                            Entrar
+                        </Link>
+
+                        <Link
+                            :href="register()"
+                            class="rounded bg-sky-600 px-4 py-2 text-white hover:bg-sky-700"
+                        >
+                            Solicitar acesso
+                        </Link>
+                    </template>
+                </nav>
+            </div>
         </header>
 
         <!-- HERO -->
-        <section
-            class="mx-auto grid max-w-7xl items-center gap-16 px-8 py-24 lg:grid-cols-2"
-        >
-            <div>
-                <h2 class="mb-6 text-4xl leading-tight font-bold lg:text-5xl">
-                    Gestão inteligente para
-                    <span class="text-sky-600"
-                        >clínicas odontológicas universitárias</span
+        <section class="bg-white">
+            <div
+                class="mx-auto grid max-w-7xl items-center gap-16 px-8 py-24 lg:grid-cols-2"
+            >
+                <!-- TEXTO -->
+                <div>
+                    <h2
+                        class="mb-6 text-4xl leading-tight font-bold lg:text-5xl"
                     >
-                </h2>
+                        Gestão inteligente para
+                        <span class="text-sky-600">
+                            clínicas odontológicas universitárias
+                        </span>
+                    </h2>
 
-                <p class="mb-8 text-lg text-gray-600">
-                    Centralize alunos, pacientes, atendimentos e períodos
-                    acadêmicos em um único sistema moderno e seguro.
-                </p>
+                    <p class="mb-8 text-lg text-gray-600">
+                        Centralize alunos, pacientes, atendimentos e períodos
+                        acadêmicos em um único sistema moderno e seguro.
+                    </p>
 
-                <div class="flex gap-4">
-                    <Link
-                        :href="register()"
-                        class="rounded bg-sky-600 px-6 py-3 font-medium text-white hover:bg-sky-700"
-                    >
-                        Começar agora
-                    </Link>
+                    <div class="flex flex-wrap gap-4">
+                        <Link
+                            :href="register()"
+                            class="rounded bg-sky-600 px-6 py-3 font-medium text-white hover:bg-sky-700"
+                        >
+                            Começar agora
+                        </Link>
 
-                    <Link
-                        :href="login()"
-                        class="rounded border border-gray-300 px-6 py-3 hover:border-sky-600"
-                    >
-                        Já tenho acesso
-                    </Link>
+                        <Link
+                            :href="login()"
+                            class="rounded border border-gray-300 px-6 py-3 hover:border-sky-600"
+                        >
+                            Já tenho acesso
+                        </Link>
+                    </div>
                 </div>
-            </div>
 
-            <!-- ILUSTRAÇÃO -->
-            <div class="relative">
-                <div
-                    class="absolute inset-0 rounded-3xl bg-sky-100 opacity-60 blur-3xl"
-                ></div>
-                <img
-                    src="/images/odontologia-dashboard.png"
-                    alt="Sistema odontológico"
-                    class="relative rounded-xl shadow-xl"
-                />
+                <!-- IMAGEM -->
             </div>
         </section>
 

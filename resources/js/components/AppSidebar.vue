@@ -19,7 +19,7 @@ import students from '@/routes/students';
 import users from '@/routes/users';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BarChart, Calendar, LayoutGrid, ListPlus } from 'lucide-vue-next';
+import { BarChart, Building2, Calendar, ClipboardList, GraduationCap, LayoutGrid, ListPlus, Stethoscope, User, Users, Timer, CalendarPlus, CalendarCog } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import schedules from '@/routes/schedules';
 import clinics from '@/routes/clinics';
@@ -37,30 +37,37 @@ const mainNavItems: NavItem[] = [
             {
                 title: 'Especialidades',
                 href: index(),
+                icon: Stethoscope,
             },
             {
                 title: 'Períodos',
                 href: periods.index(),
+                icon: Timer,
             },
             {
                 title: 'Clínicas',
                 href: clinics.index(),
+                icon: Building2,
             },
             {
                 title: 'Procedimentos',
                 href: procedures.index(),
+                icon: ClipboardList,
             },
             {
                 title: 'Estudantes',
                 href: students.index(),
+                icon: GraduationCap,
             },
             {
                 title: 'Pacientes',
                 href: patients.index(),
+                icon: User,
             },
             {
                 title: 'Usuários',
                 href: users.index(),
+                icon: Users,
             },
         ],
     },
@@ -71,10 +78,12 @@ const mainNavItems: NavItem[] = [
             {
                 title: 'Abrir agenda',
                 href: schedules.openSchedule(),
+                icon: CalendarPlus,
             },
             {
                 title: 'Gerenciar clínicas abertas',
                 href: '/schedules/open-clinics',
+                icon: CalendarCog,
             },
             {
                 title: 'Clínicas abertas',
