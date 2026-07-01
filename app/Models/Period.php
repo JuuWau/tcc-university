@@ -41,5 +41,10 @@ class Period extends Model
             Specialty::class,
             'period_specialty'
         )->withTimestamps();
+    }   
+
+    public function scheduleSlots()
+    {
+        return $this->hasMany(ScheduleSlot::class);
     }
 }

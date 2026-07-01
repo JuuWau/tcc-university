@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppMultiselect from '@/components/AppMultiselect.vue';
 import CancelButton from '@/components/buttons/CancelButton.vue';
 import SaveButton from '@/components/buttons/SaveButton.vue';
 import { PeriodEditKey, PeriodsGroupKey } from '@/keys/periods/periodKeys';
@@ -83,7 +84,7 @@ async function submit() {
     try {
         loading.value = true;
 
-        await axios.put(`/periods/${form.id}`, {
+        const res = await axios.put(`/periods/${form.id}`, {
             academic_year: form.academic_year,
             semester: form.semester,
             calendar_year: form.calendar_year,
@@ -96,6 +97,7 @@ async function submit() {
             periods.value[index].name = form.name;
         }
 
+        periods.value.unshift(res.data.period);
         toast.success('Período atualizado com sucesso');
         close();
     } catch (error: any) {
@@ -180,7 +182,7 @@ async function submit() {
                     Especialidades (*)
                 </label>
 
-                <Multiselect
+                <AppMultiselect
                     v-model="form.specialties"
                     :options="specialtiesOptions"
                     mode="tags"
