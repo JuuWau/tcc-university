@@ -10,14 +10,17 @@ export const studentEditSchema = z
         birth_date: z
             .string()
             .min(10, 'Data de nascimento inválida')
-            .refine(
-                (date) => {
-                    const today = new Date();
-                    const birth = new Date(date);
-                    return birth <= today;
-                },
-                { message: 'Data de nascimento não pode ser maior que a data atual' }
-            ),
+            .refine((value) => {
+                if (!value) return true;
+
+                const [year, month, day] = value.split('-').map(Number);
+                const birthDate = new Date(year, month - 1, day);
+
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                return birthDate <= today;
+            }, 'A data de nascimento não pode ser futura.'),
         cep: z
             .string()
             .regex(/^\d{5}-\d{3}$/, 'CEP inválido')
@@ -35,8 +38,18 @@ export const studentEditSchema = z
             .min(1, 'Número obrigatório')
             .max(5, 'Número não pode ter mais de 5 caracteres'),
         complement: z.string().max(20, 'Complemento não pode ter mais de 20 caracteres').optional().nullable(),
-        city: z.string().min(1, 'Cidade obrigatória'),
-        state: z.string().min(1, 'Estado obrigatório'),
+        state: z
+            .string({
+                required_error: 'Estado obrigatório',
+                invalid_type_error: 'Estado obrigatório',
+            })
+            .min(1, 'Estado obrigatório'),
+        city: z
+            .string({
+                required_error: 'Cidade obrigatória',
+                invalid_type_error: 'Cidade obrigatória',
+            })
+            .min(1, 'Cidade obrigatória'),
         password: z
             .string()
             .max(50, 'Senha não pode ter mais de 50 caracteres')

@@ -6,7 +6,7 @@ export const openScheduleSchema = z
             required_error: 'Selecione a clínica',
             invalid_type_error: 'Selecione a clínica',
         }),
-        available_chairs: z.preprocess(
+        available_slots: z.preprocess(
             (value) => {
                 if (value === '' || value === undefined) {
                     return null;
@@ -41,6 +41,7 @@ export const openScheduleSchema = z
             .regex(/^\d{2}:\d{2}$/, 'Horário de fim inválido'),
         allow_student_booking: z.boolean(),
         allow_student_enrollment: z.boolean(),
+        allow_procedure_booking: z.boolean(),
     })
     .refine((data) => data.end_time > data.start_time, {
         message: 'Horário de fim deve ser maior que o horário de início',

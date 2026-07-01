@@ -12,6 +12,9 @@ export interface OpenClinicScheduleRow {
     period_label: string;
     responsible_name: string;
     enrolled_students_count?: number;
+    allow_student_booking: boolean;
+    allow_student_enrollment: boolean;
+    allow_procedure_booking: boolean;
 }
 
 export interface OpenClinicScheduleResponsibleOption {
