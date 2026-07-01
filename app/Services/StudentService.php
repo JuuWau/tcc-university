@@ -41,7 +41,7 @@ class StudentService
          */
         public function paginate(
                 int $page = 1,
-                int $perPage = 15,
+                int $perPage = 10,
                 string $sortField = 'created_at',
                 string $sortDir = 'desc',
                 string $status = 'all',
@@ -51,7 +51,7 @@ class StudentService
                         ->with([
                                 'person:id,name,cpf,phone',
                                 'user:id,email',
-                                'user.invite:id,user_id,used_at,expires_at,token',
+                                'user.invite',
                                 'periods:id,academic_year,semester,calendar_year',
                         ])
                         ->when($universityId, fn($q) => $q->where('university_id', $universityId));
@@ -90,7 +90,7 @@ class StudentService
                                 'person:id,name,cpf,phone,birth_date',
                                 'person.address',
                                 'user:id,email',
-                                'user.invite:id,user_id,used_at,expires_at,token',
+                                'user.invite',
                                 'periods:id,academic_year,semester,calendar_year',
                         ])
                         ->findOrFail($studentId);
@@ -189,7 +189,6 @@ class StudentService
         public function create(array $data, int $universityId): Student
         {
                 return DB::transaction(function () use ($data, $universityId) {
-
                         $user = User::create([
                                 'email' => $data['email'],
                                 'university_id' => $universityId,
@@ -223,9 +222,17 @@ class StudentService
                                 'token' => Str::uuid(),
                         ]);
 
-                        Mail::to($user->email)->send(
-                                new UserInviteMail($invite)
-                        );
+                        try {
+                                Mail::to($user->email)->send(
+                                        new UserInviteMail($invite)
+                                );
+                        } catch (\Throwable $e) {
+                                \Log::error('Erro ao enviar convite de aluno', [
+                                        'user_id' => $user->id,
+                                        'email' => $user->email,
+                                        'error' => $e->getMessage(),
+                                ]);
+                        }
 
                         return $student->load([
                                 'person',

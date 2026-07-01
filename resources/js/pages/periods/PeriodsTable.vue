@@ -6,6 +6,7 @@ import CreateButton from '@/components/buttons/CreateButton.vue';
 import { PeriodsGroup, PeriodsGroupKey } from '@/keys/periods/periodKeys';
 import { Period } from '@/types/period';
 import { AgGridVue } from 'ag-grid-vue3';
+import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale';
 const emit = defineEmits<{
     (e: 'edit', period: Period): void;
     (e: 'delete', period: Period): void;
@@ -158,6 +159,10 @@ function onCellClicked(event: any) {
                     :columnDefs="columnDefs"
                     :defaultColDef="defaultColDef"
                     @cell-clicked="onCellClicked"
+                    :pagination="true"
+                    :paginationPageSize="10"
+                    :paginationPageSizeSelector="[10, 20, 50, 100]"
+                    :localeText="AG_GRID_LOCALE_BR"
                 />
             </div>
         </div>

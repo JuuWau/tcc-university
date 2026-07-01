@@ -12,6 +12,7 @@ import { AgGridVue } from 'ag-grid-vue3';
 import axios from 'axios';
 import { computed, inject, onMounted, ref, watch } from 'vue';
 import ImportExcelButton from '@/components/buttons/ImportExcelButton.vue';
+import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale';
 
 const emit = defineEmits([
     'create',
@@ -264,7 +265,7 @@ const defaultColDef = {
                         v-for="s in statusFilterOptions"
                         :key="s"
                         @click="filterByStatus(s)"
-                        class="rounded-full px-3 py-1.5 text-sm font-medium transition-all"
+                        class="rounded-full px-3 py-1.5 text-sm font-medium transition-all cursor-pointer"
                         :class="
                             activeStatus === s
                                 ? 'bg-white text-gray-900 shadow'
@@ -293,6 +294,7 @@ const defaultColDef = {
                     :defaultColDef="defaultColDef"
                     :components="{ PatientTableActionsButtons }"
                     @grid-ready="onGridReady"
+                    :localeText="AG_GRID_LOCALE_BR"
                 />
             </div>
         </div>

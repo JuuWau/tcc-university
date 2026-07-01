@@ -4,10 +4,11 @@ use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PeriodsController;
 use App\Http\Controllers\ProceduresController;
 use App\Http\Controllers\ClinicController;
-use App\Http\Controllers\ConfirmAppointmentController;
-use App\Http\Controllers\ScheduleAttendanceController;
+// use App\Http\Controllers\ConfirmAppointmentController;
+// use App\Http\Controllers\ScheduleAttendanceController;
 use App\Http\Controllers\ScheduleEnrollmentController;
 use App\Http\Controllers\ScheduleSlotController;
+use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\SpecialtiesController;
 use App\Http\Controllers\StudentsController;
 use App\Http\Controllers\UserInviteController;
@@ -30,6 +31,10 @@ Route::get('reports/students', function () {
     return Inertia::render('reports/StudentsReportMock');
 })->middleware(['auth', 'verified'])->name('reports.students');
 
+Route::get('/my-profile', [ProfileController::class, 'redirect'])
+    ->middleware(['auth'])
+    ->name('profile.redirect');
+
 Route::prefix('schedules')->group(function () {
     Route::post('open', [ScheduleSlotController::class, 'storeOpenSchedule'])->name('schedules.open.store');
     Route::get('open-schedule', [ScheduleSlotController::class, 'openSchedule'])->name('schedules.openSchedule');
@@ -42,9 +47,9 @@ Route::prefix('schedules')->group(function () {
     Route::delete('multiple-slots', [ScheduleSlotController::class, 'destroyMultipleSlots'])->name('schedules.slots.multiple.destroy');
 })->middleware(['auth', 'verified'])->name('schedules');
 
-Route::prefix('confirm-appointment')->group(function () {
-    Route::get('confirm-appointment', [ConfirmAppointmentController::class, 'index'])->name('confirmAppointment.index');
-})->middleware(['auth', 'verified'])->name('confirm-appointment');
+// Route::prefix('confirm-appointment')->group(function () {
+//     Route::get('confirm-appointment', [ConfirmAppointmentController::class, 'index'])->name('confirmAppointment.index');
+// })->middleware(['auth', 'verified'])->name('confirm-appointment');
 
 Route::prefix('schedule-enrollment')->group(function () {
     Route::post('open', [ScheduleEnrollmentController::class, 'storeOpenSchedule'])->name('schedules.enrollment.open.store');
@@ -61,9 +66,9 @@ Route::prefix('schedule-enrollment')->group(function () {
     Route::delete('slots/{slot}/students/{student}', [ScheduleEnrollmentController::class, 'removeStudentFromSlot'])->name('schedules.enrollment.slots.students.destroy');
 });
 
-Route::prefix('schedule-attendance')->group(function () {
-    Route::get('schedule-attendance', [ScheduleAttendanceController::class, 'index'])->name('schedule.attendance.index');
-})->middleware(['auth', 'verified'])->name('schedule-attendance');
+// Route::prefix('schedule-attendance')->group(function () {
+//     Route::get('schedule-attendance', [ScheduleAttendanceController::class, 'index'])->name('schedule.attendance.index');
+// })->middleware(['auth', 'verified'])->name('schedule-attendance');
 
 Route::get('/reports/appointments', function () {
     return Inertia::render('reports/AppointmentsReportMock');

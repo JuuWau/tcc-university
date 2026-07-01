@@ -1,8 +1,7 @@
-import { wayfinder } from '@laravel/vite-plugin-wayfinder';
-import tailwindcss from '@tailwindcss/vite';
-import vue from '@vitejs/plugin-vue';
-import laravel from 'laravel-vite-plugin';
 import { defineConfig } from 'vite';
+import laravel from 'laravel-vite-plugin';
+import vue from '@vitejs/plugin-vue';
+import tailwindcss from '@tailwindcss/vite';
 
 const isSail = process.env.LARAVEL_SAIL === '1';
 const vitePort = Number(process.env.VITE_PORT ?? 5173);
@@ -15,9 +14,6 @@ export default defineConfig({
             refresh: true,
         }),
         tailwindcss(),
-        wayfinder({
-            formVariants: true,
-        }),
         vue({
             template: {
                 transformAssetUrls: {
@@ -38,13 +34,28 @@ export default defineConfig({
     ],
     server: {
         host: '0.0.0.0',
-        port: vitePort,
+        port: 5173,
         strictPort: true,
         cors: true,
         hmr: {
-            host: '127.0.0.1',
-            protocol: 'ws',
-            clientPort: vitePort,
+            host: 'localhost',
+            port: 5173,
         },
+        watch: {
+            usePolling: true,
+            interval: 1000,
+            binaryInterval: 3000,
+        },
+        fs: {
+            strict: false,
+        },
+    },
+    optimizeDeps: {
+        include: ['vue', 'inertia', '@inertiajs/vue3'],
+        exclude: ['@tailwindcss/vite'],
+    },
+    build: {
+        sourcemap: false,
+        minify: false,
     },
 });

@@ -5,6 +5,7 @@ import { PatientDeactivateKey, RefreshTableKey } from '@/keys/patients/patientKe
 import axios from 'axios';
 import { inject } from 'vue';
 import { toast } from 'vue3-toastify';
+import DeactivateButton from '@/components/buttons/DeactivateButton.vue';
 
 const deactivateModal = inject(PatientDeactivateKey);
 const refreshTableRef = inject(RefreshTableKey);
@@ -61,14 +62,12 @@ async function confirmDeactivate() {
 
             <div class="flex justify-end gap-2 pt-6">
                 <CancelButton @click="close" />
-                <button
+                <DeactivateButton
                     type="button"
-                    :disabled="loading"
-                    class="flex items-center gap-2 rounded bg-yellow-600 px-4 py-2 text-white hover:bg-yellow-700 disabled:opacity-60"
                     @click="confirmDeactivate"
                 >
                     {{ loading ? 'Inativando...' : 'Inativar' }}
-                </button>
+                </DeactivateButton>
             </div>
         </div>
     </div>

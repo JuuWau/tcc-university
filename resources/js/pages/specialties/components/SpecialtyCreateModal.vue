@@ -79,7 +79,7 @@ async function submit() {
                     id="specialty-name"
                     v-model="form.name"
                     type="text"
-                    class="w-full rounded border px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+                    class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                     placeholder="Ex: Endodontia"
                 />
             </div>

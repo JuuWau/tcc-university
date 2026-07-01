@@ -5,6 +5,6 @@ import AppLogoIcon from '@/components/AppLogoIcon.vue';
 <template>
     <div class="flex items-center">
         <AppLogoIcon class="size-8" />
-        <span class="mt-1 ml-2 text-lg font-bold">ACADENT</span>
+        <span class="mt-1 ml-2 text-lg font-bold">Acadent</span>
     </div>
 </template>

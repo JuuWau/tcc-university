@@ -30,8 +30,10 @@ class StudentsController extends Controller
 
     public function index()
     {
+        $universityId = request()->user()?->university_id;
+
         return Inertia::render('students/StudentsIndex', [
-            'periods' => $this->periodService->all(),
+            'periods' => $this->periodService->all($universityId),
         ]);
     }
 
@@ -46,7 +48,7 @@ class StudentsController extends Controller
         ]);
 
         $page = $validated['page'] ?? 1;
-        $perPage = $validated['per_page'] ?? 15;
+        $perPage = $validated['per_page'] ?? 10;
         $sortField = $validated['sort_field'] ?? 'created_at';
         $sortDir = $validated['sort_dir'] ?? 'desc';
         $status = $validated['status'] ?? 'all';
@@ -118,10 +120,12 @@ class StudentsController extends Controller
 
     public function show(int $student)
     {
+        $universityId = request()->user()?->university_id;
         $student = $this->studentService->find($student);
+        
         return Inertia::render('students/StudentTab', [
             'student' => $student,
-            'periods' => $this->periodService->all(),
+            'periods' => $this->periodService->all($universityId),
         ]);
     }
 

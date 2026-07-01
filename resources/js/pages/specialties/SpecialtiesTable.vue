@@ -10,6 +10,7 @@ import {
 } from '@/keys/specialties/specialtyKeys';
 import { Specialty } from '@/types/specialty';
 import { AgGridVue } from 'ag-grid-vue3';
+import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale';
 const emit = defineEmits<{
     (e: 'edit', specialty: Specialty): void;
     (e: 'delete', specialty: Specialty): void;
@@ -113,6 +114,10 @@ function goTo(url: string) {
                     :rowData="specialties"
                     :columnDefs="columnDefs"
                     :defaultColDef="defaultColDef"
+                    :localeText="AG_GRID_LOCALE_BR"
+                    :pagination="true"
+                    :paginationPageSize="10"
+                    :paginationPageSizeSelector="[10, 20, 50, 100]"
                     @cell-clicked="onCellClicked"
                 />
             </div>

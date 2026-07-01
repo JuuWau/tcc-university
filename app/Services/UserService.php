@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Models\Person;
+use App\Models\Role;
 use App\Models\User;
 use App\Models\UserInvite;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -21,6 +22,13 @@ class UserService
      * @param  'name'|'email'|'created_at'  $sortField
      * @param  'asc'|'desc'  $sortDir
      */
+    public function getAvailableRoles()
+    {
+        return Role::where('id', '!=', Role::STUDENT)
+            ->orderBy('name')
+            ->get(['id', 'name', 'slug']);
+    }
+
     public function paginate(
         int $page = 1,
         int $perPage = 15,
@@ -33,7 +41,13 @@ class UserService
             ->with([
                 'person:id,user_id,name',
                 'role:id,name,slug',
-                'invite:id,user_id,used_at,expires_at,token',
+                'invite' => fn ($q) => $q->select([
+                    'user_invites.id',
+                    'user_invites.user_id',
+                    'user_invites.used_at',
+                    'user_invites.expires_at',
+                    'user_invites.token',
+                ]),
             ])
             ->when($universityId, fn($q) => $q->where('users.university_id', $universityId))
             ->whereDoesntHave('student');

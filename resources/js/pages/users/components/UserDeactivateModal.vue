@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import CancelButton from '@/components/buttons/CancelButton.vue';
+import DeactivateButton from '@/components/buttons/DeactivateButton.vue';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import { RefreshTableKey, UserDeactivateKey } from '@/keys/users/userKeys';
 import axios from 'axios';
@@ -61,14 +62,13 @@ async function confirmDeactivate() {
 
             <div class="flex justify-end gap-2 pt-6">
                 <CancelButton @click="close" />
-                <button
+                <DeactivateButton
                     type="button"
                     :disabled="loading"
-                    class="flex items-center gap-2 rounded bg-yellow-600 px-4 py-2 text-white hover:bg-yellow-700 disabled:opacity-60"
                     @click="confirmDeactivate"
                 >
                     {{ loading ? 'Inativando...' : 'Inativar' }}
-                </button>
+                </DeactivateButton>
             </div>
         </div>
     </div>

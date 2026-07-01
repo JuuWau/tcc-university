@@ -5,7 +5,7 @@
     "scripts": {
         "build": "vite build",
         "build:ssr": "vite build && vite build --ssr",
-        "dev": "vite",
+        "dev": "vite --host 0.0.0.0",
         "format": "prettier --write resources/",
         "format:check": "prettier --check resources/",
         "lint": "eslint . --fix"
@@ -31,6 +31,7 @@
         "vue-tsc": "^2.2.4"
     },
     "dependencies": {
+        "@ag-grid-community/locale": "^36.0.0",
         "@fullcalendar/core": "^6.1.20",
         "@fullcalendar/daygrid": "^6.1.20",
         "@fullcalendar/interaction": "^6.1.20",

@@ -18,12 +18,8 @@ class UsersController extends Controller
 
     public function index()
     {
-        $roles = Role::where('id', '!=', Role::STUDENT)
-            ->orderBy('name')
-            ->get(['id', 'name', 'slug']);
-
         return Inertia::render('users/UsersIndex', [
-            'roles' => $roles,
+            'roles' => $this->userService->getAvailableRoles(),
         ]);
     }
 

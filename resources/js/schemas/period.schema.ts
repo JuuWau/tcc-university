@@ -14,7 +14,11 @@ export const periodSchema = z.object({
   calendar_year: z
     .string()
     .length(4, 'O ano calendário é obrigatório')
-    .regex(/^\d{4}$/, 'O ano calendário deve ser numérico'),
+    .regex(/^\d{4}$/, 'O ano calendário deve ser numérico')
+    .refine((year) => {
+      const currentYear = new Date().getFullYear();
+      return parseInt(year) >= currentYear;
+    }, 'Não é permitido cadastrar períodos com ano anterior ao atual'),
 
   specialties: z
     .array(z.number())

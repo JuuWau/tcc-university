@@ -19,6 +19,8 @@ class ScheduleSlot extends Model
         'end_time',
         'available_slots',
         'allow_student_booking',
+        'allow_student_enrollment',
+        'allow_procedure_booking',
     ];
 
     protected function casts(): array

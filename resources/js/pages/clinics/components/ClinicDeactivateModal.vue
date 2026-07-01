@@ -65,7 +65,7 @@ async function submit() {
 
             <p class="mb-6 pt-3 text-sm text-gray-600">
                 Ao inativar esta clínica, os registros subsequentes relacionados
-                em agenda e inscrições serão inativados;
+                em agenda e inscrições serão inativados.
             </p>
 
             <div class="flex justify-end gap-2">

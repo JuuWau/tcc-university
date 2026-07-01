@@ -5,7 +5,7 @@ import { PatientTabContextKey } from '@/keys/patients/patientKeys';
 import { patientStudentEditSchema } from '@/schemas/patientStudentEdit.schema';
 import type { PatientForTab, PatientStatusKey } from '@/types/patient/patient';
 import { PATIENT_STATUS } from '@/types/patient/patient';
-import Multiselect from '@vueform/multiselect';
+import AppMultiselect from '@/components/AppMultiselect.vue';
 import axios from 'axios';
 import { computed, inject, reactive, ref, unref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
@@ -115,7 +115,7 @@ async function submit() {
                         type="text"
                         v-model="form.code"
                         maxlength="20"
-                        class="w-full rounded border px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+                        class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                         placeholder="Código do paciente"
                     />
                 </div>
@@ -123,7 +123,7 @@ async function submit() {
                     <label class="mb-1 block text-sm font-medium text-gray-700">
                         Estudantes
                     </label>
-                    <Multiselect
+                    <AppMultiselect
                         v-model="form.student_ids"
                         :options="studentOptions"
                         mode="tags"
@@ -141,7 +141,7 @@ async function submit() {
                     <label class="mb-1 block text-sm font-medium text-gray-700">
                         Status
                     </label>
-                    <Multiselect
+                    <AppMultiselect
                         v-model="form.status"
                         :options="statusOptions"
                         label="label"

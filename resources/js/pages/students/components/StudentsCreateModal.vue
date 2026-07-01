@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppMultiselect from '@/components/AppMultiselect.vue';
 import CancelButton from '@/components/buttons/CancelButton.vue';
 import SaveButton from '@/components/buttons/SaveButton.vue';
 import {
@@ -153,7 +154,7 @@ async function submit() {
                     Período (*)
                 </label>
 
-                <Multiselect
+                <AppMultiselect
                     v-model="form.period"
                     :options="periodsOptions"
                     label="label"

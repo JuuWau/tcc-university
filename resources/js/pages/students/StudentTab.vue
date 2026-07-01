@@ -39,6 +39,7 @@ import StudentHeader from '@/pages/students/StudentHeader.vue';
 import StudentPersonalData from '@/pages/students/tabs/StudentPersonalData.vue';
 import StudentLogs from '@/pages/students/tabs/StudentLogs.vue';
 import { StudentTabContextKey } from '@/keys/students/studentKeys';
+// import StudentCalendar from '@/pages/students/tabs/StudentCalendar.vue';
 import type { Student } from '@/types/student/student';
 import { router, usePage } from '@inertiajs/vue3';
 import { computed, provide, ref } from 'vue';

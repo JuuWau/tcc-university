@@ -8,7 +8,7 @@ defineProps<{ loading?: boolean }>();
     <button
         type="button"
         :disabled="loading"
-        class="flex items-center gap-2 rounded bg-green-600 px-4 py-2 text-white disabled:opacity-60"
+        class="flex items-center gap-2 h-9 cursor-pointer rounded-lg bg-green-600 px-4 py-2 text-white disabled:opacity-60"
     >
         <LoadingSpinner v-if="loading" class="h-4 w-4" />
         <span>{{ loading ? 'Ativando...' : 'Ativar' }}</span>

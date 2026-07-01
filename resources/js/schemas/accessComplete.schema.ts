@@ -33,11 +33,17 @@ const staffCompleteBaseSchema = z.object({
   birth_date: z
     .string()
     .min(10, 'Data de nascimento inválida')
-    .refine((date) => {
+    .refine((value) => {
+      if (!value) return true;
+
+      const [year, month, day] = value.split('-').map(Number);
+      const birthDate = new Date(year, month - 1, day);
+
       const today = new Date();
-      const birth = new Date(date);
-      return birth <= today;
-    }, { message: 'Data de nascimento não pode ser maior que a data atual' }),
+      today.setHours(0, 0, 0, 0);
+
+      return birthDate <= today;
+    }, 'A data de nascimento não pode ser futura.'),
   cep: z.string().regex(/^\d{5}-\d{3}$/, 'CEP inválido').max(100, 'CEP não pode ter mais de 9 caracteres'),
   street: z.string().min(1, 'Endereço obrigatório').max(100, 'Rua não pode ter mais de 100 caracteres'),
   neighborhood: z.string().min(1, 'Bairro obrigatório').max(50, 'Bairro não pode ter mais de 50 caracteres'),

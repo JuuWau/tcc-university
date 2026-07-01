@@ -5,6 +5,7 @@ import { ClinicsGroupKey } from '@/keys/clinics/clinicKeys';
 import type { Clinic } from '@/types/clinic/clinic';
 import { AgGridVue } from 'ag-grid-vue3';
 import { computed, inject, ref, type Ref } from 'vue';
+import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale';
 
 const emit = defineEmits<{
     (e: 'create'): void;
@@ -129,6 +130,10 @@ const filteredClinics = computed(() => {
                     :rowData="filteredClinics"
                     :columnDefs="columnDefs"
                     :defaultColDef="defaultColDef"
+                    :pagination="true"
+                    :paginationPageSize="10"
+                    :paginationPageSizeSelector="[10, 20, 50, 100]"
+                    :localeText="AG_GRID_LOCALE_BR"
                 />
             </div>
         </div>

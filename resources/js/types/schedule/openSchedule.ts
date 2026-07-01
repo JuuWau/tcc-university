@@ -18,9 +18,10 @@ export interface OpenScheduleSlot {
 
 export interface OpenSchedulePayload {
     clinic_id: number;
-    available_chairs: number | null;
+    available_slots: number | null;
     allow_student_booking: boolean;
     allow_student_enrollment: boolean;
+    allow_procedure_booking: boolean;
     period_id: number;
     responsible_id: number;
     days: string[];
