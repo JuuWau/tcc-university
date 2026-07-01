@@ -31,11 +31,11 @@ defineProps<Props>();
     </DropdownMenuLabel>
     <DropdownMenuSeparator />
     <DropdownMenuGroup>
-        <DropdownMenuItem :as-child="true">
-            <Link class="block w-full" :href="edit()" prefetch as="button">
-                <UserSearch class="mr-2 h-4 w-4" />
-                Meus Dados
-            </Link>
+        <DropdownMenuItem
+            @select="() => router.visit('/my-profile')"
+        >
+            <UserSearch class="mr-2 h-4 w-4" />
+            Meus Dados
         </DropdownMenuItem>
     </DropdownMenuGroup>
     <DropdownMenuSeparator />
@@ -48,7 +48,7 @@ defineProps<Props>();
             data-test="logout-button"
         >
             <LogOut class="mr-2 h-4 w-4" />
-            Log out
+            Sair
         </Link>
     </DropdownMenuItem>
 </template>

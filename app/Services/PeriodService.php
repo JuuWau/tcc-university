@@ -11,9 +11,10 @@ class PeriodService
         /**
          * Return all periods from a university
          */
-        public function all()
+        public function all(int $universityId)
         {
                 return Period::orderBy('calendar_year')->with('specialties')
+                        ->where('university_id', $universityId)
                         ->get();
         }
 
@@ -54,6 +55,18 @@ class PeriodService
 
         public function delete(Period $period): void
         {
+                if ($period->scheduleSlots()->exists()) {
+                        throw new \DomainException(
+                        'Não é possível excluir este período pois ele possui horários vinculados.'
+                        );
+                }
+
+                if ($period->studentPeriods()->exists()) {
+                        throw new \DomainException(
+                        'Não é possível excluir este período pois ele possui alunos vinculados.'
+                        );
+                }
+
                 PeriodSpecialty::where('period_id', $period->id)
                         ->update(['deleted_at' => now()]);
 

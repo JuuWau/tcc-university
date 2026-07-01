@@ -12,11 +12,11 @@ import type {
     OpenScheduleSlot,
 } from '@/types/schedule/openSchedule';
 import { usePage } from '@inertiajs/vue3';
-import Multiselect from '@vueform/multiselect';
 import axios, { all } from 'axios';
 import { computed, provide, reactive, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 import { formatDateBr } from '@/src/utils/formatters';
+import AppMultiselect from '@/components/AppMultiselect.vue';
 
 type SelectOption = { label: string; value: number };
 type CalendarDay = {
@@ -67,7 +67,7 @@ provide(OpenScheduleKey, { loading });
 
 const form = reactive({
     clinic_id: null as number | null,
-    available_chairs: '' as string | number,
+    available_slots: '' as string | number,
     period_id: null as number | null,
     responsible_id: null as number | null,
     days: [] as string[],
@@ -75,6 +75,7 @@ const form = reactive({
     end_time: '',
     allow_student_booking: false,
     allow_student_enrollment: false,
+    allow_procedure_booking: false,
 });
 
 const monthLabel = computed(() =>
@@ -103,9 +104,9 @@ const sortedDays = computed(() =>
 );
 
 const normalizedAvailableChairs = computed(() => {
-    if (form.available_chairs === '' || form.available_chairs === null)
+    if (form.available_slots === '' || form.available_slots === null)
         return null;
-    const parsed = Number(form.available_chairs);
+    const parsed = Number(form.available_slots);
     return Number.isNaN(parsed) ? null : parsed;
 });
 
@@ -163,7 +164,7 @@ const currentMonthSelectableDays = computed(() =>
 const formValidationResult = computed(() =>
     openScheduleSchema.safeParse({
         clinic_id: form.clinic_id,
-        available_chairs: normalizedAvailableChairs.value,
+        available_slots: normalizedAvailableChairs.value,
         period_id: form.period_id,
         responsible_id: form.responsible_id,
         days: form.days,
@@ -171,6 +172,7 @@ const formValidationResult = computed(() =>
         end_time: form.end_time,
         allow_student_booking: form.allow_student_booking,
         allow_student_enrollment: form.allow_student_enrollment,
+        allow_procedure_booking: form.allow_procedure_booking,
     }),
 );
 
@@ -271,12 +273,15 @@ function clearCurrentMonthSelection() {
 
 function clearSelection() {
     form.clinic_id = null;
-    form.available_chairs = '';
+    form.available_slots = '';
     form.period_id = null;
     form.responsible_id = null;
     form.days = [];
     form.start_time = '';
     form.end_time = '';
+    form.allow_student_booking = false;
+    form.allow_student_enrollment = false;
+    form.allow_procedure_booking = false;
 }
 
 function hasTimeOverlap(
@@ -331,9 +336,10 @@ async function submit() {
 
     const payload: OpenSchedulePayload = {
         clinic_id: result.data.clinic_id,
-        available_chairs: result.data.available_chairs,
+        available_slots: result.data.available_slots,
         allow_student_booking: result.data.allow_student_booking,
         allow_student_enrollment: result.data.allow_student_enrollment,
+        allow_procedure_booking: result.data.allow_procedure_booking,
         period_id: result.data.period_id,
         responsible_id: result.data.responsible_id,
         days: [...result.data.days].sort((a, b) => a.localeCompare(b)),
@@ -392,7 +398,7 @@ async function submit() {
                                 >
                                     Clínica (*)
                                 </label>
-                                <Multiselect
+                                <AppMultiselect
                                     v-model="form.clinic_id"
                                     :options="clinicOptions"
                                     label="label"
@@ -411,7 +417,7 @@ async function submit() {
                                     Cadeiras livres
                                 </label>
                                 <input
-                                    v-model="form.available_chairs"
+                                    v-model="form.available_slots"
                                     type="number"
                                     min="0"
                                     step="1"
@@ -433,7 +439,7 @@ async function submit() {
                                     v-model="form.allow_student_booking"
                                     :class="[
                                         form.allow_student_booking ? 'bg-sky-600' : 'bg-gray-300',
-                                        'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition'
+                                        'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition cursor-pointer'
                                     ]"
                                 >
                                     <span
@@ -459,12 +465,38 @@ async function submit() {
                                     v-model="form.allow_student_enrollment"
                                     :class="[
                                         form.allow_student_enrollment ? 'bg-sky-600' : 'bg-gray-300',
-                                        'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition'
+                                        'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition cursor-pointer'
                                     ]"
                                 >
                                     <span
                                         :class="[
                                             form.allow_student_enrollment ? 'translate-x-6' : 'translate-x-1',
+                                            'inline-block h-4 w-4 transform rounded-full bg-white transition'
+                                        ]"
+                                    />
+                                </Switch>
+                            </div>
+
+                            <div class="md:col-span-2 flex items-center justify-between gap-4 rounded-md border border-gray-200 px-3 py-3">
+                                <div>
+                                    <p class="text-sm font-medium text-gray-700">
+                                        Permitir registro de procedimento
+                                    </p>
+                                    <p class="text-xs text-gray-500">
+                                        Se desativado, os alunos não poderão cadastrar procedimentos no agendamento do paciente.
+                                    </p>
+                                </div>
+
+                                <Switch
+                                    v-model="form.allow_procedure_booking"
+                                    :class="[
+                                        form.allow_procedure_booking ? 'bg-sky-600' : 'bg-gray-300',
+                                        'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition cursor-pointer'
+                                    ]"
+                                >
+                                    <span
+                                        :class="[
+                                            form.allow_procedure_booking ? 'translate-x-6' : 'translate-x-1',
                                             'inline-block h-4 w-4 transform rounded-full bg-white transition'
                                         ]"
                                     />
@@ -577,7 +609,7 @@ async function submit() {
                                 >
                                     Período (*)
                                 </label>
-                                <Multiselect
+                                <AppMultiselect
                                     v-model="form.period_id"
                                     :options="periodOptions"
                                     label="label"
@@ -596,7 +628,7 @@ async function submit() {
                                 >
                                     Responsável
                                 </label>
-                                <Multiselect
+                                <AppMultiselect
                                     v-model="form.responsible_id"
                                     :options="responsibleOptions"
                                     label="label"
@@ -619,7 +651,9 @@ async function submit() {
                                 </label>
                                 <input
                                     v-model="form.start_time"
-                                    type="time"
+                                    type="text"
+                                    placeholder="HH:mm"
+                                    v-mask="'##:##'"
                                     class="w-full rounded border border-gray-300 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                                 />
                             </div>
@@ -631,7 +665,9 @@ async function submit() {
                                 </label>
                                 <input
                                     v-model="form.end_time"
-                                    type="time"
+                                    type="text"
+                                    placeholder="HH:mm"
+                                    v-mask="'##:##'"
                                     class="w-full rounded border border-gray-300 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                                 />
                             </div>
@@ -641,7 +677,7 @@ async function submit() {
                             v-if="conflictPreview"
                             class="rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800"
                         >
-                            Conflito detectado (simulação): a clínica
+                            Conflito detectado: a clínica
                             <strong>{{ conflictPreview.clinic_name }}</strong>
                             já possui agenda aberta no dia
                             <strong>{{

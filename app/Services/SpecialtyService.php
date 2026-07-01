@@ -9,9 +9,9 @@ class SpecialtyService
         /**
          * Return all specialties from a university
          */
-        public function all()
+        public function all(int $universityId)
         {
-                return Specialty::orderBy('name')->get();
+                return Specialty::orderBy('name')->where('university_id', $universityId)->get();
         }
 
         public function update(Specialty $specialty, array $data): Specialty
@@ -37,6 +37,18 @@ class SpecialtyService
 
         public function delete(Specialty $specialty): void
         {
+                if ($specialty->procedures()->exists()) {
+                        throw new \DomainException(
+                        'Não é possível excluir a especialidade pois existem procedimentos vinculados.'
+                        );
+                }
+
+                if ($specialty->periods()->exists()) {
+                        throw new \DomainException(
+                        'Não é possível excluir a especialidade pois existem períodos vinculados.'
+                        );
+                }
+
                 $specialty->delete();
         }
 }

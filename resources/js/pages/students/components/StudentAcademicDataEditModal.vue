@@ -1,11 +1,11 @@
 <script setup lang="ts">
+import AppMultiselect from '@/components/AppMultiselect.vue';
 import CancelButton from '@/components/buttons/CancelButton.vue';
 import SaveButton from '@/components/buttons/SaveButton.vue';
 import { StudentTabContextKey } from '@/keys/students/studentKeys';
 import { studentAcademicDataEditSchema } from '@/schemas/studentAcademicDataEdit.shema';
 import type { Student } from '@/types/student/student';
 import { usePage } from '@inertiajs/vue3';
-import Multiselect from '@vueform/multiselect';
 import axios from 'axios';
 import { computed, inject, reactive, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
@@ -131,7 +131,7 @@ async function submit() {
                             v-model="form.registration"
                             type="text"
                             maxlength="255"
-                            class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+                            class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                             placeholder="Registro Acadêmico"
                         />
                     </div>
@@ -141,14 +141,14 @@ async function submit() {
                         >
                             Período (*)
                         </label>
-                        <Multiselect
+                        <AppMultiselect
                             v-model="form.period"
                             :options="periodsOptions"
                             label="label"
                             value-prop="value"
-                            :searchable="true"
-                            :close-on-select="true"
-                            :can-clear="false"
+                            :close-on-select="false"
+                            :can-clear="true"
+                            :append-to-body="true"
                             placeholder="Selecione o período"
                         />
                     </div>

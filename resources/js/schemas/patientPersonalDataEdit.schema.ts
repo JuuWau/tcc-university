@@ -39,7 +39,18 @@ export const patientPersonalDataEditSchema = z.object({
     ),
     birth_date: z.preprocess(
         normalizeOptionalString,
-        z.string().min(10, 'Data de nascimento inválida').nullable(),
+        z.string().min(10, 'Data de nascimento inválida').nullable()
+        .refine((value) => {
+            if (!value) return true;
+
+            const [year, month, day] = value.split('-').map(Number);
+            const birthDate = new Date(year, month - 1, day);
+
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            return birthDate <= today;
+        }, 'A data de nascimento não pode ser futura.'),
     ),
     cep: z.preprocess(
         normalizeOptionalString,

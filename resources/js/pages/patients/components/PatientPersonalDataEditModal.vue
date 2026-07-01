@@ -6,7 +6,7 @@ import SaveButton from '@/components/buttons/SaveButton.vue';
 import { PatientTabContextKey } from '@/keys/patients/patientKeys';
 import { patientPersonalDataEditSchema } from '@/schemas/patientPersonalDataEdit.schema';
 import type { PatientForTab } from '@/types/patient/patient';
-import Multiselect from '@vueform/multiselect';
+import AppMultiselect from '@/components/AppMultiselect.vue';
 import axios from 'axios';
 import { computed, inject, reactive, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
@@ -268,7 +268,7 @@ async function submit() {
                         Tipo de atendimento (*)
                     </label>
 
-                    <Multiselect
+                    <AppMultiselect
                         v-model="form.patient_type"
                         :options="patientTypeOptions"
                         label="label"
@@ -359,7 +359,7 @@ async function submit() {
                         >
                             Estado (*)
                         </label>
-                        <Multiselect
+                        <AppMultiselect
                             v-model="form.state"
                             :options="stateOptions"
                             label="label"
@@ -376,7 +376,7 @@ async function submit() {
                         >
                             Cidade (*)
                         </label>
-                        <Multiselect
+                        <AppMultiselect
                             v-model="form.city"
                             :options="cityOptions"
                             label="label"

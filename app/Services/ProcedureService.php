@@ -6,9 +6,10 @@ use App\Models\Procedure;
 
 class ProcedureService
 {
-    public function all()
+    public function all(int $universityId)
     {
         return Procedure::orderBy('name')
+            ->where('university_id', $universityId)
             ->with('specialty:id,name')
             ->get();
     }

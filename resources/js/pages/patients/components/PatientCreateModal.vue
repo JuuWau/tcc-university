@@ -8,7 +8,7 @@ import { LoadingKey } from '@/keys/ui/loadingKey';
 import { patientCreateSchema } from '@/schemas/patient.schema';
 import type { StudentOption } from '@/types/patient/patient';
 import { usePage } from '@inertiajs/vue3';
-import Multiselect from '@vueform/multiselect';
+import AppMultiselect from '@/components/AppMultiselect.vue';
 import axios from 'axios';
 import { computed, inject, reactive, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
@@ -271,7 +271,7 @@ async function submit() {
                             Tipo de atendimento (*)
                         </label>
 
-                        <Multiselect
+                        <AppMultiselect
                             v-model="form.patient_type"
                             :options="patientTypeOptions"
                             label="label"
@@ -291,7 +291,7 @@ async function submit() {
                         >
                             Estudantes
                         </label>
-                        <Multiselect
+                        <AppMultiselect
                             v-model="form.student_ids"
                             :options="studentsOptions"
                             mode="tags"
@@ -389,7 +389,7 @@ async function submit() {
                             >
                                 Estado
                             </label>
-                            <Multiselect
+                            <AppMultiselect
                                 v-model="form.state"
                                 :options="stateOptions"
                                 label="label"
@@ -407,7 +407,7 @@ async function submit() {
                             >
                                 Cidade
                             </label>
-                            <Multiselect
+                            <AppMultiselect
                                 v-model="form.city"
                                 :options="cityOptions"
                                 label="label"

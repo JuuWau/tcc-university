@@ -57,6 +57,12 @@ const openGroup = ref<string | null>(null);
                     <li v-for="child in item.children" :key="child.title">
                         <SidebarMenuButton as-child size="sm">
                             <Link :href="child.href">
+                                <component
+                                    v-if="child.icon"
+                                    :is="child.icon"
+                                    class="mr-2 h-4 w-4"
+                                />
+
                                 {{ child.title }}
                             </Link>
                         </SidebarMenuButton>

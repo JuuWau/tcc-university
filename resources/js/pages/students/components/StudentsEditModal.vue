@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import { City, IbgeService, Uf } from '@/api/ibge';
 import { ViaCep } from '@/api/viacep';
+import AppMultiselect from '@/components/AppMultiselect.vue';
 import CancelButton from '@/components/buttons/CancelButton.vue';
 import SaveButton from '@/components/buttons/SaveButton.vue';
 import { StudentTabContextKey } from '@/keys/students/studentKeys';
 import { studentEditSchema } from '@/schemas/studentEdit.schema';
 import type { Student } from '@/types/student/student';
-import Multiselect from '@vueform/multiselect';
 import axios from 'axios';
 import { computed, inject, reactive, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
@@ -204,7 +204,7 @@ async function submit() {
                             v-model="form.name"
                             type="text"
                             maxlength="255"
-                            class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+                            class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                             placeholder="Nome completo"
                         />
                     </div>
@@ -217,7 +217,7 @@ async function submit() {
                         <input
                             v-model="form.email"
                             type="email"
-                            class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+                            class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                             placeholder="email@exemplo.com"
                         />
                     </div>
@@ -235,7 +235,7 @@ async function submit() {
                             type="tel"
                             v-mask="'(##) #####-####'"
                             placeholder="(99) 99999-9999"
-                            class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+                            class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                         />
                     </div>
                     <div>
@@ -249,7 +249,7 @@ async function submit() {
                             type="text"
                             maxlength="14"
                             v-mask="'###.###.###-##'"
-                            class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+                            class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                         />
                     </div>
                 </div>
@@ -261,7 +261,7 @@ async function submit() {
                     <input
                         v-model="form.birth_date"
                         type="date"
-                        class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+                        class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                     />
                 </div>
 
@@ -276,7 +276,7 @@ async function submit() {
                             v-model="form.cep"
                             type="text"
                             v-mask="'#####-###'"
-                            class="w-full rounded border px-3 py-2 text-sm"
+                            class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                         />
                     </div>
                     <div class="md:col-span-2">
@@ -289,7 +289,7 @@ async function submit() {
                             v-model="form.street"
                             type="text"
                             maxlength="100"
-                            class="w-full rounded border px-3 py-2 text-sm"
+                            class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                         />
                     </div>
                 </div>
@@ -305,7 +305,7 @@ async function submit() {
                             v-model="form.neighborhood"
                             type="text"
                             maxlength="50"
-                            class="w-full rounded border px-3 py-2 text-sm"
+                            class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                         />
                     </div>
                     <div>
@@ -318,7 +318,7 @@ async function submit() {
                             v-model="form.number"
                             type="text"
                             maxlength="5"
-                            class="w-full rounded border px-3 py-2 text-sm"
+                            class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                         />
                     </div>
                     <div>
@@ -331,7 +331,7 @@ async function submit() {
                             v-model="form.complement"
                             type="text"
                             maxlength="20"
-                            class="w-full rounded border px-3 py-2 text-sm"
+                            class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                         />
                     </div>
                 </div>
@@ -343,7 +343,7 @@ async function submit() {
                         >
                             Estado (*)
                         </label>
-                        <Multiselect
+                        <AppMultiselect
                             v-model="form.state"
                             :options="stateOptions"
                             label="label"
@@ -351,6 +351,7 @@ async function submit() {
                             :searchable="true"
                             :close-on-select="true"
                             :can-clear="true"
+                            :append-to-body="true"
                             placeholder="Selecione o estado"
                         />
                     </div>
@@ -360,7 +361,7 @@ async function submit() {
                         >
                             Cidade (*)
                         </label>
-                        <Multiselect
+                        <AppMultiselect
                             v-model="form.city"
                             :options="cityOptions"
                             label="label"
@@ -368,6 +369,7 @@ async function submit() {
                             :searchable="true"
                             :close-on-select="true"
                             :can-clear="true"
+                            :append-to-body="true"
                             placeholder="Selecione a cidade"
                         />
                     </div>

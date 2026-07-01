@@ -37,7 +37,7 @@ async function submit() {
         toast.success('Agenda excluída com sucesso');
         close();
         router.reload({
-            preserveScroll: true,
+            preserveUrl: true,
         } as Parameters<typeof router.reload>[0]);
     } catch (error: any) {
         toast.error(error.response?.data?.message ?? 'Erro ao excluir agenda');

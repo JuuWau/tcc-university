@@ -63,7 +63,6 @@ class ScheduleSlotController extends Controller
 
         $periodId = $request->integer('period_id') ?: null;
         $date = $request->input('date');
-        // var_dump($periodId, $date);
         $payload = $this->scheduleSlotService->listOpenSchedulesForClinic(
             $universityId,
             $clinic->id,
@@ -91,7 +90,7 @@ class ScheduleSlotController extends Controller
         }
 
         try {
-            $this->scheduleSlotService->updateSlot($slot, $request->validated(), $universityId);
+            $slot = $this->scheduleSlotService->updateSlot($slot, $request->validated(), $universityId);
         } catch (\DomainException $e) {
             $payload = json_decode($e->getMessage(), true);
 
@@ -101,8 +100,10 @@ class ScheduleSlotController extends Controller
             ], 422);
         }
 
-        return response()->json(['message' => 'Agenda atualizada com sucesso.']);
-    }
+        return response()->json([
+            'message' => 'Agenda atualizada com sucesso.',
+            'slots' => $slot,]);
+        }
 
     public function updateMultipleSlots(UpdateMultipleScheduleSlotsRequest $request): JsonResponse
     {
@@ -204,7 +205,7 @@ class ScheduleSlotController extends Controller
         try {
             $slots = $this->scheduleSlotService->open([
                 'clinic_id' => $clinic->id,
-                'available_chairs' => $data['available_slots'] ?? 0,
+                'available_slots' => $data['available_slots'] ?? 0,
                 'period_id' => $data['period_id'],
                 'responsible_id' => $data['responsible_id'],
                 'days' => [$data['date']],
@@ -212,6 +213,7 @@ class ScheduleSlotController extends Controller
                 'end_time' => $data['end_time'],
                 'allow_student_enrollment' => $data['allow_student_enrollment'],
                 'allow_student_booking' => $data['allow_student_booking'],
+                'allow_procedure_booking' => $data['allow_procedure_booking'],
             ], $universityId);
         } catch (\DomainException $e) {
             $payload = json_decode($e->getMessage(), true);

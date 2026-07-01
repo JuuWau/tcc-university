@@ -19,14 +19,17 @@ export const userPersonalDataEditSchema = z
         birth_date: z
             .string()
             .min(10, 'Data de nascimento inválida')
-            .refine(
-                (date) => {
-                    const today = new Date();
-                    const birth = new Date(date);
-                    return birth <= today;
-                },
-                { message: 'Data de nascimento não pode ser maior que a data atual' }
-            ),
+            .refine((value) => {
+                if (!value) return true;
+
+                const [year, month, day] = value.split('-').map(Number);
+                const birthDate = new Date(year, month - 1, day);
+
+                const today = new Date();
+                today.setHours(0, 0, 0, 0);
+
+                return birthDate <= today;
+            }, 'A data de nascimento não pode ser futura.'),
         cep: z
             .string()
             .regex(/^\d{5}-\d{3}$/, 'CEP inválido')

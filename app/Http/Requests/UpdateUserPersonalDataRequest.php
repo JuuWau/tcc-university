@@ -2,8 +2,9 @@
 
 namespace App\Http\Requests;
 
+use App\Models\User;
 use Illuminate\Foundation\Http\FormRequest;
-
+use Illuminate\Validation\Rule;
 class UpdateUserPersonalDataRequest extends FormRequest
 {
     public function authorize(): bool
@@ -16,6 +17,8 @@ class UpdateUserPersonalDataRequest extends FormRequest
      */
     public function rules(): array
     {
+        $user = User::with('person')->findOrFail($this->route('user'));
+        
         return [
             'name' => ['sometimes', 'string', 'max:255'],
             'email' => ['required', 'email'],
@@ -38,6 +41,17 @@ class UpdateUserPersonalDataRequest extends FormRequest
             'city' => ['required', 'string'],
             'state' => ['required', 'string'],
             'password' => ['sometimes', 'nullable', 'string', 'min:8', 'max:50'],
+            'cpf' => [
+                'required',
+                'regex:/^\d{3}\.\d{3}\.\d{3}-\d{2}$/',
+                Rule::unique('people', 'cpf')
+                    ->ignore($user->person->id),
+                function ($attribute, $value, $fail) {
+                    if (!$this->isValidCPF($value)) {
+                        $fail('CPF inválido');
+                    }
+                },
+            ],
         ];
     }
 
@@ -67,6 +81,7 @@ class UpdateUserPersonalDataRequest extends FormRequest
             'state.required' => 'Estado obrigatório',
             'password.min' => 'Senha deve ter no mínimo 8 caracteres',
             'password.max' => 'Senha não pode ter mais de 50 caracteres',
+            'cpf.unique' => 'Já existe uma pessoa cadastrada com este CPF.',
         ];
     }
 

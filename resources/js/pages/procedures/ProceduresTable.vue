@@ -5,6 +5,7 @@ import CreateButton from '@/components/buttons/CreateButton.vue';
 import { ProceduresGroupKey } from '@/keys/procedures/procedureKeys';
 import type { Procedure } from '@/types/procedure';
 import { AgGridVue } from 'ag-grid-vue3';
+import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale';
 
 const emit = defineEmits<{
     (e: 'edit', procedure: Procedure): void;
@@ -90,6 +91,10 @@ const defaultColDef = {
                     :row-data="rowData"
                     :column-defs="columnDefs"
                     :default-col-def="defaultColDef"
+                    :pagination="true"
+                    :pagination-page-size="10"
+                    :pagination-page-size-selector="[10, 20, 50, 100]"
+                    :locale-text="AG_GRID_LOCALE_BR"
                 />
             </div>
         </div>

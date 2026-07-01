@@ -35,6 +35,9 @@ class UpdateScheduleSlotRequest extends FormRequest
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
             'available_slots' => ['integer', 'min:0'],
+            'allow_student_booking' => ['boolean'],
+            'allow_student_enrollment' => ['boolean'],
+            'allow_procedure_booking' => ['boolean'],
         ];
     }
 }

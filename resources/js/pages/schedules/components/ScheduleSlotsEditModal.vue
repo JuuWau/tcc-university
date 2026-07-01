@@ -10,6 +10,8 @@ import axios from 'axios';
 import { computed, inject, ref } from 'vue';
 import { toast } from 'vue3-toastify';
 import { scheduleSlotsUpdateSchema } from '@/schemas/scheduleSlotsUpdate.schema';
+import { Switch } from '@headlessui/vue';
+import AppMultiselect from '@/components/AppMultiselect.vue';
 
 type Page = AppPageProps<{
     clinic: OpenClinicScheduleClinic;
@@ -23,6 +25,9 @@ const form = ref({
     start_time: '',
     end_time: '',
     available_slots: '' as string | number,
+    allow_student_booking: false,
+    allow_student_enrollment: false,
+    allow_procedure_booking: false,
 });
 
 const editMultipleModalInjected = inject(ScheduleSlotEditMultipleKey);
@@ -30,7 +35,7 @@ const loading = inject(LoadingKey);
 
 if (!editMultipleModalInjected) {
     throw new Error(
-        'ScheduleSlotsDeleteModal precisa estar dentro do provider',
+        'ScheduleSlotsEditModal precisa estar dentro do provider',
     );
 }
 
@@ -56,6 +61,10 @@ async function submit() {
 
         const payload = {
         ids: slots.map(slot => slot.id),
+        slots_data: slots.map(slot => ({ 
+                id: slot.id, 
+                date: slot.date 
+            })),
         ...form.value
         };
 
@@ -67,8 +76,9 @@ async function submit() {
         return;
         }
 
-        console.log(result.data)
-        await axios.put('/schedules/multiple-slots', result.data);
+        const { slots_data, ...dataToSend } = result.data;
+        
+        await axios.put('/schedules/multiple-slots', dataToSend);
         toast.success('Agendas atualizadas com sucesso');
         close();
 
@@ -99,7 +109,7 @@ async function submit() {
                     >
                         Responsável
                     </label>
-                    <Multiselect
+                    <AppMultiselect
                         :options="responsibleOptions"
                         v-model="form.responsible_id"
                         label="label"
@@ -119,8 +129,10 @@ async function submit() {
                             Início (*)
                         </label>
                         <input
-                            type="time"
-                             v-model="form.start_time"
+                            type="text"
+                            v-model="form.start_time"
+                            placeholder="HH:mm"
+                            v-mask="'##:##'"
                             class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                         />
                     </div>
@@ -131,8 +143,10 @@ async function submit() {
                             Fim (*)
                         </label>
                         <input
-                            type="time"
+                            type="text"
                             v-model="form.end_time"
+                            placeholder="HH:mm"
+                            v-mask="'##:##'"
                             class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                         />
                     </div>
@@ -151,6 +165,84 @@ async function submit() {
                         step="1"
                         class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                     />
+                </div>
+
+                <div class="md:col-span-2 flex items-center justify-between gap-4 rounded-md border border-gray-200 px-3 py-3">
+                    <div>
+                        <p class="text-sm font-medium text-gray-700">
+                            Permitir inscrição de alunos
+                        </p>
+                        <p class="text-xs text-gray-500">
+                            Se desativado, os alunos não poderão se inscrever nesses horários, deverá ser gerenciada manualmente a ocupação das vagas pela equipe da clínica.
+                        </p>
+                    </div>
+
+                    <Switch
+                        v-model="form.allow_student_booking"
+                        :class="[
+                            form.allow_student_booking ? 'bg-sky-600' : 'bg-gray-300',
+                            'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition'
+                        ]"
+                    >
+                        <span
+                            :class="[
+                                form.allow_student_booking ? 'translate-x-6' : 'translate-x-1',
+                                'inline-block h-4 w-4 transform rounded-full bg-white transition'
+                            ]"
+                        />
+                    </Switch>
+                </div>
+
+                <div class="md:col-span-2 flex items-center justify-between gap-4 rounded-md border border-gray-200 px-3 py-3">
+                    <div>
+                        <p class="text-sm font-medium text-gray-700">
+                            Ativar inscrição de alunos automaticamente
+                        </p>
+                        <p class="text-xs text-gray-500">
+                            Se ativo, os alunos do período selecionado serão inscritos automaticamente, sem necessidade de inscrição manual.
+                        </p>
+                    </div>
+
+                    <Switch
+                        v-model="form.allow_student_enrollment"
+                        :class="[
+                            form.allow_student_enrollment ? 'bg-sky-600' : 'bg-gray-300',
+                            'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition'
+                        ]"
+                    >
+                        <span
+                            :class="[
+                                form.allow_student_enrollment ? 'translate-x-6' : 'translate-x-1',
+                                'inline-block h-4 w-4 transform rounded-full bg-white transition'
+                            ]"
+                        />
+                    </Switch>
+                </div>
+
+                <div class="md:col-span-2 flex items-center justify-between gap-4 rounded-md border border-gray-200 px-3 py-3">
+                    <div>
+                        <p class="text-sm font-medium text-gray-700">
+                            Permitir registro de procedimento
+                        </p>
+                        <p class="text-xs text-gray-500">
+                            Se desativado, os alunos não poderão cadastrar procedimentos no agendamento do paciente.
+                        </p>
+                    </div>
+
+                    <Switch
+                        v-model="form.allow_procedure_booking"
+                        :class="[
+                            form.allow_procedure_booking ? 'bg-sky-600' : 'bg-gray-300',
+                            'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition cursor-pointer'
+                        ]"
+                    >
+                        <span
+                            :class="[
+                                form.allow_procedure_booking ? 'translate-x-6' : 'translate-x-1',
+                                'inline-block h-4 w-4 transform rounded-full bg-white transition'
+                            ]"
+                        />
+                    </Switch>
                 </div>
             </div>
 

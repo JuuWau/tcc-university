@@ -29,7 +29,7 @@ async function submit() {
         await axios.delete(`/schedules/slots/${row.id}`);
         toast.success('Agenda excluída com sucesso');
         close();
-        router.reload({ preserveScroll: true });
+        router.reload({ preserveUrl: true });
     } catch (error: any) {
         toast.error(error.response?.data?.message ?? 'Erro ao excluir agenda');
     } finally {

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppMultiselect from '@/components/AppMultiselect.vue';
 import CancelButton from '@/components/buttons/CancelButton.vue';
 import SaveButton from '@/components/buttons/SaveButton.vue';
 import { ScheduleSlotCreateKey } from '@/keys/schedules/scheduleSlotKeys';
@@ -12,8 +13,7 @@ import {
     OpenClinicSchedulesFilters,
 } from '@/types/schedule/openClinicSchedules';
 import { Switch } from '@headlessui/vue';
-import { usePage } from '@inertiajs/vue3';
-import Multiselect from '@vueform/multiselect';
+import { router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { computed, inject, reactive } from 'vue';
 import { toast } from 'vue3-toastify';
@@ -55,8 +55,9 @@ const form = reactive({
     end_time: '',
     period_id: null as number | null,
     available_slots: null as number | null,
-    allow_student_booking: true,
-    allow_student_enrollment: true,
+    allow_student_booking: false,
+    allow_student_enrollment: false,
+    allow_procedure_booking: false,
 });
 
 function close() {
@@ -94,6 +95,9 @@ async function submit() {
             result.data,
         );
         toast.success('Dia cadastrado com sucesso');
+        router.reload({
+            preserveUrl: true,
+        });
         close();
     } catch (error: any) {
         toast.error(error.response?.data?.message ?? 'Erro ao cadastrar dia');
@@ -119,7 +123,7 @@ async function submit() {
                     <label class="mb-2 block text-sm font-medium text-gray-700">
                         Responsável
                     </label>
-                    <Multiselect
+                    <AppMultiselect
                         v-model="form.responsible_id"
                         :options="responsibleOptions"
                         label="label"
@@ -151,7 +155,9 @@ async function submit() {
                         </label>
                         <input
                             v-model="form.start_time"
-                            type="time"
+                            type="text"
+                            placeholder="HH:mm"
+                            v-mask="'##:##'"
                             class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                         />
                     </div>
@@ -163,7 +169,9 @@ async function submit() {
                         </label>
                         <input
                             v-model="form.end_time"
-                            type="time"
+                            type="text"
+                            placeholder="HH:mm"
+                            v-mask="'##:##'"
                             class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                         />
                     </div>
@@ -228,6 +236,32 @@ async function submit() {
                         <span
                             :class="[
                                 form.allow_student_enrollment ? 'translate-x-6' : 'translate-x-1',
+                                'inline-block h-4 w-4 transform rounded-full bg-white transition'
+                            ]"
+                        />
+                    </Switch>
+                </div>
+
+                <div class="md:col-span-2 flex items-center justify-between gap-4 rounded-md border border-gray-200 px-3 py-3">
+                    <div>
+                        <p class="text-sm font-medium text-gray-700">
+                            Permitir registro de procedimento
+                        </p>
+                        <p class="text-xs text-gray-500">
+                            Se desativado, os alunos não poderão cadastrar procedimentos no agendamento do paciente.
+                        </p>
+                    </div>
+
+                    <Switch
+                        v-model="form.allow_procedure_booking"
+                        :class="[
+                            form.allow_procedure_booking ? 'bg-sky-600' : 'bg-gray-300',
+                            'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition cursor-pointer'
+                        ]"
+                    >
+                        <span
+                            :class="[
+                                form.allow_procedure_booking ? 'translate-x-6' : 'translate-x-1',
                                 'inline-block h-4 w-4 transform rounded-full bg-white transition'
                             ]"
                         />
