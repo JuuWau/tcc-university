@@ -38,49 +38,73 @@ class ClinicController extends Controller
 
     public function store(StoreClinicRequest $request): JsonResponse
     {
-        $clinic = $this->clinicService->create(
-            $request->validated(),
-            $request->user()->university_id
-        );
+        try {
+            $clinic = $this->clinicService->create($request->validated(), $request->user()->university_id);
 
-        return response()->json([
-            'message' => 'Clínica criada com sucesso',
-            'clinic' => $clinic,
-        ]);
+            return response()->json([
+                'message' => 'Clínica criada com sucesso',
+                'clinic' => $clinic,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 500);
+        }
     }
 
     public function update(UpdateClinicRequest $request, Clinic $clinic): JsonResponse
     {
         abort_if($clinic->university_id !== $request->user()->university_id, 403);
 
-        $clinic = $this->clinicService->update($clinic, $request->validated());
+        try {
+            $clinic = $this->clinicService->update(
+                $clinic,
+                $request->validated()
+            );
 
-        return response()->json([
-            'message' => 'Clínica atualizada com sucesso',
-            'clinic' => $clinic,
-        ]);
+            return response()->json([
+                'message' => 'Clínica atualizada com sucesso',
+                'clinic' => $clinic,
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        }
     }
 
     public function deactivate(DeactivateClinicRequest $request, Clinic $clinic): JsonResponse
     {
         abort_if($clinic->university_id !== $request->user()->university_id, 403);
 
-        $this->clinicService->deactivate($clinic);
+        try {
+            $this->clinicService->deactivate($clinic);
 
-        return response()->json([
-            'message' => 'Clínica inativada com sucesso',
-        ]);
+            return response()->json([
+                'message' => 'Clínica inativada com sucesso',
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        }
     }
 
     public function activate(Clinic $clinic): JsonResponse
     {
         abort_if($clinic->university_id !== request()->user()->university_id, 403);
 
-        $this->clinicService->activate($clinic);
+        try {
+            $this->clinicService->activate($clinic);
 
-        return response()->json([
-            'message' => 'Clínica ativada com sucesso',
-        ]);
+            return response()->json([
+                'message' => 'Clínica ativada com sucesso',
+            ]);
+        } catch (\Throwable $e) {
+            return response()->json([
+                'message' => $e->getMessage(),
+            ], 422);
+        }
     }
 
     public function destroy(Clinic $clinic): JsonResponse
@@ -89,14 +113,14 @@ class ClinicController extends Controller
 
         try {
             $this->clinicService->destroy($clinic);
+
+            return response()->json([
+                'message' => 'Clínica removida com sucesso',
+            ]);
         } catch (\DomainException $e) {
             return response()->json([
                 'message' => $e->getMessage(),
             ], 422);
         }
-
-        return response()->json([
-            'message' => 'Clínica removida com sucesso',
-        ]);
     }
 }
