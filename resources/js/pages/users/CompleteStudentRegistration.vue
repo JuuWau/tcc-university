@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { City, IbgeService, Uf } from '@/api/ibge';
 import { ViaCep } from '@/api/viacep';
+import AppMultiselect from '@/components/AppMultiselect.vue';
 import {
     cpfSchema,
     studentCompleteSchema,
@@ -305,7 +306,7 @@ async function submit() {
                         >
                             Estado (*)
                         </label>
-                        <Multiselect
+                        <AppMultiselect
                             v-model="form.state"
                             :options="stateOptions"
                             label="label"
@@ -323,7 +324,7 @@ async function submit() {
                         >
                             Cidade (*)
                         </label>
-                        <Multiselect
+                        <AppMultiselect
                             v-model="form.city"
                             :options="cityOptions"
                             label="label"

@@ -170,9 +170,8 @@ function formatPatientType(type: string | null) {
 const birthDate = computed(() => {
     const d = patient?.value?.birth_date;
     if (!d) return '—';
-    const date = new Date(d);
-    return Number.isNaN(date.getTime())
-        ? '—'
-        : date.toLocaleDateString('pt-BR');
+    const [year, month, day] = d.split('-');
+
+    return `${day}/${month}/${year}`;
 });
 </script>
