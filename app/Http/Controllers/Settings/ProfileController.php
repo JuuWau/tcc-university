@@ -60,4 +60,15 @@ class ProfileController extends Controller
 
         return redirect('/');
     }
+
+    public function redirect()
+    {
+        $user = auth()->user();
+
+        if ($user->student) {
+            return redirect()->route('students.show', $user->student->id);
+        }
+
+        return redirect()->route('users.show', $user->id);
+    }
 }
