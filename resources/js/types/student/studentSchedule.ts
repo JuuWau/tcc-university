@@ -17,7 +17,9 @@ export interface ClinicOption {
 export interface ScheduleEvent {
     id: number;
     date: string;
-    time: string;
-    procedure: string;
+    start_time: string;
+    end_time: string;
     patient: string;
+    procedure: string;
+    status: string;
 }
