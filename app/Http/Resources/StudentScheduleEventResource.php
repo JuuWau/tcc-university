@@ -18,7 +18,7 @@ class StudentScheduleEventResource extends JsonResource
             'id' => $this->id,
             'date' => $this->date
                 ->format('Y-m-d'),
-            'time' => substr(
+            'start_time' => substr(
                 $this->start_time,
                 0,
                 5,
@@ -28,6 +28,8 @@ class StudentScheduleEventResource extends JsonResource
                 0,
                 5,
             ),
+            'allow_procedure_booking' => $this->allow_procedure_booking,
+            'schedule_enrollment_id' => $this->scheduleEnrollment?->id,
         ];
     }
 }
