@@ -13,7 +13,6 @@ class ScheduleSlot extends Model
         'university_id',
         'period_id',
         'clinic_id',
-        'responsible_id',
         'date',
         'start_time',
         'end_time',
@@ -38,9 +37,14 @@ class ScheduleSlot extends Model
         return $this->belongsTo(Clinic::class);
     }
 
-    public function responsible()
+    public function responsibles()
     {
-        return $this->belongsTo(User::class, 'responsible_id');
+        return $this->belongsToMany(
+            User::class,
+            'schedule_slots_responsibles',
+            'schedule_slot_id',
+            'user_id'
+        )->withTimestamps();
     }
 
     public function enrollments()

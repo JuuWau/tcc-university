@@ -22,11 +22,11 @@ return new class extends Migration
             $table->foreignId('student_id')
                 ->constrained('students')
                 ->cascadeOnDelete();
-            $table->foreignId('responsible_id')
+             $table->foreignId('procedure_id')
                 ->nullable()
-                ->constrained('users')
-                ->nullOnDelete();
-            $table->dateTime('scheduled_at');
+                ->constrained('procedures');
+            $table->dateTime('scheduled_start_at');
+            $table->dateTime('scheduled_end_at');
             $table->enum('status', [
                 'scheduled',
                 'confirmed',

@@ -23,7 +23,7 @@ export interface OpenSchedulePayload {
     allow_student_enrollment: boolean;
     allow_procedure_booking: boolean;
     period_id: number;
-    responsible_id: number;
+    responsible_ids: number[];
     days: string[];
     start_time: string;
     end_time: string;

@@ -81,4 +81,14 @@ class User extends Authenticatable
     {
         return $this->role?->slug === $slug;
     }
+
+    public function scheduleSlots()
+    {
+        return $this->belongsToMany(
+            ScheduleSlot::class,
+            'schedule_slots_responsibles',
+            'user_id',
+            'schedule_slot_id'
+        )->withTimestamps();
+    }
 }

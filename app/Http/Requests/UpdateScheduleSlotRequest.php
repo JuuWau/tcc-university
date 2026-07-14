@@ -26,7 +26,12 @@ class UpdateScheduleSlotRequest extends FormRequest
                 Rule::exists('periods', 'id')->where(fn ($query) => $query
                     ->where('university_id', $universityId)),
             ],
-            'responsible_id' => [
+            'responsible_ids' => [
+                'nullable',
+                'array',
+            ],
+
+            'responsible_ids.*' => [
                 'integer',
                 Rule::exists('users', 'id')->where(fn ($query) => $query
                     ->where('university_id', $universityId)),

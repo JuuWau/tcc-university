@@ -22,9 +22,6 @@ return new class extends Migration
             $table->foreignId('clinic_id')
                 ->constrained('clinics')
                 ->restrictOnDelete();
-            $table->foreignId('responsible_id')
-                ->constrained('users')
-                ->restrictOnDelete();
             $table->date('date');
             $table->time('start_time');
             $table->time('end_time');
