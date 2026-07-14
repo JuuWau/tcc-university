@@ -6,7 +6,7 @@ import type {
 } from '@/types/student/studentSchedule';
 import axios from 'axios';
 
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, onMounted, ref, watch, inject } from 'vue';
 
 export function useStudentSchedule(studentId: number) {
     const clinics = ref<ClinicOption[]>([]);
@@ -14,17 +14,24 @@ export function useStudentSchedule(studentId: number) {
     const current = ref(new Date());
     const selectedDate = ref<string | null>(null);
     const availableDays = ref<string[]>([]);
-    const events = ref<ScheduleEvent[]>([
-        {
-            id: 1,
-            date: '2026-04-07',
-            time: '14:00',
-            procedure: 'Limpeza',
-            patient: 'Maria',
-        },
-    ]);
-
+    const events = ref<ScheduleEvent[]>([]);
+    const loadingEvents = ref(false);
+    const slotStartTime = ref<string | null>(null);
+    const slotEndTime = ref<string | null>(null);
     const openDays = ref<string[]>([]);
+    const patientOptions = ref([]);
+    const allowProcedureBooking = ref<boolean | null>(null);
+    const procedureOptions = ref([]);
+    const scheduleEnrollmentId = ref<number | null>(null);
+    const calendarEvents = ref<ScheduleEvent[]>([]);
+    const dayEvents = ref<ScheduleEvent[]>([]);
+    const calendarKey = ref(0);
+
+    async function fetchPatients() {
+        const response = await axios.get(`/students/${studentId}/patients`);
+
+        patientOptions.value = response.data.data;
+    }
     
     async function fetchClinics() {
         const response = await axios.get(
@@ -51,20 +58,101 @@ export function useStudentSchedule(studentId: number) {
         );
 
         openDays.value = response.data.open_days;
-        events.value = response.data.events;
+        calendarEvents.value = response.data.events;
+        
+        reloadCalendar();
     }
+
+    async function fetchProcedures() {
+        const response = await axios.get(
+            '/procedures/list',
+        );
+
+        procedureOptions.value = response.data.procedures.map(
+            (procedure: any) => ({
+                label: `${procedure.name} (${procedure.specialty.name})`,
+                value: procedure.id,
+            }),
+        );
+    }
+
+    async function fetchDayEvents(date: string) {
+        loadingEvents.value = true;
+        
+
+        try {
+            const response = await axios.get(
+                `/student-calendar/${studentId}/appointments`,
+                {
+                    params: {
+                        clinic_id: selectedClinic.value,
+                        date,
+                    },
+                },
+            );
+
+            dayEvents.value = response.data.appointments;
+
+            slotStartTime.value = response.data.slot.start_time;
+
+            slotEndTime.value = response.data.slot.end_time;
+
+            allowProcedureBooking.value = response.data.slot.allow_procedure_booking;
+
+            scheduleEnrollmentId.value = response.data.schedule_enrollment_id;
+
+        } finally {
+            loadingEvents.value = false;
+        }
+    }
+
+    async function selectDate(date: string) {
+        selectedDate.value = date;
+
+        await fetchDayEvents(date);
+    }
+
+    async function updateAppointmentTime(
+        appointmentId: number,
+        scheduledStartAt: string,
+        scheduledEndAt: string,
+    ) {
+        const response = await axios.patch(
+            `/student-calendar/${appointmentId}/time`,
+            {
+                scheduled_start_at: scheduledStartAt,
+                scheduled_end_at: scheduledEndAt,
+            },
+        );
+
+        const updatedAppointment = response.data.data;
+
+        const index = events.value.findIndex(
+            event => event.id === updatedAppointment.id,
+        );
+
+        if (index !== -1) {
+            events.value[index] = updatedAppointment;
+        }
+
+        return updatedAppointment;
+    }
+
+    function reloadCalendar() {
+        calendarKey.value++;
+    } 
 
     watch(selectedClinic, async () => {
         selectedDate.value = null;
         await fetchSchedule();
     });
 
-    watch(selectedClinic, (v) => {
-    console.log('selectedClinic mudou:', v);
-});
-
     onMounted(async () => {
-        await fetchClinics();
+        await Promise.all([
+            fetchClinics(),
+            fetchPatients(),
+            fetchProcedures(),
+        ]);
     });
 
     function nextMonths() {
@@ -79,22 +167,18 @@ export function useStudentSchedule(studentId: number) {
         current.value = new Date(current.value);
     }
 
-    function selectDay(day: MonthDay) {
+    async function selectDay(day: MonthDay) {
         if (!openDays.value.includes(day.date)) {
             return;
         }
 
         selectedDate.value = day.date;
+
+        await fetchDayEvents(day.date);
     }
 
-    const dayEvents = computed<ScheduleEvent[]>(() => {
-        if (!selectedDate.value) {
-            return [];
-        }
-
-        return events.value.filter(
-            (event) => event.date === selectedDate.value,
-        );
+    const filteredDayEvents = computed(() => {
+        return dayEvents.value;
     });
 
     function generateMonth(baseDate: Date): MonthData {
@@ -139,7 +223,11 @@ export function useStudentSchedule(studentId: number) {
                 }),
                 days,
         };
-        }
+    }
+
+    function hasEvent(date: string): boolean {
+        return calendarEvents.value.some(event => event.date === date);
+    }
 
     const visibleMonths = computed<MonthData[]>(() => {
         const base = current.value ?? new Date();
@@ -158,12 +246,25 @@ export function useStudentSchedule(studentId: number) {
         selectedClinic,
         selectedDate,
         visibleMonths,
-        dayEvents,
         openDays,
-
+        patientOptions,
+        procedureOptions,
+        allowProcedureBooking,
+        filteredDayEvents,
+        studentId,
+        scheduleEnrollmentId,
+        calendarKey,
+        slotStartTime,
+        slotEndTime,
         nextMonths,
-        prevMonths,
+        prevMonths, 
         selectDay,
         fetchClinics,
+        selectDate,
+        reloadCalendar,
+        hasEvent,
+        updateAppointmentTime,
+        fetchPatients,
+        fetchProcedures
         };
 }
