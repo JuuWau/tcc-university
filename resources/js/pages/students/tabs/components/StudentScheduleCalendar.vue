@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import type { MonthDay } from '@/types/student/studentSchedule';
 import { StudentScheduleContextKey, type StudentScheduleContext } from '@/keys/students/studentScheduleKeys';
+import { isPastDate } from '@/src/utils/formatters';
 import { inject, computed } from 'vue';
 
 const schedule = inject(StudentScheduleContextKey) as StudentScheduleContext;
-
 
 if (!schedule) {
     throw new Error('StudentScheduleCalendar must be used inside StudentScheduleTab');
@@ -17,9 +17,22 @@ const selectedDate = computed(() => schedule.selectedDate?.value);
 
 function getDayClass(day: MonthDay) {
     if (selectedDate.value === day.date) {
-        return 'bg-sky-600 text-white';
+        return 'bg-sky-600 text-white cursor-pointer hover:bg-sky-700';
     }
-    return 'bg-sky-100 text-sky-700 hover:bg-sky-200';
+
+    if (isOpenDay(day.date)) {
+        if (isPastDate(day.date)) {
+            return 'bg-slate-200 text-slate-600 hover:bg-slate-300 cursor-pointer';
+        }
+
+        return 'bg-sky-100 text-sky-700 hover:bg-sky-200 cursor-pointer';
+    }
+
+    if (schedule.hasEvent(day.date)) {
+        return 'bg-white text-gray-700 cursor-not-allowed border border-gray-200';
+    }
+
+    return 'bg-gray-100 text-gray-300 cursor-not-allowed';
 }
 
 function selectDay(day: MonthDay) {
@@ -27,8 +40,7 @@ function selectDay(day: MonthDay) {
 }
 
 const openDays = computed(() => schedule.openDays?.value ?? []);
-console.log('openDays', openDays.value);
-console.log('sample day', visibleMonths.value?.[0]?.days?.[10]?.date);
+
 function isOpenDay(date: string) {
     return openDays.value.includes(date);
 }
@@ -71,15 +83,10 @@ function isOpenDay(date: string) {
                     :class="
                         day.day === 0
                             ? 'pointer-events-none invisible'
-                            : selectedDate === null
-                                ? 'bg-gray-100 text-gray-300 cursor-not-allowed'
-                                : isOpenDay(day.date)
-                                    ? getDayClass(day)
-                                    : 'bg-gray-100 text-gray-300 cursor-not-allowed'
+                            : getDayClass(day)
                     "
                     @click="
                         day.day !== 0 &&
-                        selectedDate !== null &&
                         isOpenDay(day.date) &&
                         selectDay(day)
                     "
