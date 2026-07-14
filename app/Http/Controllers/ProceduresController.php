@@ -74,4 +74,13 @@ class ProceduresController extends Controller
             'message' => 'Procedimento removido com sucesso',
         ]);
     }
+
+    public function list()
+    {
+        $universityId = request()->user()?->university_id;
+        
+        return response()->json([
+            'procedures' => $this->procedureService->all($universityId),
+        ]);
+    }
 }

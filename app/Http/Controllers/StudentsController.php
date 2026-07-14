@@ -6,8 +6,12 @@ use App\Http\Requests\ActivateStudentRequest;
 use App\Http\Requests\DeactivateStudentRequest;
 use App\Http\Requests\OptionsStudentRequest;
 use App\Http\Requests\StoreStudentRequest;
+use App\Http\Requests\StudentScheduleRequest;
 use App\Http\Requests\UpdateStudentAcademicDataRequest;
 use App\Http\Requests\UpdateStudentRequest;
+use App\Http\Resources\StudentClinicResource;
+use App\Http\Resources\StudentScheduleEventResource;
+use App\Http\Resources\PatientOptionResource;
 use App\Models\Student;
 use App\Services\StudentService;
 use App\Services\PeriodService;
@@ -178,5 +182,34 @@ class StudentsController extends Controller
         );
 
         return response()->json($students);
+    }
+
+    public function availableClinics(int $student)
+    {
+        $clinics = $this->studentService->availableClinics($student);
+
+        return StudentClinicResource::collection($clinics);
+    }
+
+    public function schedule(StudentScheduleRequest $request, int $student) 
+    {
+        $schedule = $this->studentService->schedule(
+            $student,
+            $request->integer('clinic_id'),
+        );
+
+        return response()->json([
+            'open_days' => $schedule['open_days'],
+            'events' => StudentScheduleEventResource::collection(
+                $schedule['events'],
+            ),
+        ]);
+    }
+
+    public function patients(int $student)
+    {
+        return PatientOptionResource::collection(
+            $this->studentService->patients($student)
+        );
     }
 }

@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PeriodsController;
 use App\Http\Controllers\ProceduresController;
@@ -113,10 +114,13 @@ Route::prefix('procedures')->group(function () {
     Route::post('/', [ProceduresController::class, 'store'])->name('procedures.store');
     Route::put('/{procedure}', [ProceduresController::class, 'update'])->name('procedures.update');
     Route::delete('/{procedure}', [ProceduresController::class, 'destroy'])->name('procedures.destroy');
+    Route::get('/list', [ProceduresController::class, 'list'])->name('procedures.list');
 })->middleware(['auth', 'verified']);
 
 Route::prefix('students')->group(function () {
     Route::patch('/{student}/academic-data', [StudentsController::class, 'updateAcademicData'])->name('students.update.academic-data');
+    Route::get('/{student}/clinics', [StudentsController::class, 'availableClinics'])->name('students.availableClinics');
+    Route::get('/{student}/schedule', [StudentsController::class,'schedule'])->name('students.schedule');
     Route::patch('/{student}', [StudentsController::class, 'update'])->name('students.update');
     Route::get('/', [StudentsController::class, 'index'])->name('students.index');
     Route::get('/table', [StudentsController::class, 'table'])->name('students.table');
@@ -128,6 +132,14 @@ Route::prefix('students')->group(function () {
     Route::delete('/{student}', [StudentsController::class, 'destroy'])->name('students.destroy');
     Route::delete('/deactivate/{student}', [StudentsController::class, 'deactivate'])->name('students.deactivate');
     Route::delete('/activate/{student}', [StudentsController::class, 'activate'])->name('students.activate');
+    Route::get('/{student}/patients', [StudentsController::class, 'patients'])->name('students.patients');
+});
+
+Route::prefix('student-calendar')->group(function () {
+    Route::get('/{student}/appointments', [AppointmentController::class, 'listByStudent'])->name('student-calendar.listByStudent');
+    Route::patch('/{appointment}/time', [AppointmentController::class, 'updateTime'])->name('student-calendar.updateTime');
+    Route::put('/{appointment}', [AppointmentController::class, 'updateAppointment'])->name('student-calendar.updateAppointment');
+    Route::post('/{student}', [AppointmentController::class, 'store'])->name('student-calendar.store');
 });
 
 Route::prefix('patients')->group(function () {

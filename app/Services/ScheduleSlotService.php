@@ -68,7 +68,7 @@ class ScheduleSlotService
             ->get()
             ->map(fn (ScheduleSlot $slot) => [
                 'id' => $slot->id,
-                'date' => $slot->date,
+                'date' => $slot->date->format('Y-m-d'),
                 'start_time' => $slot->start_time,
                 'end_time' => $slot->end_time,
                 'available_slots' => $slot->available_slots,

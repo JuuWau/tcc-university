@@ -84,11 +84,16 @@ class PatientsSheetImport implements ToCollection, WithHeadingRow, WithChunkRead
                     continue;
                 }
 
+                $clinic = Str::of((string) $row->values()->first())
+                    ->trim()
+                    ->lower()
+                    ->toString();
+
                 app(PatientService::class)->create([
                     'code' => $code,
                     'name' => $name,
                     'phone' => (string) $row->get('telefone', ''),
-                    'patient_type' => Str::lower($row->get('clinica')) === 'adulto'
+                    'patient_type' => $clinic === 'adulto'
                         ? 'adulto'
                         : 'pediatria',
                     'status' => Patient::STATUS_ATIVO,

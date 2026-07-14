@@ -4,9 +4,12 @@ namespace App\Services;
 
 use App\Mail\UserInviteMail;
 use App\Models\Address;
+use App\Models\Clinic;
+use App\Models\Patient;
 use App\Models\User;
 use App\Models\Person;
 use App\Models\Role;
+use App\Models\ScheduleSlot;
 use App\Models\Student;
 use App\Models\UserActionLog;
 use App\Models\UserInvite;
@@ -402,14 +405,79 @@ class StudentService
         {
                 return Student::query()
                         ->when(
-                        $universityId,
-                        fn($query) => $query->where(
-                                'university_id',
-                                $universityId
-                        )
+                                $universityId,
+                                fn($query) => $query->where(
+                                        'university_id',
+                                        $universityId
+                                )
                         )
                         ->with('person:id,name')
                         ->orderBy('id')
+                        ->get();
+        }
+
+        public function availableClinics(int $studentId)
+        {
+                $student = Student::query()
+                        ->with([
+                                'periods' => fn ($query) => $query->wherePivot('is_current', true),
+                        ])
+                        ->findOrFail($studentId);
+
+                $periodIds = $student->periods
+                        ->pluck('id');
+
+                return Clinic::query()
+                        ->whereHas('scheduleSlots', function ($query) use ($periodIds) {
+                                $query->whereIn('period_id', $periodIds);
+                        })
+                        ->orderBy('name')
+                        ->get([
+                                'id',
+                                'name',
+                        ]);
+        }
+
+        public function schedule(int $studentId, int $clinicId,): array 
+        {
+                $student = Student::query()
+                        ->with('periods')
+                        ->findOrFail($studentId);
+
+                $periodIds = $student->periods
+                        ->pluck('id');
+
+                $slots = ScheduleSlot::query()
+                        ->with('enrollments')
+                        ->where('clinic_id', $clinicId)
+                        ->whereIn('period_id', $periodIds)
+                        ->orderBy('date')
+                        ->orderBy('start_time')
+                        ->get();
+
+                $enrolledDays = ScheduleSlot::query()
+                        ->where('clinic_id', $clinicId)
+                        ->whereHas('enrollments', function ($query) use ($studentId) {
+                                $query->where('student_id', $studentId);
+                        })
+                        ->pluck('date')
+                        ->map(fn ($date) => $date->format('Y-m-d'))
+                        ->unique()
+                        ->values();
+
+                        // dd($enrolledDays);
+                return [
+                        'open_days' => $enrolledDays,
+                        'events' => $slots,
+                ];
+        }
+
+        public function patients(int $studentId)
+        {
+                return Student::query()
+                        ->findOrFail($studentId)
+                        ->patients()
+                        ->orderBy('name')
                         ->get();
         }
 }

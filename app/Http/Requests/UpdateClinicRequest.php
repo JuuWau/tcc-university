@@ -29,4 +29,14 @@ class UpdateClinicRequest extends FormRequest
             ],
         ];
     }
+
+    public function messages(): array
+    {
+        return [
+            'name.required' => 'O nome da clínica é obrigatório.',
+            'name.string' => 'O nome da clínica deve ser um texto.',
+            'name.max' => 'O nome da clínica deve ter no máximo 120 caracteres.',
+            'name.unique' => 'Já existe uma clínica com esse nome.',
+        ];
+    }
 }
