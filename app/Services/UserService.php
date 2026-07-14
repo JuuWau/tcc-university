@@ -49,6 +49,7 @@ class UserService
                     'user_invites.token',
                 ]),
             ])
+            ->where('role_id', '!=', Role::STUDENT)
             ->when($universityId, fn($q) => $q->where('users.university_id', $universityId))
             ->whereDoesntHave('student');
 
