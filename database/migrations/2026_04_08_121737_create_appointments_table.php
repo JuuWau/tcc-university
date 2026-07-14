@@ -26,7 +26,8 @@ return new class extends Migration
                 ->nullable()
                 ->constrained('users')
                 ->nullOnDelete();
-            $table->dateTime('scheduled_at');
+            $table->dateTime('scheduled_start_at');
+            $table->dateTime('scheduled_end_at');
             $table->enum('status', [
                 'scheduled',
                 'confirmed',
@@ -40,7 +41,7 @@ return new class extends Migration
             $table->dateTime('finished_at')->nullable();
             $table->timestamps();
             $table->softDeletes();
-            $table->unique(['patient_id', 'scheduled_at']);
+            $table->unique(['student_id', 'scheduled_start_at', 'scheduled_end_at']);
         });
     }
 
