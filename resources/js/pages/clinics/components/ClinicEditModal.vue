@@ -23,13 +23,17 @@ const form = reactive({
 });
 
 watch(
-    () => editModal.clinic.value,
-    (clinic: Clinic | null) => {
+    () => editModal.isOpen.value,
+    (open) => {
+        if (!open) return;
+
+        const clinic = editModal.clinic.value;
+
         if (!clinic) return;
+
         form.id = clinic.id;
         form.name = clinic.name;
     },
-    { immediate: true },
 );
 
 function close() {

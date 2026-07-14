@@ -44,21 +44,25 @@ const loading = inject(LoadingKey);
 const periods = inject<any>(PeriodsGroupKey);
 
 watch(
-    () => editModal.period.value,
-    (period: Period | null) => {
+    () => editModal.isOpen.value,
+    (open) => {
+        if (!open) return;
+
+        const period = editModal.period.value;
+
         if (!period) return;
 
         form.id = period.id;
         form.academic_year = String(period.academic_year);
         form.semester = String(period.semester);
         form.calendar_year = String(period.calendar_year);
+
         form.specialties =
             period.specialties?.map((s) => ({
                 label: s.name,
                 value: s.id,
             })) ?? [];
     },
-    { immediate: true },
 );
 
 function close() {
@@ -91,13 +95,14 @@ async function submit() {
             specialties: form.specialties.map((s) => s.value),
         });
 
-        const index = periods.value.findIndex((p: Period) => p.id === form.id);
+        const index = periods.value.findIndex(
+            (p: Period) => p.id === form.id,
+        );
 
         if (index !== -1) {
-            periods.value[index].name = form.name;
+            periods.value[index] = res.data.period;
         }
 
-        periods.value.unshift(res.data.period);
         toast.success('Período atualizado com sucesso');
         close();
     } catch (error: any) {
