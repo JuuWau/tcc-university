@@ -23,6 +23,13 @@ class ScheduleSlot extends Model
         'allow_procedure_booking',
     ];
 
+    protected function casts(): array
+    {
+        return [
+            'date' => 'date',
+        ];
+    }
+
     public function university()
     {
         return $this->belongsTo(University::class);

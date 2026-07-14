@@ -27,14 +27,17 @@ const loading = inject(LoadingKey);
 const specialties = inject<any>(SpecialtiesGroupKey);
 
 watch(
-    () => editModal.specialty.value,
-    (specialty: Specialty | null) => {
+    () => editModal.isOpen.value,
+    (open) => {
+        if (!open) return;
+
+        const specialty = editModal.specialty.value;
+
         if (!specialty) return;
 
         form.id = specialty.id;
         form.name = specialty.name;
     },
-    { immediate: true },
 );
 
 function close() {

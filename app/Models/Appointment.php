@@ -13,8 +13,10 @@ class Appointment extends Model
         'schedule_enrollment_id',
         'patient_id',
         'student_id',
+        'procedure_id',
         'responsible_id',
-        'scheduled_at',
+        'scheduled_start_at',
+        'scheduled_end_at',
         'status',
         'notes',
         'started_at',
@@ -22,7 +24,8 @@ class Appointment extends Model
     ];
 
     protected $casts = [
-        'scheduled_at' => 'datetime',
+        'scheduled_start_at' => 'datetime',
+        'scheduled_end_at' => 'datetime',
         'started_at' => 'datetime',
         'finished_at' => 'datetime',
     ];
@@ -45,5 +48,10 @@ class Appointment extends Model
     public function responsible()
     {
         return $this->belongsTo(User::class, 'responsible_id');
+    }
+
+    public function procedure()
+    {
+        return $this->belongsTo(Procedure::class);
     }
 }

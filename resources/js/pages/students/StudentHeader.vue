@@ -101,9 +101,8 @@ if (!ctx) {
 
 const student = ctx.student;
 const { academicDataEditModalOpen } = ctx;
-
 const contactOpen = ref(false);
-console.log(student.value);
+
 function toggleContact() {
     contactOpen.value = !contactOpen.value;
 }

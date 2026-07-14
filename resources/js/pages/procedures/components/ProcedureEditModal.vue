@@ -38,15 +38,19 @@ const form = reactive({
 });
 
 watch(
-    () => editModal.procedure.value,
-    (procedure: Procedure | null) => {
+    () => editModal.isOpen.value,
+    (open) => {
+        if (!open) return;
+
+        const procedure = editModal.procedure.value;
+
         if (!procedure) return;
+
         form.id = procedure.id;
         form.name = procedure.name;
         form.specialty_id =
             procedure.specialty_id ?? procedure.specialty?.id ?? null;
     },
-    { immediate: true },
 );
 
 function close() {
