@@ -22,7 +22,7 @@ return new class extends Migration
             $table->foreignId('student_id')
                 ->constrained('students')
                 ->cascadeOnDelete();
-            $table->foreignId('responsible_id')
+             $table->foreignId('procedure_id')
                 ->nullable()
                 ->constrained('users')
                 ->nullOnDelete();

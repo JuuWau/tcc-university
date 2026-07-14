@@ -69,7 +69,7 @@ const form = reactive({
     clinic_id: null as number | null,
     available_slots: '' as string | number,
     period_id: null as number | null,
-    responsible_id: null as number | null,
+    responsible_ids: [] as number[],
     days: [] as string[],
     start_time: '',
     end_time: '',
@@ -93,11 +93,11 @@ const periodLabel = computed(
         periodOptions.find((option) => option.value === form.period_id)
             ?.label ?? '—',
 );
-const responsibleLabel = computed(
-    () =>
-        responsibleOptions.find(
-            (option) => option.value === form.responsible_id,
-        )?.label ?? '—',
+const responsibleLabel = computed(() =>
+    responsibleOptions
+        .filter(option => form.responsible_ids.includes(option.value))
+        .map(option => option.label)
+        .join(', ') || '—'
 );
 const sortedDays = computed(() =>
     [...form.days].sort((a, b) => a.localeCompare(b)),
@@ -166,7 +166,7 @@ const formValidationResult = computed(() =>
         clinic_id: form.clinic_id,
         available_slots: normalizedAvailableChairs.value,
         period_id: form.period_id,
-        responsible_id: form.responsible_id,
+        responsible_ids: form.responsible_ids,
         days: form.days,
         start_time: form.start_time,
         end_time: form.end_time,
@@ -275,7 +275,7 @@ function clearSelection() {
     form.clinic_id = null;
     form.available_slots = '';
     form.period_id = null;
-    form.responsible_id = null;
+    form.responsible_ids = [];
     form.days = [];
     form.start_time = '';
     form.end_time = '';
@@ -341,7 +341,7 @@ async function submit() {
         allow_student_enrollment: result.data.allow_student_enrollment,
         allow_procedure_booking: result.data.allow_procedure_booking,
         period_id: result.data.period_id,
-        responsible_id: result.data.responsible_id,
+        responsible_ids: result.data.responsible_ids,
         days: [...result.data.days].sort((a, b) => a.localeCompare(b)),
         start_time: result.data.start_time,
         end_time: result.data.end_time,
@@ -626,14 +626,16 @@ async function submit() {
                                 <label
                                     class="mb-2 block text-sm font-medium text-gray-700"
                                 >
-                                    Responsável
+                                    Responsáveis
                                 </label>
                                 <AppMultiselect
-                                    v-model="form.responsible_id"
+                                    v-model="form.responsible_ids"
                                     :options="responsibleOptions"
                                     label="label"
                                     value-prop="value"
                                     :searchable="true"
+                                    :multiple="true"
+                                    mode="tags"
                                     :close-on-select="true"
                                     :can-clear="true"
                                     :append-to-body="true"
@@ -740,7 +742,7 @@ async function submit() {
                                 {{ periodLabel }}
                             </p>
                             <p>
-                                <span class="font-medium">Responsável:</span>
+                                <span class="font-medium">Responsáveis:</span>
                                 {{ responsibleLabel }}
                             </p>
                             <p>

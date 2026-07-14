@@ -26,10 +26,7 @@ export const openScheduleSchema = z
             required_error: 'Selecione um período',
             invalid_type_error: 'Selecione um período',
         }),
-        responsible_id: z.number({
-            required_error: 'Selecione um responsável',
-            invalid_type_error: 'Selecione um responsável',
-        }),
+        responsible_ids: z.array(z.number()).min(1, 'Selecione ao menos um responsável'),
         days: z.array(z.string()).min(1, 'Selecione pelo menos um dia'),
         start_time: z
             .string()

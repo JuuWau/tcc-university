@@ -207,7 +207,7 @@ class ScheduleSlotController extends Controller
                 'clinic_id' => $clinic->id,
                 'available_slots' => $data['available_slots'] ?? 0,
                 'period_id' => $data['period_id'],
-                'responsible_id' => $data['responsible_id'],
+                'responsible_ids' => $data['responsible_ids'],
                 'days' => [$data['date']],
                 'start_time' => $data['start_time'],
                 'end_time' => $data['end_time'],

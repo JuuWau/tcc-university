@@ -56,7 +56,7 @@ class ScheduleSlotService
             ->when($date, fn ($query) => $query->whereDate('date', $date))
             ->with([
                 'period:id,calendar_year,semester,academic_year',
-                'responsible.person:id,user_id,name',
+                'responsibles.person:id,user_id,name',
             ])
             ->withExists([
                 'enrollments as is_enrolled' => fn ($query) => $query
@@ -77,13 +77,16 @@ class ScheduleSlotService
                 'allow_procedure_booking' => (bool) $slot->allow_procedure_booking,
                 'is_enrolled' => (bool) $slot->is_enrolled,
                 'period_id' => $slot->period_id,
-                'responsible_id' => $slot->responsible_id,
+                'responsible_ids' => $slot->responsibles->pluck('id'),
 
                 'period_label' => $slot->period
                     ? "{$slot->period->academic_year}º ano {$slot->period->semester}º semestre de {$slot->period->calendar_year}"
                     : '—',
 
-                'responsible_name' => $slot->responsible?->person?->name ?? '—',
+                'responsible_names' => $slot->responsibles
+                    ->map(fn ($user) => $user->person?->name)
+                    ->filter()
+                    ->values(),
             ])
             ->toArray();
 
@@ -184,7 +187,10 @@ class ScheduleSlotService
     {
         return ScheduleSlot::query()
             ->where('university_id', $universityId)
-            ->with('clinic:id,name')
+            ->with([
+                'clinic:id,name',
+                'responsibles'
+            ])
             ->orderBy('date')
             ->orderBy('start_time')
             ->get()
@@ -194,7 +200,7 @@ class ScheduleSlotService
                 'period_id' => $slot->period_id,
                 'clinic_id' => $slot->clinic_id,
                 'clinic_name' => $slot->clinic?->name,
-                'responsible_id' => $slot->responsible_id,
+                'responsible_ids' => $slot->responsibles->pluck('id'),
                 'date' => $slot->date->format('Y-m-d'),
                 'start_time' => $slot->start_time,
                 'end_time' => $slot->end_time,
@@ -208,7 +214,7 @@ class ScheduleSlotService
      *   clinic_id: int,
      *   available_slots?: int|null,
      *   period_id: int,
-     *   responsible_id: int,
+     *   responsible_ids: array<int>,
      *   days: array<int,string>,
      *   start_time: string,
      *   end_time: string
@@ -266,11 +272,10 @@ class ScheduleSlotService
                     ], JSON_UNESCAPED_UNICODE));
                 }
 
-                $created[] = ScheduleSlot::create([
+                $slot = ScheduleSlot::create([
                     'university_id' => $universityId,
                     'period_id' => $data['period_id'],
                     'clinic_id' => $data['clinic_id'],
-                    'responsible_id' => $data['responsible_id'],
                     'date' => $day,
                     'start_time' => $data['start_time'],
                     'end_time' => $data['end_time'],
@@ -279,6 +284,12 @@ class ScheduleSlotService
                     'allow_student_enrollment' => $data['allow_student_enrollment'] ?? false,
                     'allow_procedure_booking' => $data['allow_procedure_booking'] ?? false,
                 ]);
+
+                if (array_key_exists('responsible_ids', $data)) {
+                    $slot->responsibles()->sync($data['responsible_ids'] ?? []);
+                }
+
+                $created[] = $slot;
             }
 
             ProcessOpenScheduleJob::dispatch($created, $data)->afterCommit();
@@ -293,7 +304,7 @@ class ScheduleSlotService
     /**
      * @param array{
      *   period_id: int,
-     *   responsible_id: int,
+     *   responsible_ids?: array<int>,
      *   date: string,
      *   start_time: string,
      *   end_time: string,
@@ -337,7 +348,6 @@ class ScheduleSlotService
 
         $slot->update([
             'period_id' => $data['period_id'] ?? $slot->period_id,
-            'responsible_id' => $data['responsible_id'] ?? $slot->responsible_id,
             'date' => $date,
             'start_time' => $startTime,
             'end_time' => $endTime,
@@ -347,8 +357,15 @@ class ScheduleSlotService
             'allow_procedure_booking' => $data['allow_procedure_booking'] ?? $slot->allow_procedure_booking,
         ]);
 
+        if (array_key_exists('responsible_ids', $data)) {
+            $slot->responsibles()->sync($data['responsible_ids'] ?? []);
+        }
+
         // dd($slot->fresh());
-        return $slot->fresh(['period', 'responsible.person']);
+        return $slot->fresh([
+            'period',
+            'responsibles.person',
+        ]);
     }
 
     public function updateMultipleSlots(array $data, int $universityId): void
