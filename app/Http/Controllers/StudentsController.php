@@ -11,6 +11,7 @@ use App\Http\Requests\UpdateStudentAcademicDataRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Http\Resources\StudentClinicResource;
 use App\Http\Resources\StudentScheduleEventResource;
+use App\Http\Resources\PatientOptionResource;
 use App\Models\Student;
 use App\Services\StudentService;
 use App\Services\PeriodService;
@@ -203,5 +204,12 @@ class StudentsController extends Controller
                 $schedule['events'],
             ),
         ]);
+    }
+
+    public function patients(int $student)
+    {
+        return PatientOptionResource::collection(
+            $this->studentService->patients($student)
+        );
     }
 }
