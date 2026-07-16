@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\AppointmentController;
+use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\PatientController;
 use App\Http\Controllers\PeriodsController;
 use App\Http\Controllers\ProceduresController;
@@ -169,6 +170,14 @@ Route::prefix('users')->group(function () {
     Route::delete('/activate/{user}', [UsersController::class, 'activate'])->name('users.activate');
     Route::delete('/{user}', [UsersController::class, 'destroy'])->name('users.destroy');
 })->middleware(['auth', 'verified']);
+
+Route::prefix('attendance')->name('attendance')->group(function () {
+    Route::get('/clinics', [AttendanceController::class, 'clinics'])->name('attendance.index');
+    Route::get('/clinics/{clinic}', [AttendanceController::class, 'showClinic'])->name('attendance.showClinic');
+    Route::get('/clinics/{clinic}/dates', [AttendanceController::class, 'getDates'])->name('attendance.dates');
+    Route::get('/schedule-slots/{slot}/students', [AttendanceController::class, 'getStudents'])->name('attendance.students');
+    Route::put('/schedule-slots/{slot}', [AttendanceController::class, 'updateAttendance'])->name('attendance.updateAttendance');
+});
 
 Route::prefix('invite')->group(function () {
     Route::get('/{token}', [UserInviteController::class, 'show'])->name('invite.show');
