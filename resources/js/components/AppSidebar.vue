@@ -94,8 +94,9 @@ const mainNavItems: NavItem[] = [
                 href: '/confirm-appointment/confirm-appointment',
             },
             {
-                title: 'Chamada de alunos',
-                href: '/schedule-attendance/schedule-attendance',
+                title: 'Controle de presença',
+                href: '/attendance/clinics',
+                icon: ClipboardList,
             },
         ],
     },
