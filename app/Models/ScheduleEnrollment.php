@@ -10,7 +10,7 @@ class ScheduleEnrollment extends Model
     use SoftDeletes;
 
     public const STATUS_ACTIVE = 'active';
-    public const STATUS_CANCELLED = 'cancelled';
+    public const STATUS_CANCELED = 'canceled';
     public const STATUS_MISSED = 'missed';
     public const STATUS_ATTENDED = 'attended';
 
