@@ -1,7 +1,7 @@
 export function formatDateBr(date: string): string {
     if (!date) return '';
-    const [year, month, day] = date.split('-');
-    return `${day}/${month}/${year}`;
+
+    return new Date(date).toLocaleDateString('pt-BR');
 }
 
 export function formatTime(time: string): string {
