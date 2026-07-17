@@ -161,6 +161,20 @@ async function saveEventTime(info: any) {
     }
 }
 
+function isInsideAllowedRange(start: Date, end: Date) {
+    if (!slotStartTime.value || !slotEndTime.value) {
+        return false;
+    }
+
+    const selectedStart = formatDateTime(start).slice(11, 16);
+    const selectedEnd = formatDateTime(end).slice(11, 16);
+
+    return (
+        selectedStart >= slotStartTime.value &&
+        selectedEnd <= slotEndTime.value
+    );
+}
+
 const calendarOptions = computed(() => ({
     plugins: [timeGridPlugin, interactionPlugin],
 
@@ -177,6 +191,7 @@ const calendarOptions = computed(() => ({
         if (!canCreateAppointments.value) {
             return false;
         }
+        console.log('selectAllow', info.start, info.end);
 
         return isInsideAllowedRange(info.start, info.end);
     },

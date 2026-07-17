@@ -54,4 +54,16 @@ class Appointment extends Model
     {
         return $this->belongsTo(Procedure::class);
     }
+
+    public function slot()
+    {
+        return $this->hasOneThrough(
+            ScheduleSlot::class,
+            ScheduleEnrollment::class,
+            'id',
+            'id',
+            'schedule_enrollment_id',
+            'schedule_slot_id'
+        );
+    }
 }

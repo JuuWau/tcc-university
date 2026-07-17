@@ -37,7 +37,7 @@ class ProcessDeleteScheduleSlotsJob implements ShouldQueue
             ScheduleEnrollment::query()
                 ->whereIn('id', $enrollmentIds)
                 ->update([
-                    'status' => 'cancelled',
+                    'status' => 'canceled',
                     'updated_at' => now(),
                 ]);
 

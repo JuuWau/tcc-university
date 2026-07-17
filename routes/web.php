@@ -9,6 +9,7 @@ use App\Http\Controllers\ClinicController;
 // use App\Http\Controllers\ConfirmAppointmentController;
 // use App\Http\Controllers\ScheduleAttendanceController;
 use App\Http\Controllers\ScheduleEnrollmentController;
+use App\Http\Controllers\AppointmentConfirmationController;
 use App\Http\Controllers\ScheduleSlotController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\SpecialtiesController;
@@ -177,6 +178,12 @@ Route::prefix('attendance')->name('attendance')->group(function () {
     Route::get('/clinics/{clinic}/dates', [AttendanceController::class, 'getDates'])->name('attendance.dates');
     Route::get('/schedule-slots/{slot}/students', [AttendanceController::class, 'getStudents'])->name('attendance.students');
     Route::put('/schedule-slots/{slot}', [AttendanceController::class, 'updateAttendance'])->name('attendance.updateAttendance');
+});
+
+Route::prefix('appointments-confirmation')->name('appointments-confirmation.')->group(function () {
+    Route::get('/', [AppointmentConfirmationController::class, 'index'])->name('appointments-confirmation.index');
+    Route::get('/list', [AppointmentConfirmationController::class, 'list'])->name('appointments-confirmation.list');
+    Route::patch('/{appointment}/status',[AppointmentConfirmationController::class, 'updateStatus'])->name('appointments-confirmation.updateStatus');;
 });
 
 Route::prefix('invite')->group(function () {
