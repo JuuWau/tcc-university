@@ -43,7 +43,7 @@ class AttendanceService
                 return ScheduleEnrollment::query()
                         ->with('student.person')
                         ->where('schedule_slot_id', $slot->id)
-                        ->where('status', '!=', ScheduleEnrollment::STATUS_CANCELLED)
+                        ->where('status', '!=', ScheduleEnrollment::STATUS_CANCELED)
                         ->get();
         }
 

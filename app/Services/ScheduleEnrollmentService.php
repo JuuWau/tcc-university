@@ -69,7 +69,7 @@ class ScheduleEnrollmentService
         }
 
         $enrollment->update([
-                'status' => 'cancelled',
+                'status' => 'canceled',
         ]);
 
         Appointment::where('schedule_enrollment_id', $enrollment->id)
