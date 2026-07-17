@@ -21,7 +21,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->enum('status', [
                 'active',
-                'cancelled',
+                'canceled',
                 'missed',
                 'attended',
             ])->default('active');
