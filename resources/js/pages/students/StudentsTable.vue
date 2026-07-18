@@ -43,10 +43,23 @@ const statusLabel: Record<StatusFilter, string> = {
     inactive: 'Inativo',
 };
 
+let searchTimeout: number;
+
 const fromTo = computed(() => {
     const f = (page.value - 1) * perPage.value + 1;
     const t = Math.min(page.value * perPage.value, total.value);
     return total.value ? `${f}-${t} de ${total.value}` : '0';
+});
+
+const search = ref('');
+
+watch(search, () => {
+    clearTimeout(searchTimeout);
+
+    searchTimeout = window.setTimeout(() => {
+        page.value = 1;
+        fetchStudents();
+    }, 400);
 });
 
 function onGridReady(params: any) {
@@ -74,6 +87,7 @@ async function fetchStudents() {
                 sort_field: sortField.value,
                 sort_dir: sortDir.value,
                 status: activeStatus.value,
+                search: search.value,
             },
         });
         rowData.value = data.data;
@@ -95,11 +109,17 @@ onMounted(() => {
     }
 });
 
-watch([page, perPage, sortField, sortDir, activeStatus], () => {
-    fetchStudents();
-});
+watch(
+    [page, perPage, sortField, sortDir, activeStatus],
+    fetchStudents,
+    {
+        deep: false,
+    }
+);
 
 function filterByStatus(status: StatusFilter) {
+    if (activeStatus.value === status) return;
+
     activeStatus.value = status;
     page.value = 1;
 }
@@ -115,21 +135,21 @@ const columnDefs = [
         headerName: 'Nome',
         field: 'person.name',
         flex: 2,
-        sortable: true,
-        filter: true,
+        sortable: false,
+        filter: false,
     },
     {
         headerName: 'Registro Acadêmico',
         field: 'registration',
         flex: 1,
-        sortable: true,
-        filter: true,
+        sortable: false,
+        filter: false,
     },
     {
         headerName: 'Período',
         colId: 'period',
-        sortable: true,
-        filter: true,
+        sortable: false,
+        filter: false,
         valueGetter: (params: any) => {
             const periods = params.data?.periods;
             if (!periods?.length) return '';
@@ -141,7 +161,7 @@ const columnDefs = [
     {
         headerName: 'Status',
         colId: 'status',
-        filter: true,
+        filter: false,
         valueGetter: (params: any) => {
             const student = params.data;
             if (student?.deleted_at) return 'Inativo';
@@ -170,6 +190,8 @@ const columnDefs = [
 const defaultColDef = {
     flex: 1,
     resizable: true,
+    sortable: false,
+    filter: false,
 };
 
 function onAction(payload: { action: string; student: Student }) {
@@ -203,32 +225,39 @@ function onAction(payload: { action: string; student: Student }) {
                 @click="$emit('create')"
             />
         </div>
-        <div class="overflow-x-auto">
+        <div class="mb-4 gap-3">
+            <div class="pb-4">
+                <input
+                    v-model="search"
+                    type="text"
+                    placeholder="Buscar paciente..."
+                    class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+                />
+            </div>
+            <div class="mb-4 inline-flex rounded-full bg-gray-100 p-1">
+                <button
+                    v-for="s in [
+                        'all',
+                        'pending',
+                        'active',
+                        'inactive',
+                    ] as StatusFilter[]"
+                    :key="s"
+                    @click="filterByStatus(s)"
+                    class="relative rounded-full px-4 py-1.5 text-sm font-medium transition-all"
+                    :class="
+                        activeStatus === s
+                            ? 'bg-white text-gray-900 shadow'
+                            : 'text-gray-500 hover:text-gray-900'
+                    "
+                >
+                    {{ statusLabel[s] }}
+                </button>
+            </div>
             <div
                 class="ag-theme-alpine relative"
                 style="height: 500px; width: 100%"
             >
-                <div class="mb-4 inline-flex rounded-full bg-gray-100 p-1">
-                    <button
-                        v-for="s in [
-                            'all',
-                            'pending',
-                            'active',
-                            'inactive',
-                        ] as StatusFilter[]"
-                        :key="s"
-                        @click="filterByStatus(s)"
-                        class="relative rounded-full px-4 py-1.5 text-sm font-medium transition-all"
-                        :class="
-                            activeStatus === s
-                                ? 'bg-white text-gray-900 shadow'
-                                : 'text-gray-500 hover:text-gray-900'
-                        "
-                    >
-                        {{ statusLabel[s] }}
-                    </button>
-                </div>
-
                 <div
                     v-if="loading"
                     class="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-sm"

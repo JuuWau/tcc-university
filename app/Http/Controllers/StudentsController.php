@@ -2,16 +2,19 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\Students\StudentTableFiltersData;
 use App\Http\Requests\ActivateStudentRequest;
 use App\Http\Requests\DeactivateStudentRequest;
 use App\Http\Requests\OptionsStudentRequest;
 use App\Http\Requests\StoreStudentRequest;
 use App\Http\Requests\StudentScheduleRequest;
+use App\Http\Requests\TableStudentRequest;
 use App\Http\Requests\UpdateStudentAcademicDataRequest;
 use App\Http\Requests\UpdateStudentRequest;
 use App\Http\Resources\StudentClinicResource;
 use App\Http\Resources\StudentScheduleEventResource;
 use App\Http\Resources\PatientOptionResource;
+use App\Http\Resources\StudentTableResource;
 use App\Models\Student;
 use App\Services\StudentService;
 use App\Services\PeriodService;
@@ -38,42 +41,13 @@ class StudentsController extends Controller
         ]);
     }
 
-    public function table(Request $request)
+    public function table(TableStudentRequest $request)
     {
-        $validated = $request->validate([
-            'page' => ['sometimes', 'integer', 'min:1'],
-            'per_page' => ['sometimes', 'integer', 'min:5', 'max:100'],
-            'sort_field' => ['sometimes', 'string', 'in:person.name,registration,created_at'],
-            'sort_dir' => ['sometimes', 'string', 'in:asc,desc'],
-            'status' => ['sometimes', 'string', 'in:all,pending,active,inactive'],
-        ]);
-
-        $page = $validated['page'] ?? 1;
-        $perPage = $validated['per_page'] ?? 10;
-        $sortField = $validated['sort_field'] ?? 'created_at';
-        $sortDir = $validated['sort_dir'] ?? 'desc';
-        $status = $validated['status'] ?? 'all';
-
-        $paginator = $this->studentService->paginate(
-            $page,
-            $perPage,
-            $sortField,
-            $sortDir,
-            $status,
-            $request->user()?->university_id
+        $students = $this->studentService->paginate(
+            StudentTableFiltersData::fromRequest($request)
         );
 
-        return response()->json([
-            'data' => $paginator->items(),
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'last_page' => $paginator->lastPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'from' => $paginator->firstItem(),
-                'to' => $paginator->lastItem(),
-            ],
-        ]);
+        return StudentTableResource::collection($students);
     }
 
     public function store(StoreStudentRequest $request)

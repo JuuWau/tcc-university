@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Data\Users\UserTableFiltersData;
 use App\Models\Person;
 use App\Models\Role;
 use App\Models\User;
@@ -29,14 +30,7 @@ class UserService
             ->get(['id', 'name', 'slug']);
     }
 
-    public function paginate(
-        int $page = 1,
-        int $perPage = 15,
-        string $sortField = 'created_at',
-        string $sortDir = 'desc',
-        string $status = 'all',
-        ?int $universityId = null
-    ): LengthAwarePaginator {
+    public function paginate(UserTableFiltersData $filters ): LengthAwarePaginator {
         $query = User::withTrashed()
             ->with([
                 'person:id,user_id,name',
@@ -50,31 +44,44 @@ class UserService
                 ]),
             ])
             ->where('role_id', '!=', Role::STUDENT)
-            ->when($universityId, fn($q) => $q->where('users.university_id', $universityId))
+            ->when($filters->universityId, fn($q) => $q->where('users.university_id', $filters->universityId))
             ->whereDoesntHave('student');
 
-        if ($status === 'pending') {
+        $query->when($filters->search, function ($query) use ($filters) {
+            $query->where(function ($q) use ($filters) {
+
+                $q->whereHas('person', function ($person) use ($filters) {
+                    $person->where('name', 'ilike', "%{$filters->search}%")
+                        ->orWhere('phone', 'ilike', "%{$filters->search}%")
+                        ->orWhere('cpf', 'ilike', "%{$filters->search}%");
+                });
+
+                $q->orWhere('email', 'ilike', "%{$filters->search}%");
+            });
+        });
+
+        if ($filters->status === 'pending') {
             $query->whereNull('users.deleted_at')
                 ->whereNull('users.email_verified_at')
                 ->whereHas('invite', fn($q) => $q->whereNull('used_at'));
-        } elseif ($status === 'active') {
+        } elseif ($filters->status === 'active') {
             $query->whereNull('users.deleted_at')
                 ->whereNotNull('users.email_verified_at');
-        } elseif ($status === 'inactive') {
+        } elseif ($filters->status === 'inactive') {
             $query->whereNotNull('users.deleted_at');
         }
 
-        if ($sortField === 'name') {
+        if ($filters->sortField === 'name') {
             $query->leftJoin('people', 'users.id', '=', 'people.user_id')
-                ->orderBy('people.name', $sortDir)
+                ->orderBy('people.name', $filters->sortDir)
                 ->select('users.*');
-        } elseif ($sortField === 'email') {
-            $query->orderBy('users.email', $sortDir);
+        } elseif ($filters->sortField === 'email') {
+            $query->orderBy('users.email', $filters->sortDir);
         } else {
-            $query->orderBy('users.created_at', $sortDir);
+            $query->orderBy('users.created_at', $filters->sortDir);
         }
 
-        return $query->paginate($perPage, ['users.*'], 'page', $page);
+        return $query->paginate($filters->perPage, ['users.*'], 'page', $filters->page);
     }
 
     public function create(array $data, int $universityId): User

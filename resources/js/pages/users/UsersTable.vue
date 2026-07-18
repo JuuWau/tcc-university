@@ -15,6 +15,8 @@ type StatusFilter = 'all' | 'pending' | 'active' | 'inactive';
 type SortField = 'name' | 'email' | 'created_at';
 type SortDir = 'asc' | 'desc';
 
+let searchTimeout: number;
+
 const refreshTableRef = inject<{ value: (() => void) | null }>(RefreshTableKey);
 const gridApi = ref<any>(null);
 
@@ -34,6 +36,17 @@ const statusLabel: Record<StatusFilter, string> = {
     active: 'Ativo',
     inactive: 'Inativo',
 };
+
+const search = ref('');
+
+watch(search, () => {
+    clearTimeout(searchTimeout);
+
+    searchTimeout = window.setTimeout(() => {
+        page.value = 1;
+        fetchUsers();
+    }, 400);
+});
 
 const fromTo = computed(() => {
     const f = (page.value - 1) * perPage.value + 1;
@@ -66,6 +79,7 @@ async function fetchUsers() {
                 sort_field: sortField.value,
                 sort_dir: sortDir.value,
                 status: activeStatus.value,
+                search: search.value,
             },
         });
         rowData.value = data.data;
@@ -87,11 +101,17 @@ onMounted(() => {
     }
 });
 
-watch([page, perPage, sortField, sortDir, activeStatus], () => {
-    fetchUsers();
-});
+watch(
+    [page, perPage, sortField, sortDir, activeStatus],
+    fetchUsers,
+    {
+        deep: false,
+    }
+);
 
 function filterByStatus(status: StatusFilter) {
+    if (activeStatus.value === status) return;
+
     activeStatus.value = status;
     page.value = 1;
 }
@@ -107,8 +127,8 @@ const columnDefs = [
         headerName: 'Nome',
         colId: 'name',
         flex: 2,
-        sortable: true,
-        filter: true,
+        sortable: false,
+        filter: false,
         valueGetter: (params: any) =>
             params.data?.person?.name ?? params.data?.email ?? '—',
     },
@@ -116,20 +136,20 @@ const columnDefs = [
         headerName: 'Email',
         field: 'email',
         flex: 2,
-        sortable: true,
-        filter: true,
+        sortable: false,
+        filter: false,
     },
     {
         headerName: 'Perfil',
         field: 'role.name',
         flex: 1,
-        sortable: true,
-        filter: true,
+        sortable: false,
+        filter: false,
     },
     {
         headerName: 'Status',
         colId: 'status',
-        filter: true,
+        filter: false,
         valueGetter: (params: any) => {
             const user = params.data;
             if (user?.deleted_at) return 'Inativo';
@@ -158,6 +178,8 @@ const columnDefs = [
 const defaultColDef = {
     flex: 1,
     resizable: true,
+    filter: false,
+    sortable: false,
 };
 
 function onAction(payload: { action: string; user: UserWithInvite }) {
@@ -191,12 +213,16 @@ function onAction(payload: { action: string; user: UserWithInvite }) {
                 @click="$emit('create')"
             />
         </div>
-        <div class="overflow-x-auto">
-            <div
-                class="ag-theme-alpine relative"
-                style="height: 500px; width: 100%"
-            >
-                <div class="mb-4 inline-flex rounded-full bg-gray-100 p-1">
+        <div class="mb-4 gap-3">
+            <div class="pb-4">
+                <input
+                    v-model="search"
+                    type="text"
+                    placeholder="Buscar paciente..."
+                    class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+                />
+            </div>
+            <div class="mb-4 inline-flex rounded-full bg-gray-100 p-1">
                     <button
                         v-for="s in [
                             'all',
@@ -216,6 +242,12 @@ function onAction(payload: { action: string; user: UserWithInvite }) {
                         {{ statusLabel[s] }}
                     </button>
                 </div>
+        </div>
+        <div class="overflow-x-auto">
+            <div
+                class="ag-theme-alpine relative"
+                style="height: 500px; width: 100%"
+            >
 
                 <div
                     v-if="loading"
