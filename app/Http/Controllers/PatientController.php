@@ -2,7 +2,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\Patients\PatientTableFiltersData;
 use App\Http\Requests\StorePatientRequest;
+use App\Http\Requests\TablePatientRequest;
 use App\Http\Requests\UpdatePatientStudentDataRequest;
 use App\Http\Requests\UpdatePatientStudentRequest;
 use App\Http\Requests\UpdatePatientRequest;
@@ -36,26 +38,13 @@ class PatientController extends Controller
         ]);
     }
 
-    public function table(Request $request)
+    public function table(TablePatientRequest $request)
     {
-        $validated = $request->validate([
-            'page' => ['sometimes', 'integer', 'min:1'],
-            'per_page' => ['sometimes', 'integer', 'min:5', 'max:100'],
-            'sort_field' => ['sometimes', 'string', 'in:name,email,created_at'],
-            'sort_dir' => ['sometimes', 'string', 'in:asc,desc'],
-            'status' => ['sometimes', 'string', 'in:all,ativo,inativo,tratamento,pausa_tratamento,abandono,concluido,transferencia'],
-        ]);
-
-        $paginator = $this->patientService->paginate(
-            $validated['page'] ?? 1,
-            $validated['per_page'] ?? 15,
-            $validated['sort_field'] ?? 'created_at',
-            $validated['sort_dir'] ?? 'desc',
-            $validated['status'] ?? 'all',
-            $request->user()?->university_id
+        $patients = $this->patientService->paginate(
+            PatientTableFiltersData::fromRequest($request)
         );
 
-        return new PatientCollection($paginator);
+        return PatientResource::collection($patients);
     }
 
     public function show(Request $request, int $patient)

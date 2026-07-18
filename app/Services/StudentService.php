@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Data\Students\StudentTableFiltersData;
 use App\Mail\UserInviteMail;
 use App\Models\Address;
 use App\Models\Clinic;
@@ -40,14 +41,8 @@ class StudentService
          * @param  'person.name'|'registration'|'created_at'  $sortField
          * @param  'asc'|'desc'  $sortDir
          */
-        public function paginate(
-                int $page = 1,
-                int $perPage = 10,
-                string $sortField = 'created_at',
-                string $sortDir = 'desc',
-                string $status = 'all',
-                ?int $universityId = null
-        ): LengthAwarePaginator {
+        public function paginate(StudentTableFiltersData $filters): LengthAwarePaginator
+        {
                 $query = Student::withTrashed()
                         ->with([
                                 'person:id,name,cpf,phone',
@@ -55,33 +50,58 @@ class StudentService
                                 'user.invite',
                                 'periods:id,academic_year,semester,calendar_year',
                         ])
-                        ->when($universityId, fn($q) => $q->where('university_id', $universityId));
+                        ->when(
+                                $filters->universityId,
+                                fn($q) => $q->where('university_id', $filters->universityId)
+                        );
 
-                if ($status === 'pending') {
+                $query->when($filters->search, function ($query) use ($filters) {
+                        $query->where(function ($q) use ($filters) {
+
+                                $q->whereHas('person', function ($person) use ($filters) {
+                                        $person->where('name', 'ilike', "%{$filters->search}%")
+                                                ->orWhere('phone', 'ilike', "%{$filters->search}%")
+                                                ->orWhere('cpf', 'ilike', "%{$filters->search}%");
+                                });
+
+                                $q->orWhereHas('user', function ($user) use ($filters) {
+                                        $user->where('email', 'ilike', "%{$filters->search}%");
+                                });
+
+                                $q->orWhere(
+                                        'students.registration',
+                                        'ilike',
+                                        "%{$filters->search}%"
+                                );
+                        });
+                });
+
+                if ($filters->status === 'pending') {
                         $query->whereNull('students.deleted_at')
                                 ->whereHas('user.invite', fn($q) => $q->whereNull('used_at'));
-                } elseif ($status === 'active') {
+                } elseif ($filters->status === 'active') {
                         $query->whereNull('students.deleted_at')
                                 ->where(function ($q) {
                                         $q->whereDoesntHave('user')
                                                 ->orWhereDoesntHave('user.invite')
                                                 ->orWhereHas('user.invite', fn($q) => $q->whereNotNull('used_at'));
                                 });
-                } elseif ($status === 'inactive') {
+                } elseif ($filters->status === 'inactive') {
                         $query->whereNotNull('students.deleted_at');
                 }
 
-                if ($sortField === 'person.name') {
+                if ($filters->sortField === 'person.name') {
                         $query->join('people', 'students.person_id', '=', 'people.id')
-                                ->orderBy('people.name', $sortDir)
+                                ->orderBy('people.name', $filters->sortDir)
                                 ->select('students.*');
-                } elseif ($sortField === 'registration') {
-                        $query->orderBy('students.registration', $sortDir);
+                } elseif ($filters->sortField === 'registration') {
+                        $query->orderBy('students.registration', $filters->sortDir);
                 } else {
-                        $query->orderBy('students.created_at', $sortDir);
+                        $query->orderBy('students.created_at', $filters->sortDir)
+                                ->orderBy('students.id', $filters->sortDir);
                 }
 
-                return $query->paginate($perPage, ['*'], 'page', $page);
+                return $query->paginate($filters->perPage, ['*'], 'page', $filters->page);
         }
 
         public function find(int $studentId): Student
@@ -420,7 +440,7 @@ class StudentService
         {
                 $student = Student::query()
                         ->with([
-                                'periods' => fn ($query) => $query->wherePivot('is_current', true),
+                                'periods' => fn($query) => $query->wherePivot('is_current', true),
                         ])
                         ->findOrFail($studentId);
 
@@ -438,7 +458,7 @@ class StudentService
                         ]);
         }
 
-        public function schedule(int $studentId, int $clinicId,): array 
+        public function schedule(int $studentId, int $clinicId,): array
         {
                 $student = Student::query()
                         ->with('periods')
@@ -461,11 +481,11 @@ class StudentService
                                 $query->where('student_id', $studentId);
                         })
                         ->pluck('date')
-                        ->map(fn ($date) => $date->format('Y-m-d'))
+                        ->map(fn($date) => $date->format('Y-m-d'))
                         ->unique()
                         ->values();
 
-                        // dd($enrolledDays);
+                // dd($enrolledDays);
                 return [
                         'open_days' => $enrolledDays,
                         'events' => $slots,

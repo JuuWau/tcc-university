@@ -2,9 +2,12 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\Users\UserTableFiltersData;
 use App\Http\Requests\StoreUserRequest;
+use App\Http\Requests\TableUserRequest;
 use App\Http\Requests\UpdateUserPersonalDataRequest;
 use App\Http\Requests\UpdateUserRoleRequest;
+use App\Http\Resources\UserTableResource;
 use App\Models\Role;
 use App\Services\UserService;
 use Illuminate\Http\Request;
@@ -23,42 +26,13 @@ class UsersController extends Controller
         ]);
     }
 
-    public function table(Request $request)
+    public function table(TableUserRequest $request)
     {
-        $validated = $request->validate([
-            'page' => ['sometimes', 'integer', 'min:1'],
-            'per_page' => ['sometimes', 'integer', 'min:5', 'max:100'],
-            'sort_field' => ['sometimes', 'string', 'in:name,email,created_at'],
-            'sort_dir' => ['sometimes', 'string', 'in:asc,desc'],
-            'status' => ['sometimes', 'string', 'in:all,pending,active,inactive'],
-        ]);
-
-        $page = $validated['page'] ?? 1;
-        $perPage = $validated['per_page'] ?? 15;
-        $sortField = $validated['sort_field'] ?? 'created_at';
-        $sortDir = $validated['sort_dir'] ?? 'desc';
-        $status = $validated['status'] ?? 'all';
-
-        $paginator = $this->userService->paginate(
-            $page,
-            $perPage,
-            $sortField,
-            $sortDir,
-            $status,
-            $request->user()?->university_id
+        $users = $this->userService->paginate(
+            UserTableFiltersData::fromRequest($request)
         );
 
-        return response()->json([
-            'data' => $paginator->items(),
-            'meta' => [
-                'current_page' => $paginator->currentPage(),
-                'last_page' => $paginator->lastPage(),
-                'per_page' => $paginator->perPage(),
-                'total' => $paginator->total(),
-                'from' => $paginator->firstItem(),
-                'to' => $paginator->lastItem(),
-            ],
-        ]);
+        return UserTableResource::collection($users);
     }
 
     public function store(StoreUserRequest $request)

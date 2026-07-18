@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Data\Patients\PatientTableFiltersData;
 use App\Models\Address;
 use App\Models\Patient;
 use App\Models\Student;
@@ -15,43 +16,50 @@ class PatientService
          * @param  'name'|'email'|'created_at'  $sortField
          * @param  'asc'|'desc'  $sortDir
          */
-        public function paginate(
-                int $page = 1,
-                int $perPage = 15,
-                string $sortField = 'created_at',
-                string $sortDir = 'desc',
-                string $status = 'all',
-                ?int $universityId = null
-        ): LengthAwarePaginator {
-                $query = Patient::withTrashed()
+        public function paginate(PatientTableFiltersData $filters): LengthAwarePaginator
+        {
+                $query = Patient::query()
                         ->with(['students.person', 'address'])
-                        ->when($universityId, fn($q) => $q->where('university_id', $universityId));
+                        ->when(
+                                $filters->universityId,
+                                fn($q) => $q->where('university_id', $filters->universityId)
+                        );
+
+                $query->when($filters->search, function ($query) use ($filters) {
+                        $query->where(function ($q) use ($filters) {
+                                $q->where('patients.name', 'ilike', "%{$filters->search}%")
+                                        ->orWhere('patients.email', 'ilike', "%{$filters->search}%")
+                                        ->orWhere('patients.phone', 'ilike', "%{$filters->search}%")
+                                        ->orWhere('patients.code', 'ilike', "%{$filters->search}%");
+                        });
+                });
 
                 $query->whereNull('patients.deleted_at');
-                if ($status !== 'all' && in_array($status, Patient::statuses(), true)) {
-                        $query->where('patients.status', $status);
+                if ($filters->status !== 'all' && in_array($filters->status, Patient::statuses(), true)) {
+                        $query->where('patients.status', $filters->status);
                 }
 
-                if ($sortField === 'name') {
-                        $query->orderBy('name', $sortDir);
-                } elseif ($sortField === 'email') {
-                        $query->orderBy('email', $sortDir);
+                if ($filters->sortField === 'name') {
+                        $query->orderBy('name', $filters->sortDir);
+                } elseif ($filters->sortField === 'email') {
+                        $query->orderBy('email', $filters->sortDir);
                 } else {
-                        $query->orderBy('created_at', $sortDir);
+                        $query->orderBy('created_at', $filters->sortDir)
+                                ->orderBy('id', $filters->sortDir);
                 }
 
-                return $query->paginate($perPage, ['patients.*'], 'page', $page);
+                return $query->paginate($filters->perPage, ['*'], 'page', $filters->page);
         }
 
         public function find(int $id, ?int $universityId = null): Patient
         {
-        return Patient::withTrashed()
-                ->with(['students.person', 'address'])
-                ->when(
-                $universityId,
-                fn($q) => $q->where('university_id', $universityId)
-                )
-                ->findOrFail($id);
+                return Patient::withTrashed()
+                        ->with(['students.person', 'address'])
+                        ->when(
+                                $universityId,
+                                fn($q) => $q->where('university_id', $universityId)
+                        )
+                        ->findOrFail($id);
         }
 
         public function create(array $data, int $universityId): Patient
@@ -188,7 +196,7 @@ class PatientService
                 }
         }
 
-        public function updateStudentData(int $id, array $studentIds, string $status, string $code,?int $universityId = null): Patient
+        public function updateStudentData(int $id, array $studentIds, string $status, string $code, ?int $universityId = null): Patient
         {
                 if (! in_array($status, Patient::statuses(), true)) {
                         throw new \InvalidArgumentException('Status inválido');

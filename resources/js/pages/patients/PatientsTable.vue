@@ -45,6 +45,8 @@ const statusLabel: Record<StatusFilter, string> = {
     ...PATIENT_STATUS,
 };
 
+let searchTimeout: number;
+
 const statusFilterOptions: StatusFilter[] = [
     'all',
     ...(Object.keys(PATIENT_STATUS) as PatientStatusKey[]),
@@ -56,12 +58,22 @@ const fromTo = computed(() => {
     return total.value ? `${f}-${t} de ${total.value}` : '0';
 });
 
+const search = ref('');
+
+watch(search, () => {
+    clearTimeout(searchTimeout);
+
+    searchTimeout = window.setTimeout(() => {
+        page.value = 1;
+        fetchPatients();
+    }, 400);
+});
+
 function onGridReady(params: any) {
     gridApi.value = params.api;
 }
 
 async function fetchPatients() {
-    if (loading.value) return;
     loading.value = true;
     try {
         const { data } = await axios.get<{
@@ -81,6 +93,7 @@ async function fetchPatients() {
                 sort_field: sortField.value,
                 sort_dir: sortDir.value,
                 status: activeStatus.value,
+                search: search.value,
             },
         });
         rowData.value = data.data;
@@ -106,11 +119,17 @@ onMounted(() => {
     }
 });
 
-watch([page, perPage, sortField, sortDir, activeStatus], () => {
-    fetchPatients();
-});
+watch(
+    [page, perPage, sortField, sortDir, activeStatus],
+    fetchPatients,
+    {
+        deep: false,
+    }
+);
 
 function filterByStatus(status: StatusFilter) {
+    if (activeStatus.value === status) return;
+
     activeStatus.value = status;
     page.value = 1;
 }
@@ -127,23 +146,23 @@ const columnDefs = [
         colId: 'code',
         field: 'code',
         flex: 2,
-        sortable: true,
-        filter: true,
+        sortable: false,
+        filter: false,
     },
     {
         headerName: 'Nome',
         colId: 'name',
         field: 'name',
         flex: 2,
-        sortable: true,
-        filter: true,
+        sortable: false,
+        filter: false,
     },
     {
         headerName: 'Email',
         field: 'email',
         flex: 2,
-        sortable: true,
-        filter: true,
+        sortable: false,
+        filter: false,
         valueGetter: (params: any) => params.data?.email ?? '—',
     },
     {
@@ -151,7 +170,7 @@ const columnDefs = [
         colId: 'students',
         flex: 2,
         sortable: false,
-        filter: true,
+        filter: false,
         autoHeight: true,
 
         valueGetter: (params: any) => {
@@ -197,7 +216,7 @@ const columnDefs = [
     {
         headerName: 'Status',
         colId: 'status',
-        filter: true,
+        filter: false,
         valueGetter: (params: any) => {
             const patient = params.data;
             if (patient?.deleted_at) return 'Excluído';
@@ -225,6 +244,8 @@ const columnDefs = [
 const defaultColDef = {
     flex: 1,
     resizable: true,
+    sortable: false,
+    filter: false,
 };
 </script>
 
@@ -253,28 +274,36 @@ const defaultColDef = {
                 />
             </div>
         </div>
+        <div class="mb-4 gap-3">
+            <div class="pb-4">
+                <input
+                    v-model="search"
+                    type="text"
+                    placeholder="Buscar paciente..."
+                    class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+                />
+            </div>
+            <div class="mb-4 flex flex-wrap gap-1 rounded-full bg-gray-100 p-1">
+                <button
+                    v-for="s in statusFilterOptions"
+                    :key="s"
+                    @click="filterByStatus(s)"
+                    class="rounded-full px-3 py-1.5 text-sm font-medium transition-all cursor-pointer"
+                    :class="
+                        activeStatus === s
+                            ? 'bg-white text-gray-900 shadow'
+                            : 'text-gray-500 hover:text-gray-900'
+                    "
+                >
+                    {{ statusLabel[s] }}
+                </button>
+            </div>
+        </div>
         <div class="overflow-x-auto">
             <div
                 class="ag-theme-alpine relative"
                 style="height: 500px; width: 100%"
             >
-                <div
-                    class="mb-4 flex flex-wrap gap-1 rounded-full bg-gray-100 p-1"
-                >
-                    <button
-                        v-for="s in statusFilterOptions"
-                        :key="s"
-                        @click="filterByStatus(s)"
-                        class="rounded-full px-3 py-1.5 text-sm font-medium transition-all cursor-pointer"
-                        :class="
-                            activeStatus === s
-                                ? 'bg-white text-gray-900 shadow'
-                                : 'text-gray-500 hover:text-gray-900'
-                        "
-                    >
-                        {{ statusLabel[s] }}
-                    </button>
-                </div>
 
                 <div
                     v-if="loading"
