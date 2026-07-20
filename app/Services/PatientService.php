@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Data\Patients\PatientTableFiltersData;
 use App\Models\Address;
+use App\Models\Clinic;
 use App\Models\Patient;
 use App\Models\Student;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
@@ -280,5 +281,18 @@ class PatientService
                         ->findOrFail($id);
 
                 $patient->forceDelete();
+        }
+
+        public function availableForClinic(Clinic $clinic)
+        {
+                return Patient::query()
+                        ->whereDoesntHave('waitingLists', function ($query) use ($clinic) {
+                        $query->where('clinic_id', $clinic->id);
+                        })
+                        ->whereDoesntHave('patientClinics', function ($query) use ($clinic) {
+                        $query->where('clinic_id', $clinic->id);
+                        })
+                        ->orderBy('name')
+                        ->get();
         }
 }

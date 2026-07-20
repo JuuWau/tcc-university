@@ -19,7 +19,7 @@ import students from '@/routes/students';
 import users from '@/routes/users';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BarChart, Building2, Calendar, ClipboardList, GraduationCap, LayoutGrid, ListPlus, Stethoscope, User, Users, Timer, CalendarPlus, CalendarCog, CalendarCheck } from 'lucide-vue-next';
+import { BarChart, Building2, Calendar, ClipboardList, GraduationCap, LayoutGrid, ListPlus, Stethoscope, User, Users, Timer, CalendarPlus, CalendarCog, CalendarCheck, Hospital } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import schedules from '@/routes/schedules';
 import clinics from '@/routes/clinics';
@@ -81,7 +81,7 @@ const mainNavItems: NavItem[] = [
                 icon: CalendarPlus,
             },
             {
-                title: 'Gerenciar clínicas abertas',
+                title: 'Agenda das clínicas',
                 href: '/schedules/open-clinics',
                 icon: CalendarCog,
             },
@@ -90,6 +90,11 @@ const mainNavItems: NavItem[] = [
                 href: '/schedule-enrollment/open-clinics',
             },
         ],
+    },
+    {
+        title: 'Gerenciar clínicas',
+        href: '/clinics-management/',
+        icon: Hospital
     },
     {
         title: 'Confirmar agendamentos',

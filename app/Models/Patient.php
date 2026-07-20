@@ -4,7 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-
+use Illuminate\Database\Eloquent\Relations\HasMany;
 class Patient extends Model
 {
     use SoftDeletes;
@@ -76,5 +76,23 @@ class Patient extends Model
             'patient_students'
         )->withTimestamps()
         ->wherePivotNull('deleted_at');
+    }
+    
+    public function waitingLists(): HasMany
+    {
+        return $this->hasMany(ClinicWaitingList::class);
+    }
+
+    public function patientClinics(): HasMany
+    {
+        return $this->hasMany(PatientClinic::class);
+    }
+
+    public function clinics(): BelongsToMany
+    {
+        return $this->belongsToMany(
+            Clinic::class,
+            'patient_clinics'
+        )->withPivot('enrolled_at');
     }
 }

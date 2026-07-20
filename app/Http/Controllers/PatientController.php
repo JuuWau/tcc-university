@@ -9,10 +9,12 @@ use App\Http\Requests\UpdatePatientStudentDataRequest;
 use App\Http\Requests\UpdatePatientStudentRequest;
 use App\Http\Requests\UpdatePatientRequest;
 use App\Http\Resources\PatientCollection;
+use App\Http\Resources\PatientOptionResource;
 use App\Http\Resources\PatientResource;
 use App\Http\Resources\StudentOptionResource;
 use App\Models\PatientImport;
 use App\Imports\PatientsImport;
+use App\Models\Clinic;
 use App\Models\Student;
 use App\Services\PatientService;
 use App\Services\StudentService;
@@ -198,5 +200,12 @@ class PatientController extends Controller
             'failed' => $import->failed,
             'errors' => $import->errors ?? [],
         ]);
+    }
+
+    public function availablePatients(Clinic $clinic)
+    {
+        return PatientOptionResource::collection(
+            $this->patientService->availableForClinic($clinic)
+        )->resolve();
     }
 }
