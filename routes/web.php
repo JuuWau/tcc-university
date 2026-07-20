@@ -10,6 +10,7 @@ use App\Http\Controllers\ClinicController;
 // use App\Http\Controllers\ScheduleAttendanceController;
 use App\Http\Controllers\ScheduleEnrollmentController;
 use App\Http\Controllers\AppointmentConfirmationController;
+use App\Http\Controllers\ClinicManagementController;
 use App\Http\Controllers\ScheduleSlotController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\SpecialtiesController;
@@ -157,6 +158,7 @@ Route::prefix('patients')->group(function () {
     Route::delete('/deactivate/{patient}', [PatientController::class, 'deactivate'])->name('patients.deactivate');
     Route::delete('/activate/{patient}', [PatientController::class, 'activate'])->name('patients.activate');
     Route::delete('/{patient}', [PatientController::class, 'destroy'])->name('patients.destroy');
+    Route::get('/options/{clinic}', [PatientController::class, 'availablePatients'])->name('patients.availablePatients');
 })->middleware(['auth', 'verified']);
 
 Route::prefix('users')->group(function () {
@@ -184,6 +186,15 @@ Route::prefix('appointments-confirmation')->name('appointments-confirmation.')->
     Route::get('/', [AppointmentConfirmationController::class, 'index'])->name('appointments-confirmation.index');
     Route::get('/list', [AppointmentConfirmationController::class, 'list'])->name('appointments-confirmation.list');
     Route::patch('/{appointment}/status',[AppointmentConfirmationController::class, 'updateStatus'])->name('appointments-confirmation.updateStatus');;
+});
+
+Route::prefix('clinics-management')->name('clinics-management.')->group(function () {
+    Route::get('/', [ClinicManagementController::class, 'index'])->name('index');
+    Route::get('/{clinic}', [ClinicManagementController::class, 'show'])->name('show');
+    Route::get('/{clinic}/table', [ClinicManagementController::class, 'table'])->name('table');
+    Route::post('/{clinic}/enroll', [ClinicManagementController::class, 'enroll'])->name('enroll');
+    Route::delete('/{clinic}/remove-enrollment/{patient}', [ClinicManagementController::class, 'removeEnrollment'])->name('remove-enrollment');
+    Route::post('/{clinic}/waiting-list', [ClinicManagementController::class, 'storeWaitingList'])->name('storeWaitingList');
 });
 
 Route::prefix('invite')->group(function () {
