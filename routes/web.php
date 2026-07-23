@@ -159,6 +159,12 @@ Route::prefix('patients')->group(function () {
     Route::delete('/activate/{patient}', [PatientController::class, 'activate'])->name('patients.activate');
     Route::delete('/{patient}', [PatientController::class, 'destroy'])->name('patients.destroy');
     Route::get('/options/{clinic}', [PatientController::class, 'availablePatients'])->name('patients.availablePatients');
+    Route::get('/{patient}/clinics/table', [PatientController::class, 'clinicsTable'])->name('patients.clinics.clinicsTable');
+    Route::delete('/{patient}/clinics/{clinic}/enrollment',[PatientController::class, 'removeEnrollment'])->name('patients.clinics.
+     remove-enrollment');
+    Route::post('/clinics/{clinic}/enroll', [PatientController::class, 'enrollClinic'])->name('patients.clinics.enroll');
+    Route::post('/clinics/{clinic}/waiting-list', [PatientController::class, 'addToWaitingList'])->name('patients.clinics.addToWaitingList');
+    Route::get('/{patient}/available-clinics',[PatientController::class, 'availableClinics'])->name('patients.clinics.availableClinics');
 })->middleware(['auth', 'verified']);
 
 Route::prefix('users')->group(function () {

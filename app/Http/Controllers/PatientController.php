@@ -2,12 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\Patients\PatientClinicsTableFiltersData;
 use App\Data\Patients\PatientTableFiltersData;
+use App\Http\Requests\AddPatientToWaitingListRequest;
+use App\Http\Requests\EnrollPatientClinicRequest;
+use App\Http\Requests\PatientClinicsTableRequest;
 use App\Http\Requests\StorePatientRequest;
 use App\Http\Requests\TablePatientRequest;
 use App\Http\Requests\UpdatePatientStudentDataRequest;
 use App\Http\Requests\UpdatePatientStudentRequest;
 use App\Http\Requests\UpdatePatientRequest;
+use App\Http\Resources\PatientClinicResource;
 use App\Http\Resources\PatientCollection;
 use App\Http\Resources\PatientOptionResource;
 use App\Http\Resources\PatientResource;
@@ -15,6 +20,7 @@ use App\Http\Resources\StudentOptionResource;
 use App\Models\PatientImport;
 use App\Imports\PatientsImport;
 use App\Models\Clinic;
+use App\Models\Patient;
 use App\Models\Student;
 use App\Services\PatientService;
 use App\Services\StudentService;
@@ -207,5 +213,86 @@ class PatientController extends Controller
         return PatientOptionResource::collection(
             $this->patientService->availableForClinic($clinic)
         )->resolve();
+    }
+
+    public function clinicsTable(PatientClinicsTableRequest $request, Patient $patient) 
+    {
+        $clinics = $this->patientService->paginateClinics(
+            $patient,
+            PatientClinicsTableFiltersData::fromRequest(
+                $request
+            )
+        );
+        
+        return PatientClinicResource::collection(
+            $clinics
+        );
+    }
+
+    public function removeEnrollment(Patient $patient, Clinic $clinic): JsonResponse 
+    {
+        try {
+            $this->patientService->removeEnrollment(
+                $patient,
+                $clinic
+            );
+
+            return response()->json([
+                'message' => 'Inscrição removida com sucesso.',
+            ]);
+        } catch (\Throwable $exception) {
+            report($exception);
+            return response()->json([
+                'message' => 'Erro ao remover inscrição.',
+            ], 500);
+        }
+    }
+
+    public function enrollClinic(EnrollPatientClinicRequest $request, Clinic $clinic) 
+    {
+        try {
+            $patientClinic = $this->patientService->enrollClinic(
+                $clinic,
+                $request->integer('patient_id')
+            );
+
+            return response()->json([
+                'message' => 'Paciente inscrito com sucesso.',
+                'data' => new PatientClinicResource($patientClinic),
+            ]);
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], 422);
+        }
+    }
+
+    public function addToWaitingList(Clinic $clinic, AddPatientToWaitingListRequest $request) 
+    {
+        try {
+            $this->patientService->addToWaitingList(
+                $clinic,
+                $request->validated()
+            );
+
+            return response()->json([
+                'message' => 'Paciente adicionado à lista de espera.',
+            ]);
+        } catch (\Throwable $exception) {
+            report($exception);
+
+            return response()->json([
+                'message' => $exception->getMessage(),
+            ], 422);
+        }
+    }
+
+    public function availableClinics(Patient $patient)
+    {
+        return response()->json(
+            $this->patientService->availableClinics($patient)
+        );
     }
 }

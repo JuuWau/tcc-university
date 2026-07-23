@@ -65,7 +65,6 @@ function refetch() {
     return clinicManagement.loadPatients(props.clinic.id);
 }
 
-
 onMounted(() => {
     clinicManagement.loadPatients(props.clinic.id);
 });

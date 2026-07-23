@@ -8,7 +8,6 @@ export interface ClinicManagementRow {
 export type ClinicPatientStatus = (typeof CLINIC_PATIENT_STATUS)[keyof typeof CLINIC_PATIENT_STATUS];
 
 export const CLINIC_PATIENT_STATUS = {
-    ALL: 'all',
     ENROLLED: 'enrolled',
     WAITING: 'waiting',
 } as const;
