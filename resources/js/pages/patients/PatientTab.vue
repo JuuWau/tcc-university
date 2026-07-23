@@ -22,6 +22,7 @@
             <div>
                 <PatientPersonalData v-if="activeTab === 'personal'" />
                 <!-- <PatientSchedules v-if="activeTab === 'schedules'" /> -->
+                <PatientClinicsData v-if="activeTab === 'clinics'" />
             </div>
         </div>
 
@@ -34,14 +35,15 @@
 import type { PatientTabContext } from '@/keys/patients/patientKeys';
 import { PatientTabContextKey } from '@/keys/patients/patientKeys';
 import AppLayout from '@/layouts/AppLayout.vue';
-import PatientPersonalDataEditModal from '@/pages/patients/components/PatientPersonalDataEditModal.vue';
-import PatientStudentEditModal from '@/pages/patients/components/PatientStudentEditModal.vue';
+import PatientPersonalDataEditModal from '@/pages/patients/components/personal-data/PatientPersonalDataEditModal.vue';
+import PatientStudentEditModal from '@/pages/patients/components/student-data/PatientStudentEditModal.vue';
 import PatientHeader from '@/pages/patients/PatientHeader.vue';
 import PatientPersonalData from '@/pages/patients/tabs/PatientPersonalData.vue';
 // import PatientSchedules from '@/pages/patients/tabs/PatientSchedules.vue';
 import type { PatientForTab } from '@/types/patient/patient';
 import { router, usePage } from '@inertiajs/vue3';
 import { computed, provide, ref } from 'vue';
+import PatientClinicsData from './tabs/clinics-data/PatientClinicsData.vue';
 
 const page = usePage();
 const patient = computed(
@@ -64,12 +66,13 @@ provide(PatientTabContextKey, {
     students,
 } as PatientTabContext);
 
-type TabKey = 'personal' | 'schedules';
+type TabKey = 'personal' | 'schedules' | 'clinics';
 const activeTab = ref<TabKey>('personal');
 
 const tabs: { key: TabKey; label: string }[] = [
     { key: 'personal', label: 'Dados pessoais' },
     { key: 'schedules', label: 'Agendamentos' },
+    { key: 'clinics', label: 'Clínicas' },
 ];
 
 function onPersonalDataUpdated() {
