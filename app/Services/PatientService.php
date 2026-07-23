@@ -2,14 +2,17 @@
 
 namespace App\Services;
 
+use App\Data\Patients\PatientClinicsTableFiltersData;
 use App\Data\Patients\PatientTableFiltersData;
 use App\Models\Address;
 use App\Models\Clinic;
+use App\Models\ClinicWaitingList;
 use App\Models\Patient;
+use App\Models\PatientClinic;
 use App\Models\Student;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-
+use Illuminate\Support\Collection;
 class PatientService
 {
         /**
@@ -294,5 +297,134 @@ class PatientService
                         })
                         ->orderBy('name')
                         ->get();
+        }
+
+        public function paginateClinics(Patient $patient, PatientClinicsTableFiltersData $filters): LengthAwarePaginator 
+        {
+                
+                if ($filters->status === 'waiting') {
+                        $query = ClinicWaitingList::query()
+                        ->with('clinic');
+                } else {
+                        $query = PatientClinic::query()
+                        ->with('clinic');
+                }
+
+                $query->where(
+                        'patient_id',
+                        $patient->id
+                );
+
+                $query->orderBy(
+                        'created_at',
+                        'asc'
+                );
+
+                return $query->paginate(
+                        $filters->perPage,
+                        ['*'],
+                        'page',
+                        $filters->page
+                );
+        }
+
+        public function removeEnrollment(Patient $patient, Clinic $clinic): void 
+        {
+                PatientClinic::query()
+                        ->where('patient_id', $patient->id)
+                        ->where('clinic_id', $clinic->id)
+                        ->firstOrFail()
+                        ->delete();
+        }
+
+        public function enrollClinic(Clinic $clinic, int $patientId): PatientClinic 
+        {
+                return DB::transaction(function () use ($clinic, $patientId) {
+                        if (
+                        PatientClinic::where('clinic_id', $clinic->id)
+                                ->where('patient_id', $patientId)
+                                ->exists()
+                        ) {
+                                throw new \Exception(
+                                        'Paciente já está inscrito nesta clínica.'
+                                );
+                        }
+
+                        $patientClinic = PatientClinic::create([
+                                'clinic_id' => $clinic->id,
+                                'patient_id' => $patientId,
+                                'enrolled_at' => now(),
+                        ]);
+
+                        ClinicWaitingList::where('clinic_id', $clinic->id)
+                                ->where('patient_id', $patientId)
+                                ->delete();
+
+                        return $patientClinic;
+                });
+        }
+
+        public function addToWaitingList(Clinic $clinic, array $data): ClinicWaitingList 
+        {
+                return DB::transaction(function () use ($clinic, $data) {
+
+                        if (
+                        ClinicWaitingList::query()
+                                ->where('clinic_id', $clinic->id)
+                                ->where('patient_id', $data['patient_id'])
+                                ->exists()
+                        ) {
+                        throw new \Exception(
+                                'Paciente já está na lista de espera desta clínica.'
+                        );
+                        }
+
+                        if (
+                        PatientClinic::query()
+                                ->where('clinic_id', $clinic->id)
+                                ->where('patient_id', $data['patient_id'])
+                                ->exists()
+                        ) {
+                        throw new \Exception(
+                                'Paciente já está inscrito nesta clínica.'
+                        );
+                        }
+
+                        return ClinicWaitingList::create([
+                                'clinic_id' => $clinic->id,
+                                'patient_id' => $data['patient_id'],
+                                'enrolled_at' => now(),
+                                ]);
+                });
+        }
+
+        public function availableClinics(Patient $patient): Collection 
+        {
+                $enrolledClinicIds = PatientClinic::query()
+                        ->where('patient_id', $patient->id)
+                        ->pluck('clinic_id');
+
+                $waitingClinicIds = ClinicWaitingList::query()
+                        ->where('patient_id', $patient->id)
+                        ->pluck('clinic_id');
+
+                $blockedClinicIds = $enrolledClinicIds
+                        ->merge($waitingClinicIds)
+                        ->unique();
+
+                return Clinic::query()
+                        ->when(
+                        $blockedClinicIds->isNotEmpty(),
+                        fn ($query) => $query->whereNotIn(
+                                'id',
+                                $blockedClinicIds
+                        )
+                        )
+                        ->orderBy('name')
+                        ->get()
+                        ->map(fn (Clinic $clinic) => [
+                        'label' => $clinic->name,
+                        'value' => $clinic->id,
+                ]);
         }
 }
