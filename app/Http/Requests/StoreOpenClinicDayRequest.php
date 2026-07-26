@@ -26,12 +26,8 @@ class StoreOpenClinicDayRequest extends FormRequest
                 Rule::exists('periods', 'id')->where(fn($query) => $query
                     ->where('university_id', $universityId)),
             ],
-            'responsible_id' => [
-                'required',
-                'integer',
-                Rule::exists('users', 'id')->where(fn($query) => $query
-                    ->where('university_id', $universityId)),
-            ],
+            'responsible_ids' => ['array'],
+            'responsible_ids.*' => ['exists:users,id'],
             'date' => ['required', 'date_format:Y-m-d'],
             'start_time' => ['required', 'date_format:H:i'],
             'end_time' => ['required', 'date_format:H:i', 'after:start_time'],
