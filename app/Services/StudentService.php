@@ -2,11 +2,14 @@
 
 namespace App\Services;
 
+use App\Constants\ActivityLogPrefixes;
+use App\Constants\ActivityModules;
 use App\Data\Students\StudentTableFiltersData;
 use App\Mail\UserInviteMail;
 use App\Models\Address;
 use App\Models\Clinic;
 use App\Models\Patient;
+use App\Models\Period;
 use App\Models\User;
 use App\Models\Person;
 use App\Models\Role;
@@ -124,14 +127,29 @@ class StudentService
                                 ->with(['person', 'person.address', 'user'])
                                 ->findOrFail($studentId);
 
+                        $changes = [];
+
                         if ($student->user) {
-                                $student->user->update([
+                                $student->user->fill([
                                         'email' => $data['email'],
                                 ]);
+
+                                $changes = array_merge(
+                                        $changes,
+                                        ActivityLogService::getChanges($student->user, ActivityLogPrefixes::USER),
+                                );
+
+                                $student->user->save();
+
                                 if (!empty($data['password'])) {
                                         $student->user->update([
                                                 'password' => Hash::make($data['password']),
                                         ]);
+
+                                        $changes['user.password'] = [
+                                                'old' => '********',
+                                                'new' => '********',
+                                        ];
                                 }
                         }
 
@@ -141,12 +159,26 @@ class StudentService
                                         'phone' => $data['phone'],
                                         'birth_date' => $data['birth_date'],
                                 ];
+
                                 if (isset($data['name'])) {
                                         $personData['name'] = $data['name'];
                                 }
-                                $student->person->update($personData);
 
-                                $addressData = [
+                                $student->person->fill($personData);
+
+                                $changes = array_merge(
+                                        $changes,
+                                        ActivityLogService::getChanges($student->person, ActivityLogPrefixes::PERSON),
+                                );
+
+                                $student->person->save();
+
+                                $address = $student->person->address()->firstOrNew([
+                                        'addressable_id' => $student->person->id,
+                                        'addressable_type' => Person::class,
+                                ]);
+
+                                $address->fill([
                                         'cep' => $data['cep'],
                                         'street' => $data['street'],
                                         'number' => $data['number'],
@@ -154,10 +186,22 @@ class StudentService
                                         'city' => $data['city'],
                                         'state' => $data['state'],
                                         'complement' => $data['complement'] ?? null,
-                                ];
-                                $student->person->address()->updateOrCreate(
-                                        ['addressable_id' => $student->person->id, 'addressable_type' => Person::class],
-                                        $addressData
+                                ]);
+
+                                $changes = array_merge(
+                                        $changes,
+                                        ActivityLogService::getChanges($address, ActivityLogPrefixes::ADDRESS),
+                                );
+
+                                $address->save();
+                        }
+
+                        if (!empty($changes)) {
+                                ActivityLogService::updated(
+                                        ActivityModules::STUDENTS,
+                                        "Atualizou o aluno '{$student->person->name}'.",
+                                        $student,
+                                        $changes,
                                 );
                         }
 
@@ -178,24 +222,55 @@ class StudentService
                                 ->with(['periods'])
                                 ->findOrFail($studentId);
 
-                        $student->update([
+                        $student->fill([
                                 'registration' => $data['registration'],
                         ]);
 
-                        $periodId = (int) $data['period'];
+                        $changes = ActivityLogService::getChanges($student);
+
+                        $currentPeriod = $student->periods
+                                ->firstWhere('pivot.is_current', true);
+
+                        $newPeriodId = (int) $data['period'];
+
+                        ActivityLogService::trackBelongsToChange(
+                                $changes,
+                                'period_id',
+                                ActivityLogPrefixes::PERIOD,
+                                Period::class,
+                                $currentPeriod?->id,
+                                $newPeriodId,
+                                fn(Period $period) =>
+                                "{$period->academic_year}º ano {$period->semester}º semestre de {$period->calendar_year}",
+                        );
+
+                        if (empty($changes)) {
+                                return $student;
+                        }
+
+                        $student->save();
 
                         DB::table('student_periods')
                                 ->where('student_id', $student->id)
                                 ->update(['is_current' => false]);
 
-                        if ($student->periods->contains('id', $periodId)) {
-                                $student->periods()->updateExistingPivot($periodId, ['is_current' => true]);
+                        if ($student->periods->contains('id', $newPeriodId)) {
+                                $student->periods()->updateExistingPivot($newPeriodId, [
+                                        'is_current' => true,
+                                ]);
                         } else {
-                                $student->periods()->attach($periodId, [
+                                $student->periods()->attach($newPeriodId, [
                                         'started_at' => now(),
                                         'is_current' => true,
                                 ]);
                         }
+
+                        ActivityLogService::updated(
+                                ActivityModules::STUDENTS,
+                                "Atualizou os dados acadêmicos do aluno '{$student->person->name}'.",
+                                $student,
+                                $changes,
+                        );
 
                         return $student->fresh([
                                 'person',
@@ -235,6 +310,43 @@ class StudentService
                                 ['started_at' => now()]
                         );
 
+                        $changes = [];
+
+                        ActivityLogService::trackRelationChanges(
+                                $changes,
+                                ActivityLogPrefixes::PERIOD,
+                                [],
+                                ActivityLogService::getRelationValues(
+                                        Period::class,
+                                        [$data['period']],
+                                        fn(Period $period) =>
+                                        "{$period->academic_year}º ano {$period->semester}º semestre de {$period->calendar_year}",
+                                ),
+                        );
+
+                        ActivityLogService::created(
+                                ActivityModules::STUDENTS,
+                                "Cadastrou o aluno '{$person->name}'.",
+                                $student,
+                                array_merge(
+                                        [
+                                                'registration' => [
+                                                        'old' => null,
+                                                        'new' => $student->registration,
+                                                ],
+                                                ActivityLogPrefixes::PERSON . '.name' => [
+                                                        'old' => null,
+                                                        'new' => $person->name,
+                                                ],
+                                                ActivityLogPrefixes::USER . '.email' => [
+                                                        'old' => null,
+                                                        'new' => $user->email,
+                                                ],
+                                        ],
+                                        $changes,
+                                ),
+                        );
+
                         $invite = UserInvite::create([
                                 'user_id' => $user->id,
                                 'university_id' => $universityId,
@@ -269,17 +381,6 @@ class StudentService
                 return DB::transaction(function () use ($studentId, $performedByUserId, $reason, $note) {
                         $student = Student::with(['user', 'person'])->findOrFail($studentId);
 
-                        UserActionLog::create([
-                                'user_id' => $performedByUserId,
-                                'subject_type' => Student::class,
-                                'subject_id' => $student->id,
-                                'action' => 'student_deactivated',
-                                'metadata' => [
-                                        'reason' => $reason,
-                                        'note' => $note,
-                                ],
-                        ]);
-
                         $student->delete();
 
                         if ($student->user) {
@@ -295,6 +396,22 @@ class StudentService
                         if ($student->person) {
                                 $student->person->delete();
                         }
+
+                        ActivityLogService::deleted(
+                                ActivityModules::STUDENTS,
+                                "Inativou o aluno '{$student->person->name}'.",
+                                $student,
+                                [
+                                        'reason' => [
+                                                'old' => null,
+                                                'new' => $reason,
+                                        ],
+                                        'note' => [
+                                                'old' => null,
+                                                'new' => $note,
+                                        ],
+                                ],
+                        );
 
                         return $student->fresh(['person', 'user.invite', 'periods']);
                 });
@@ -320,16 +437,21 @@ class StudentService
                                 $student->person->restore();
                         }
 
-                        UserActionLog::create([
-                                'user_id' => $performedByUserId,
-                                'subject_type' => Student::class,
-                                'subject_id' => $student->id,
-                                'action' => 'student_activated',
-                                'metadata' => [
-                                        'reason' => $reason,
-                                        'note' => $note,
+                        ActivityLogService::updated(
+                                ActivityModules::STUDENTS,
+                                "Ativou o aluno '{$student->person->name}'.",
+                                $student,
+                                [
+                                        'reason' => [
+                                                'old' => null,
+                                                'new' => $reason,
+                                        ],
+                                        'note' => [
+                                                'old' => null,
+                                                'new' => $note,
+                                        ],
                                 ],
-                        ]);
+                        );
 
                         return $student->fresh(['person', 'user.invite', 'periods']);
                 });
@@ -344,6 +466,12 @@ class StudentService
                                         'person' => fn($q) => $q->withTrashed(),
                                 ])
                                 ->findOrFail($studentId);
+
+                        ActivityLogService::deleted(
+                                ActivityModules::STUDENTS,
+                                "Removeu o aluno '{$student->person->name}'.",
+                                $student,
+                        );
 
                         if ($student->user) {
                                 UserInvite::where('user_id', $student->user->id)
@@ -485,7 +613,6 @@ class StudentService
                         ->unique()
                         ->values();
 
-                // dd($enrolledDays);
                 return [
                         'open_days' => $enrolledDays,
                         'events' => $slots,
