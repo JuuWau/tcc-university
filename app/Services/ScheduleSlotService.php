@@ -2,12 +2,16 @@
 
 namespace App\Services;
 
+use App\Constants\ActivityLogPrefixes;
+use App\Constants\ActivityModules;
 use App\Jobs\ProcessDeleteScheduleSlotsJob;
 use App\Jobs\ProcessOpenScheduleJob;
 use App\Models\Appointment;
 use App\Models\Clinic;
+use App\Models\Period;
 use App\Models\ScheduleEnrollment;
 use App\Models\ScheduleSlot;
+use App\Models\User;
 use Illuminate\Support\Facades\DB;
 
 class ScheduleSlotService
@@ -36,7 +40,7 @@ class ScheduleSlotService
         $periodOptions = (clone $baseQuery)
             ->with('period:id,calendar_year,semester,academic_year')
             ->get()
-            ->map(fn (ScheduleSlot $slot) => $slot->period)
+            ->map(fn(ScheduleSlot $slot) => $slot->period)
             ->filter()
             ->unique('id')
             ->sortBy([
@@ -45,28 +49,28 @@ class ScheduleSlotService
                 ['semester', 'asc'],
             ])
             ->values()
-            ->map(fn ($period) => [
+            ->map(fn($period) => [
                 'id' => $period->id,
                 'label' => "{$period->academic_year}º ano {$period->semester}º semestre de {$period->calendar_year}",
             ])
             ->toArray();
 
         $slots = $baseQuery
-            ->when($periodId, fn ($query) => $query->where('period_id', $periodId))
-            ->when($date, fn ($query) => $query->whereDate('date', $date))
+            ->when($periodId, fn($query) => $query->where('period_id', $periodId))
+            ->when($date, fn($query) => $query->whereDate('date', $date))
             ->with([
                 'period:id,calendar_year,semester,academic_year',
                 'responsibles.person:id,user_id,name',
             ])
             ->withExists([
-                'enrollments as is_enrolled' => fn ($query) => $query
+                'enrollments as is_enrolled' => fn($query) => $query
                     ->where('student_id', $studentId)
                     ->where('status', 'active')
             ])
             ->orderBy('date')
             ->orderBy('start_time')
             ->get()
-            ->map(fn (ScheduleSlot $slot) => [
+            ->map(fn(ScheduleSlot $slot) => [
                 'id' => $slot->id,
                 'date' => $slot->date->format('Y-m-d'),
                 'start_time' => $slot->start_time,
@@ -84,7 +88,7 @@ class ScheduleSlotService
                     : '—',
 
                 'responsible_names' => $slot->responsibles
-                    ->map(fn ($user) => $user->person?->name)
+                    ->map(fn($user) => $user->person?->name)
                     ->filter()
                     ->values(),
             ])
@@ -105,9 +109,9 @@ class ScheduleSlotService
         return Clinic::query()
             ->where('university_id', $universityId)
             ->where('active', true)
-            ->whereHas('scheduleSlots', fn ($query) => $query->whereDate('date', '>=', now()->toDateString()))
+            ->whereHas('scheduleSlots', fn($query) => $query->whereDate('date', '>=', now()->toDateString()))
             ->with([
-                'scheduleSlots' => fn ($query) => $query
+                'scheduleSlots' => fn($query) => $query
                     ->whereDate('date', '>=', now()->toDateString())
                     ->orderBy('date')
                     ->orderBy('start_time'),
@@ -142,7 +146,7 @@ class ScheduleSlotService
                     ->whereDate('date', '>=', now()->toDateString());
             })
             ->with([
-                'scheduleSlots' => fn ($query) => $query
+                'scheduleSlots' => fn($query) => $query
                     ->where('period_id', $periodId)
                     ->whereDate('date', '>=', now()->toDateString())
                     ->orderBy('date')
@@ -194,7 +198,7 @@ class ScheduleSlotService
             ->orderBy('date')
             ->orderBy('start_time')
             ->get()
-            ->map(fn (ScheduleSlot $slot) => [
+            ->map(fn(ScheduleSlot $slot) => [
                 'id' => $slot->id,
                 'university_id' => $slot->university_id,
                 'period_id' => $slot->period_id,
@@ -241,7 +245,7 @@ class ScheduleSlotService
             ->values()
             ->all();
 
-        return DB::transaction(function () use ($data, $days, $universityId) {
+        return DB::transaction(function () use ($data, $days, $universityId, $clinic) {
 
             $created = [];
 
@@ -289,13 +293,53 @@ class ScheduleSlotService
                     $slot->responsibles()->sync($data['responsible_ids'] ?? []);
                 }
 
+                $changes = ActivityLogService::getCreatedChanges($slot);
+
+                ActivityLogService::trackRelationChanges(
+                    $changes,
+                    ActivityLogPrefixes::CLINIC,
+                    [],
+                    [$clinic->name],
+                );
+
+                ActivityLogService::trackBelongsToChange(
+                    $changes,
+                    'period_id',
+                    ActivityLogPrefixes::PERIOD,
+                    Period::class,
+                    null,
+                    $data['period_id'],
+                    fn(Period $period) =>
+                    "{$period->academic_year}º ano {$period->semester}º semestre de {$period->calendar_year}",
+                );
+
+                if (!empty($data['responsible_ids'])) {
+                    ActivityLogService::trackRelationChanges(
+                        $changes,
+                        ActivityLogPrefixes::RESPONSIBLE,
+                        [],
+                        ActivityLogService::getRelationValues(
+                            User::class,
+                            $data['responsible_ids'],
+                            fn(User $user) => $user->person->name,
+                        ),
+                    );
+                }
+
+                ActivityLogService::created(
+                    ActivityModules::SCHEDULES,
+                    "Abriu agenda para a clínica '{$clinic->name}' no dia {$formattedDay}.",
+                    $slot,
+                    $changes,
+                );
+
                 $created[] = $slot;
             }
 
             ProcessOpenScheduleJob::dispatch($created, $data)->afterCommit();
 
             return collect($created)
-                ->sortBy(fn (ScheduleSlot $slot) => sprintf('%s %s', $slot->date, $slot->start_time))
+                ->sortBy(fn(ScheduleSlot $slot) => sprintf('%s %s', $slot->date, $slot->start_time))
                 ->values()
                 ->all();
         });
@@ -346,26 +390,92 @@ class ScheduleSlotService
             ], JSON_UNESCAPED_UNICODE));
         }
 
-        $slot->update([
-            'period_id' => $data['period_id'] ?? $slot->period_id,
-            'date' => $date,
-            'start_time' => $startTime,
-            'end_time' => $endTime,
-            'available_slots' => $data['available_slots'] ?? $slot->available_slots,
-            'allow_student_booking' => $data['allow_student_booking'] ?? $slot->allow_student_booking,
-            'allow_student_enrollment' => $data['allow_student_enrollment'] ?? $slot->allow_student_enrollment,
-            'allow_procedure_booking' => $data['allow_procedure_booking'] ?? $slot->allow_procedure_booking,
-        ]);
+        return DB::transaction(function () use ($slot, $data, $date, $startTime, $endTime) {
+            $oldResponsibleIds = $slot->responsibles()->pluck('users.id')->toArray();
 
-        if (array_key_exists('responsible_ids', $data)) {
-            $slot->responsibles()->sync($data['responsible_ids'] ?? []);
-        }
+            $slot->update([
+                'period_id' => $data['period_id'] ?? $slot->period_id,
+                'date' => $date,
+                'start_time' => $startTime,
+                'end_time' => $endTime,
+                'available_slots' => $data['available_slots'] ?? $slot->available_slots,
+                'allow_student_booking' => $data['allow_student_booking'] ?? $slot->allow_student_booking,
+                'allow_student_enrollment' => $data['allow_student_enrollment'] ?? $slot->allow_student_enrollment,
+                'allow_procedure_booking' => $data['allow_procedure_booking'] ?? $slot->allow_procedure_booking,
+            ]);
 
-        // dd($slot->fresh());
-        return $slot->fresh([
-            'period',
-            'responsibles.person',
-        ]);
+            $changes = ActivityLogService::getChanges($slot);
+
+            if ($slot->wasChanged('clinic_id')) {
+                $oldClinic = Clinic::find($slot->getOriginal('clinic_id'));
+                $newClinic = Clinic::find($slot->clinic_id);
+
+                ActivityLogService::trackRelationChanges(
+                    $changes,
+                    'clínica',
+                    $oldClinic ? [$oldClinic->name] : [],
+                    $newClinic ? [$newClinic->name] : [],
+                );
+            }
+
+            if ($slot->wasChanged('period_id')) {
+                ActivityLogService::trackBelongsToChange(
+                    $changes,
+                    'period_id',
+                    'período',
+                    Period::class,
+                    $slot->getOriginal('period_id'),
+                    $slot->period_id,
+                    fn(Period $period) => "{$period->academic_year}º ano {$period->semester}º semestre de {$period->calendar_year}",
+                );
+            }
+
+            if (array_key_exists('responsible_ids', $data)) {
+                $newResponsibleIds = $data['responsible_ids'] ?? [];
+
+                $oldResponsibleNames = !empty($oldResponsibleIds)
+                    ? ActivityLogService::getRelationValues(
+                        User::class,
+                        $oldResponsibleIds,
+                        fn(User $user) => $user->person->name,
+                    )
+                    : [];
+
+                $newResponsibleNames = !empty($newResponsibleIds)
+                    ? ActivityLogService::getRelationValues(
+                        User::class,
+                        $newResponsibleIds,
+                        fn(User $user) => $user->person->name,
+                    )
+                    : [];
+
+                ActivityLogService::trackRelationChanges(
+                    $changes,
+                    'responsáveis',
+                    $oldResponsibleNames,
+                    $newResponsibleNames,
+                );
+
+                $slot->responsibles()->sync($newResponsibleIds);
+            }
+
+            if (!empty($changes)) {
+                $formattedDate = \Carbon\Carbon::parse($slot->date)->format('d/m/Y');
+                $clinicName = $slot->clinic?->name ?? 'Clínica não encontrada';
+
+                ActivityLogService::updated(
+                    ActivityModules::SCHEDULES,
+                    "Atualizou agenda para a clínica '{$clinicName}' no dia {$formattedDate}.",
+                    $slot,
+                    $changes,
+                );
+            }
+
+            return $slot->fresh([
+                'period',
+                'responsibles.person',
+            ]);
+        });
     }
 
     public function updateMultipleSlots(array $data, int $universityId): void
@@ -373,7 +483,7 @@ class ScheduleSlotService
         DB::transaction(function () use ($data, $universityId) {
 
             $ids = collect($data['ids'])
-                ->map(fn ($id) => (int) $id)
+                ->map(fn($id) => (int) $id)
                 ->toArray();
 
             $slots = ScheduleSlot::whereIn('id', $ids)->get();
@@ -391,24 +501,113 @@ class ScheduleSlotService
 
     public function deleteSlot(ScheduleSlot $slot, int $universityId): void
     {
-        ProcessDeleteScheduleSlotsJob::dispatch([$slot->id])
-        ->afterCommit();
+        DB::transaction(function () use ($slot) {
+            $slot->loadMissing([
+                'clinic',
+                'period',
+                'responsibles.person',
+            ]);
+
+            $changes = ActivityLogService::getCreatedChanges($slot);
+
+            ActivityLogService::trackRelationChanges(
+                $changes,
+                ActivityLogPrefixes::CLINIC,
+                [],
+                [$slot->clinic->name],
+            );
+
+            ActivityLogService::trackRelationChanges(
+                $changes,
+                ActivityLogPrefixes::PERIOD,
+                [],
+                [
+                    "{$slot->period->academic_year}º ano {$slot->period->semester}º semestre de {$slot->period->calendar_year}",
+                ],
+            );
+
+            ActivityLogService::trackRelationChanges(
+                $changes,
+                ActivityLogPrefixes::RESPONSIBLE,
+                [],
+                $slot->responsibles
+                    ->map(fn($responsible) => $responsible->person->name)
+                    ->sort()
+                    ->values()
+                    ->toArray(),
+            );
+
+            ActivityLogService::deleted(
+                ActivityModules::SCHEDULES,
+                "Removeu a agenda da clínica '{$slot->clinic->name}' do dia {$slot->date->format('d/m/Y')}.",
+                $slot,
+                $changes,
+            );
+
+            ProcessDeleteScheduleSlotsJob::dispatch([$slot->id])
+                ->afterCommit();
+        });
     }
 
     public function deleteMultipleSlots(array $ids, int $universityId): void
     {
-        $slotIds = ScheduleSlot::query()
-            ->whereIn('id', $ids)
-            ->where('university_id', $universityId)
-            ->pluck('id')
-            ->toArray();
+        DB::transaction(function () use ($ids, $universityId) {
+            $slots = ScheduleSlot::query()
+                ->with([
+                    'clinic',
+                    'period',
+                    'responsibles.person',
+                ])
+                ->whereIn('id', $ids)
+                ->where('university_id', $universityId)
+                ->get();
 
-        if (empty($slotIds)) {
-            return;
-        }
+            if ($slots->isEmpty()) {
+                return;
+            }
 
-        ProcessDeleteScheduleSlotsJob::dispatch($slotIds)
-            ->afterCommit();
+            foreach ($slots as $slot) {
+                $changes = ActivityLogService::getCreatedChanges($slot);
+
+                ActivityLogService::trackRelationChanges(
+                    $changes,
+                    ActivityLogPrefixes::CLINIC,
+                    [],
+                    [$slot->clinic->name],
+                );
+
+                ActivityLogService::trackRelationChanges(
+                    $changes,
+                    ActivityLogPrefixes::PERIOD,
+                    [],
+                    [[
+                        "{$slot->period->academic_year}º ano {$slot->period->semester}º semestre de {$slot->period->calendar_year}",
+                    ]],
+                );
+
+                ActivityLogService::trackRelationChanges(
+                    $changes,
+                    ActivityLogPrefixes::RESPONSIBLE,
+                    [],
+                    $slot->responsibles
+                        ->map(fn($responsible) => $responsible->person->name)
+                        ->sort()
+                        ->values()
+                        ->toArray(),
+                );
+
+                ActivityLogService::deleted(
+                    ActivityModules::SCHEDULES,
+                    "Removeu a agenda da clínica '{$slot->clinic->name}' do dia {$slot->date->format('d/m/Y')}.",
+                    $slot,
+                    $changes,
+                );
+            }
+
+            ProcessDeleteScheduleSlotsJob::dispatch(
+                $slots->pluck('id')->all()
+            )->afterCommit();
+        });
     }
 
     private function findConflict(
