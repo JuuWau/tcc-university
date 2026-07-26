@@ -31,7 +31,7 @@ async function submit() {
         const patientId = removeModal.patient.value?.id;
 
         await axios.delete(
-            `/clinics-management/${removeModal.clinicId.value}/remove-enrollment/${patientId}`
+            `/patients/${patientId}/clinics/${removeModal.clinicId.value}/remove-enrollment`
         );
 
         console.log('DELETE OK');
