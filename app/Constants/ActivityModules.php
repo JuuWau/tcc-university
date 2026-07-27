@@ -12,4 +12,6 @@ class ActivityModules
     public const PROCEDURES = 'Procedimentos';
     public const STUDENTS = 'Estudantes';
     public const SCHEDULES = 'Agendas';
+    public const ENROLLMENTS = 'Matrículas';
+    public const APPOINTMENTS = 'Agendamentos';
 }
