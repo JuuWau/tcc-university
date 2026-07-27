@@ -2,8 +2,10 @@
 
 namespace App\Services;
 
+use App\Constants\ActivityModules;
 use App\Models\Specialty;
-
+use App\Models\ActivityLog;
+use App\Services\ActivityLogService;
 class SpecialtyService
 {
         /**
@@ -16,9 +18,20 @@ class SpecialtyService
 
         public function update(Specialty $specialty, array $data): Specialty
         {
-                $specialty->update([
+                $specialty->fill([
                         'name' => $data['name'],
                 ]);
+
+                $changes = ActivityLogService::getChanges($specialty);
+
+                $specialty->save();
+
+                ActivityLogService::updated(
+                        ActivityModules::SPECIALTIES,
+                        "Atualizou a especialidade '{$specialty->name}'.",
+                        $specialty,
+                        $changes,
+                );
 
                 return $specialty;
         }
@@ -29,10 +42,18 @@ class SpecialtyService
                         throw new \RuntimeException('Salvamento Inválido');
                 }
 
-                return Specialty::create([
+                $specialty = Specialty::create([
                         'name' => $data['name'],
                         'university_id' => $universityId,
                 ]);
+
+                ActivityLogService::created(
+                        ActivityModules::SPECIALTIES,
+                        "Cadastrou a especialidade '{$specialty->name}'.",
+                        $specialty,
+                );
+
+                return $specialty;
         }
 
         public function delete(Specialty $specialty): void
@@ -48,6 +69,12 @@ class SpecialtyService
                         'Não é possível excluir a especialidade pois existem períodos vinculados.'
                         );
                 }
+
+                ActivityLogService::deleted(
+                        ActivityModules::SPECIALTIES,
+                        "Removeu a especialidade '{$specialty->name}'.",
+                        $specialty,
+                );
 
                 $specialty->delete();
         }

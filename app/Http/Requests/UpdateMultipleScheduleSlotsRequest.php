@@ -27,9 +27,9 @@ class UpdateMultipleScheduleSlotsRequest extends FormRequest
         return [
             'ids' => ['required', 'array', 'min:1'],
             'ids.*' => ['integer', 'exists:schedule_slots,id'],
-            'responsible_id' => [
+            'responsible_ids' => [
                 'nullable',
-                'integer',
+                'array',
                 Rule::exists('users', 'id')->where(fn ($query) => $query
                     ->where('university_id', $universityId)),
             ],

@@ -2,10 +2,14 @@
 
 namespace App\Services;
 
+use App\Constants\ActivityModules;
 use App\Models\Clinic;
 use App\Models\Period;
 use App\Models\PeriodSpecialty;
+use App\Models\Specialty;
 use App\Models\User;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Http\JsonResponse;
 
 class PeriodService
 {
@@ -21,17 +25,44 @@ class PeriodService
 
         public function update(Period $period, array $data): Period
         {
-                $period->update([
-                        'academic_year' => $data['academic_year'],
-                        'semester' => $data['semester'],
-                        'calendar_year' => $data['calendar_year'],
-                ]);
+                return DB::transaction(function () use ($period, $data) {
+                        $period->fill([
+                                'academic_year' => $data['academic_year'],
+                                'semester' => $data['semester'],
+                                'calendar_year' => $data['calendar_year'],
+                        ]);
 
-                if (isset($data['specialties'])) {
-                        $period->specialties()->sync($data['specialties']);
-                }
+                        $changes = ActivityLogService::getChanges($period);
 
-                return $period->load('specialties');
+                        if (isset($data['specialties'])) {
+                                ActivityLogService::trackRelationChanges(
+                                        $changes,
+                                        'specialties',
+                                        $period->specialties()->orderBy('name')->pluck('specialties.name')->toArray(),
+                                        ActivityLogService::getRelationValues(
+                                                Specialty::class,
+                                                $data['specialties'],
+                                        ),
+                                );
+                        }
+
+                        $period->save();
+
+                        if (isset($data['specialties'])) {
+                                $period->specialties()->sync($data['specialties']);
+                        }
+
+                        if (!empty($changes)) {
+                                ActivityLogService::updated(
+                                        ActivityModules::PERIODS,
+                                        "Atualizou o período {$period->academic_year}º ano - {$period->semester}º semestre.",
+                                        $period,
+                                        $changes,
+                                );
+                        }
+
+                        return $period->load('specialties');
+                });
         }
 
         public function create(array $data, int $universityId): Period
@@ -40,18 +71,39 @@ class PeriodService
                         throw new \RuntimeException('Salvamento inválido');
                 }
 
-                $period = Period::create([
-                        'academic_year' => $data['academic_year'],
-                        'semester' => $data['semester'],
-                        'calendar_year' => $data['calendar_year'],
-                        'university_id' => $universityId,
-                ]);
+                return DB::transaction(function () use ($data, $universityId) {
+                        $period = Period::create([
+                                'academic_year' => $data['academic_year'],
+                                'semester' => $data['semester'],
+                                'calendar_year' => $data['calendar_year'],
+                                'university_id' => $universityId,
+                        ]);
 
-                if (!empty($data['specialties'])) {
-                        $period->specialties()->sync($data['specialties']);
-                }
+                        $changes = [];
 
-                return $period->load('specialties');
+                        if (!empty($data['specialties'])) {
+                                $period->specialties()->sync($data['specialties']);
+
+                                ActivityLogService::trackRelationChanges(
+                                        $changes,
+                                        'specialties',
+                                        [],
+                                        ActivityLogService::getRelationValues(
+                                                Specialty::class,
+                                                $data['specialties'],
+                                        ),
+                                );
+                        }
+
+                        ActivityLogService::created(
+                                ActivityModules::PERIODS,
+                                "Cadastrou o período {$period->academic_year}º ano - {$period->semester}º semestre.",
+                                $period,
+                                $changes,
+                        );
+
+                        return $period->load('specialties');
+                });
         }
 
         public function delete(Period $period): void
@@ -67,11 +119,32 @@ class PeriodService
                                 'Não é possível excluir este período pois ele possui alunos vinculados.'
                         );
                 }
+                
+                DB::transaction(function () use ($period) {
+                        $changes = [];
 
-                PeriodSpecialty::where('period_id', $period->id)
-                        ->update(['deleted_at' => now()]);
+                        ActivityLogService::trackRelationChanges(
+                                $changes,
+                                'specialties',
+                                ActivityLogService::getModelRelationValues(
+                                        $period,
+                                        'specialties',
+                                ),
+                                [],
+                        );
 
-                $period->delete();
+                        ActivityLogService::deleted(
+                                ActivityModules::PERIODS,
+                                "Removeu o período {$period->academic_year}º ano - {$period->semester}º semestre.",
+                                $period,
+                                $changes,
+                        );
+
+                        PeriodSpecialty::where('period_id', $period->id)
+                                ->update(['deleted_at' => now()]);
+
+                        $period->delete();
+                });
         }
 
         public function getPeriods(?int $universityId)
@@ -89,7 +162,7 @@ class PeriodService
                         ]);
         }
 
-        public function getPeriodsByClinic(Clinic $clinic,User $user) 
+        public function getPeriodsByClinic(Clinic $clinic, User $user)
         {
                 return Period::query()
                         ->where('calendar_year', now()->year)

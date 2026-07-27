@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Constants\ActivityModules;
 use App\Models\Clinic;
 use App\Models\ScheduleEnrollment;
 use App\Models\ScheduleSlot;
@@ -19,26 +20,59 @@ class ClinicService
 
     public function create(array $data, int $universityId): Clinic
     {
-        return Clinic::create([
-            'university_id' => $universityId,
-            'name' => trim((string) $data['name']),
-            'active' => true,
-        ]);
+        return DB::transaction(function () use ($data, $universityId) {
+            $clinic = Clinic::create([
+                'university_id' => $universityId,
+                'name' => trim((string) $data['name']),
+                'active' => true,
+            ]);
+
+            ActivityLogService::created(
+                ActivityModules::CLINICS,
+                "Cadastrou a clínica '{$clinic->name}'.",
+                $clinic,
+            );
+
+            return $clinic;
+        });
     }
 
     public function update(Clinic $clinic, array $data): Clinic
     {
-        $clinic->update([
-            'name' => trim((string) $data['name']),
-        ]);
+        return DB::transaction(function () use ($clinic, $data) {
+            $clinic->fill([
+                'name' => trim((string) $data['name']),
+            ]);
 
-        return $clinic;
+            $changes = ActivityLogService::getChanges($clinic);
+
+            if (empty($changes)) {
+                return $clinic;
+            }
+
+            $clinic->save();
+
+            ActivityLogService::updated(
+                ActivityModules::CLINICS,
+                "Atualizou a clínica '{$clinic->name}'.",
+                $clinic,
+                $changes,
+            );
+
+            return $clinic;
+        });
     }
 
     public function deactivate(Clinic $clinic): void
     {
         DB::transaction(function () use ($clinic) {
-            $clinic->update(['active' => false]);
+            $clinic->fill([
+                'active' => false,
+            ]);
+
+            $changes = ActivityLogService::getChanges($clinic);
+
+            $clinic->save();
 
             $slotIds = ScheduleSlot::query()
                 ->where('clinic_id', $clinic->id)
@@ -54,12 +88,40 @@ class ClinicService
                     ->whereIn('id', $slotIds)
                     ->delete();
             }
+
+            if (!empty($changes)) {
+                ActivityLogService::updated(
+                    ActivityModules::CLINICS,
+                    "Inativou a clínica '{$clinic->name}'.",
+                    $clinic,
+                    $changes,
+                );
+            }
         });
     }
 
     public function activate(Clinic $clinic): void
     {
-        $clinic->update(['active' => true]);
+        DB::transaction(function () use ($clinic) {
+            $clinic->fill([
+                'active' => true,
+            ]);
+
+            $changes = ActivityLogService::getChanges($clinic);
+
+            if (empty($changes)) {
+                return;
+            }
+
+            $clinic->save();
+
+            ActivityLogService::updated(
+                ActivityModules::CLINICS,
+                "Ativou a clínica '{$clinic->name}'.",
+                $clinic,
+                $changes,
+            );
+        });
     }
 
     public function destroy(Clinic $clinic): void
@@ -90,7 +152,23 @@ class ClinicService
                     ->delete();
             }
 
-            $clinic->update(['active' => false]);
+            $clinic->fill([
+                'active' => false,
+            ]);
+
+            $changes = ActivityLogService::getChanges($clinic);
+
+            $clinic->save();
+
+            if (!empty($changes)) {
+                ActivityLogService::deleted(
+                    ActivityModules::CLINICS,
+                    "Removeu a clínica '{$clinic->name}'.",
+                    $clinic,
+                    $changes,
+                );
+            }
+
             $clinic->delete();
         });
     }

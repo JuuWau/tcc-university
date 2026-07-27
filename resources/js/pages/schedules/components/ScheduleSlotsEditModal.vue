@@ -21,7 +21,7 @@ type Page = AppPageProps<{
     filters: OpenClinicSchedulesFilters;
 }>;
 const form = ref({
-    responsible_id: null as number | null,
+    responsible_ids: [] as number | [],
     start_time: '',
     end_time: '',
     available_slots: '' as string | number,
@@ -110,14 +110,17 @@ async function submit() {
                         Responsável
                     </label>
                     <AppMultiselect
+                        v-model="form.responsible_ids"
                         :options="responsibleOptions"
-                        v-model="form.responsible_id"
                         label="label"
                         value-prop="value"
                         :searchable="true"
+                        :multiple="true"
+                        mode="tags"
                         :close-on-select="true"
-                        :can-clear="false"
-                        placeholder="Responsável"
+                        :can-clear="true"
+                        :append-to-body="true"
+                        placeholder="Selecione o responsável"
                     />
                 </div>
 

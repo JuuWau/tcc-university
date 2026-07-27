@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Constants\ActivityLogPrefixes;
+use App\Constants\ActivityModules;
 use App\Data\Patients\PatientClinicsTableFiltersData;
 use App\Data\Patients\PatientTableFiltersData;
 use App\Models\Address;
@@ -13,6 +15,7 @@ use App\Models\Student;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
+
 class PatientService
 {
         /**
@@ -86,6 +89,8 @@ class PatientService
                                 'patient_type' => $data['patient_type'],
                         ]);
 
+                        $changes = ActivityLogService::getCreatedChanges($patient);
+
                         if (! empty($data['student_ids'])) {
 
                                 $patient->students()->attach(
@@ -97,6 +102,17 @@ class PatientService
                                                         ]
                                                 ])
                                                 ->toArray()
+                                );
+
+                                ActivityLogService::trackRelationChanges(
+                                        $changes,
+                                        ActivityLogPrefixes::STUDENT,
+                                        [],
+                                        ActivityLogService::getRelationValues(
+                                                Student::class,
+                                                $data['student_ids'],
+                                                fn(Student $student) => $student->person->name,
+                                        ),
                                 );
                         }
 
@@ -113,8 +129,23 @@ class PatientService
                         $hasAddress = collect($addressData)->filter()->isNotEmpty();
 
                         if ($hasAddress) {
-                                $patient->address()->create($addressData);
+                                $address = $patient->address()->create($addressData);
+
+                                $changes = array_merge(
+                                        $changes,
+                                        ActivityLogService::getCreatedChanges(
+                                                $address,
+                                                ActivityLogPrefixes::ADDRESS,
+                                        ),
+                                );
                         }
+
+                        ActivityLogService::created(
+                                ActivityModules::PATIENTS,
+                                "Cadastrou o paciente '{$patient->name}'.",
+                                $patient,
+                                $changes,
+                        );
 
                         return $patient->load([
                                 'students.person',
@@ -130,20 +161,24 @@ class PatientService
                         ->findOrFail($id);
 
                 DB::transaction(function () use ($patient, $data) {
-                        $update = [
+                        $patient->fill([
                                 'name' => $data['name'] ?? $patient->name,
                                 'email' => $data['email'] ?? $patient->email,
                                 'phone' => $data['phone'] ?? $patient->phone,
                                 'cpf' => $data['cpf'] ?? $patient->cpf,
-                                'birth_date' => isset($data['birth_date']) ? $data['birth_date'] : $patient->birth_date,
+                                'birth_date' => $data['birth_date'] ?? $patient->birth_date,
                                 'patient_type' => $data['patient_type'] ?? $patient->patient_type,
-                        ];
-                        if (array_key_exists('status', $data) && in_array($data['status'], Patient::statuses(), true)) {
-                                $update['status'] = $data['status'];
-                        }
-                        $patient->update($update);
+                                'status' => array_key_exists('status', $data)
+                                        && in_array($data['status'], Patient::statuses(), true)
+                                        ? $data['status']
+                                        : $patient->status,
+                        ]);
 
-                        $addressData = [
+                        $changes = ActivityLogService::getChanges($patient);
+
+                        $address = $patient->address()->firstOrNew();
+
+                        $address->fill([
                                 'cep' => $data['cep'] ?? null,
                                 'street' => $data['street'] ?? null,
                                 'number' => $data['number'] ?? null,
@@ -151,13 +186,34 @@ class PatientService
                                 'city' => $data['city'] ?? null,
                                 'state' => $data['state'] ?? null,
                                 'complement' => $data['complement'] ?? null,
-                        ];
+                        ]);
 
-                        if ($patient->address) {
-                                $patient->address->update($addressData);
-                        } else {
-                                $patient->address()->create($addressData);
+                        $changes = array_merge(
+                                $changes,
+                                $address->exists
+                                        ? ActivityLogService::getChanges(
+                                                $address,
+                                                ActivityLogPrefixes::ADDRESS,
+                                        )
+                                        : ActivityLogService::getCreatedChanges(
+                                                $address,
+                                                ActivityLogPrefixes::ADDRESS,
+                                        ),
+                        );
+
+                        if (empty($changes)) {
+                                return;
                         }
+
+                        $patient->save();
+                        $address->save();
+
+                        ActivityLogService::updated(
+                                ActivityModules::PATIENTS,
+                                "Atualizou o paciente '{$patient->name}'.",
+                                $patient,
+                                $changes,
+                        );
                 });
 
                 return $patient->fresh([
@@ -172,7 +228,41 @@ class PatientService
                         ->when($universityId, fn($q) => $q->where('university_id', $universityId))
                         ->findOrFail($id);
 
-                $patient->update(['student_id' => $studentId]);
+                DB::transaction(function () use ($patient, $studentId) {
+                        $changes = [];
+
+                        ActivityLogService::trackRelationChanges(
+                                $changes,
+                                ActivityLogPrefixes::STUDENT,
+                                $patient->students
+                                        ->map(fn(Student $student) => $student->person->name)
+                                        ->sort()
+                                        ->values()
+                                        ->toArray(),
+                                $studentId
+                                        ? ActivityLogService::getRelationValues(
+                                                Student::class,
+                                                [$studentId],
+                                                fn(Student $student) => $student->person->name,
+                                        )
+                                        : [],
+                        );
+
+                        if (empty($changes)) {
+                                return;
+                        }
+
+                        $patient->students()->sync(
+                                $studentId ? [$studentId] : []
+                        );
+
+                        ActivityLogService::updated(
+                                ActivityModules::PATIENTS,
+                                "Atualizou o(s) aluno(s) do paciente '{$patient->name}'.",
+                                $patient,
+                                $changes,
+                        );
+                });
 
                 return $patient->fresh([
                         'students.person',
@@ -185,7 +275,26 @@ class PatientService
                 $patient = Patient::when($universityId, fn($q) => $q->where('university_id', $universityId))
                         ->findOrFail($id);
 
-                $patient->update(['status' => Patient::STATUS_INATIVO]);
+                DB::transaction(function () use ($patient) {
+                        $patient->fill([
+                                'status' => Patient::STATUS_INATIVO,
+                        ]);
+
+                        $changes = ActivityLogService::getChanges($patient);
+
+                        if (empty($changes)) {
+                                return;
+                        }
+
+                        $patient->save();
+
+                        ActivityLogService::updated(
+                                ActivityModules::PATIENTS,
+                                "Inativou o paciente '{$patient->name}'.",
+                                $patient,
+                                $changes,
+                        );
+                });
         }
 
         public function activate(int $id, ?int $universityId = null): void
@@ -194,10 +303,30 @@ class PatientService
                         ->when($universityId, fn($q) => $q->where('university_id', $universityId))
                         ->findOrFail($id);
 
-                $patient->update(['status' => Patient::STATUS_ATIVO]);
-                if ($patient->trashed()) {
-                        $patient->restore();
-                }
+                DB::transaction(function () use ($patient) {
+                        $patient->fill([
+                                'status' => Patient::STATUS_ATIVO,
+                        ]);
+
+                        $changes = ActivityLogService::getChanges($patient);
+
+                        if ($patient->trashed()) {
+                                $patient->restore();
+                        }
+
+                        if (empty($changes)) {
+                                return;
+                        }
+
+                        $patient->save();
+
+                        ActivityLogService::updated(
+                                ActivityModules::PATIENTS,
+                                "Ativou o paciente '{$patient->name}'.",
+                                $patient,
+                                $changes,
+                        );
+                });
         }
 
         public function updateStudentData(int $id, array $studentIds, string $status, string $code, ?int $universityId = null): Patient
@@ -219,11 +348,33 @@ class PatientService
                         $status,
                         $code
                 ) {
-
-                        $patient->update([
+                        $patient->fill([
                                 'status' => $status,
                                 'code' => $code,
                         ]);
+
+                        $changes = ActivityLogService::getChanges($patient);
+
+                        ActivityLogService::trackRelationChanges(
+                                $changes,
+                                ActivityLogPrefixes::STUDENT,
+                                $patient->students
+                                        ->map(fn(Student $student) => $student->person->name)
+                                        ->sort()
+                                        ->values()
+                                        ->toArray(),
+                                ActivityLogService::getRelationValues(
+                                        Student::class,
+                                        $studentIds,
+                                        fn(Student $student) => $student->person->name,
+                                ),
+                        );
+
+                        if (empty($changes)) {
+                                return;
+                        }
+
+                        $patient->save();
 
                         $currentIds = $patient->students()
                                 ->pluck('students.id')
@@ -232,7 +383,7 @@ class PatientService
                         $toRemove = array_diff($currentIds, $studentIds);
                         $toAdd = array_diff($studentIds, $currentIds);
 
-                        if (! empty($toRemove)) {
+                        if (!empty($toRemove)) {
                                 DB::table('patient_students')
                                         ->where('patient_id', $patient->id)
                                         ->whereIn('student_id', $toRemove)
@@ -243,14 +394,12 @@ class PatientService
                         }
 
                         foreach ($toAdd as $studentId) {
-
                                 $existing = DB::table('patient_students')
                                         ->where('patient_id', $patient->id)
                                         ->where('student_id', $studentId)
                                         ->first();
 
                                 if ($existing) {
-
                                         DB::table('patient_students')
                                                 ->where('patient_id', $patient->id)
                                                 ->where('student_id', $studentId)
@@ -259,7 +408,6 @@ class PatientService
                                                         'updated_at' => now(),
                                                 ]);
                                 } else {
-
                                         DB::table('patient_students')
                                                 ->insert([
                                                         'patient_id' => $patient->id,
@@ -269,6 +417,13 @@ class PatientService
                                                 ]);
                                 }
                         }
+
+                        ActivityLogService::updated(
+                                ActivityModules::PATIENTS,
+                                "Atualizou os dados acadêmicos do paciente '{$patient->name}'.",
+                                $patient,
+                                $changes,
+                        );
                 });
 
                 return $patient->fresh([
@@ -290,24 +445,24 @@ class PatientService
         {
                 return Patient::query()
                         ->whereDoesntHave('waitingLists', function ($query) use ($clinic) {
-                        $query->where('clinic_id', $clinic->id);
+                                $query->where('clinic_id', $clinic->id);
                         })
                         ->whereDoesntHave('patientClinics', function ($query) use ($clinic) {
-                        $query->where('clinic_id', $clinic->id);
+                                $query->where('clinic_id', $clinic->id);
                         })
                         ->orderBy('name')
                         ->get();
         }
 
-        public function paginateClinics(Patient $patient, PatientClinicsTableFiltersData $filters): LengthAwarePaginator 
+        public function paginateClinics(Patient $patient, PatientClinicsTableFiltersData $filters): LengthAwarePaginator
         {
-                
+
                 if ($filters->status === 'waiting') {
                         $query = ClinicWaitingList::query()
-                        ->with('clinic');
+                                ->with('clinic');
                 } else {
                         $query = PatientClinic::query()
-                        ->with('clinic');
+                                ->with('clinic');
                 }
 
                 $query->where(
@@ -328,20 +483,41 @@ class PatientService
                 );
         }
 
-        public function removeEnrollment(Patient $patient, Clinic $clinic): void 
+        public function removeEnrollment(Patient $patient, Clinic $clinic): void
         {
-                PatientClinic::query()
-                        ->where('patient_id', $patient->id)
-                        ->where('clinic_id', $clinic->id)
-                        ->firstOrFail()
-                        ->delete();
+                DB::transaction(function () use ($patient, $clinic) {
+                        $enrollment = PatientClinic::query()
+                                ->where('patient_id', $patient->id)
+                                ->where('clinic_id', $clinic->id)
+                                ->firstOrFail();
+
+                        $changes = [];
+
+                        ActivityLogService::trackRelationChanges(
+                                $changes,
+                                ActivityLogPrefixes::CLINIC,
+                                [
+                                        $clinic->name,
+                                ],
+                                [],
+                        );
+
+                        ActivityLogService::deleted(
+                                ActivityModules::PATIENTS,
+                                "Removeu a matrícula do paciente {$patient->code} - {$patient->name} da clínica '{$clinic->name}'.",
+                                $patient,
+                                $changes,
+                        );
+
+                        $enrollment->delete();
+                });
         }
 
-        public function enrollClinic(Clinic $clinic, int $patientId): PatientClinic 
+        public function enrollClinic(Clinic $clinic, int $patientId): PatientClinic
         {
                 return DB::transaction(function () use ($clinic, $patientId) {
                         if (
-                        PatientClinic::where('clinic_id', $clinic->id)
+                                PatientClinic::where('clinic_id', $clinic->id)
                                 ->where('patient_id', $patientId)
                                 ->exists()
                         ) {
@@ -360,45 +536,82 @@ class PatientService
                                 ->where('patient_id', $patientId)
                                 ->delete();
 
+                        $patient = Patient::findOrFail($patientId);
+
+                        $changes = ActivityLogService::getCreatedChanges($patientClinic);
+
+                        ActivityLogService::trackRelationChanges(
+                                $changes,
+                                ActivityLogPrefixes::CLINIC,
+                                [],
+                                [$clinic->name],
+                        );
+
+                        ActivityLogService::created(
+                                ActivityModules::PATIENTS,
+                                "Inscreveu o paciente {$patient->code} - {$patient->name} na clínica '{$clinic->name}'.",
+                                $patient,
+                                $changes,
+                        );
+
                         return $patientClinic;
                 });
         }
 
-        public function addToWaitingList(Clinic $clinic, array $data): ClinicWaitingList 
+        public function addToWaitingList(Clinic $clinic, array $data): ClinicWaitingList
         {
                 return DB::transaction(function () use ($clinic, $data) {
-
                         if (
-                        ClinicWaitingList::query()
+                                ClinicWaitingList::query()
                                 ->where('clinic_id', $clinic->id)
                                 ->where('patient_id', $data['patient_id'])
                                 ->exists()
                         ) {
-                        throw new \Exception(
-                                'Paciente já está na lista de espera desta clínica.'
-                        );
+                                throw new \Exception(
+                                        'Paciente já está na lista de espera desta clínica.'
+                                );
                         }
 
                         if (
-                        PatientClinic::query()
+                                PatientClinic::query()
                                 ->where('clinic_id', $clinic->id)
                                 ->where('patient_id', $data['patient_id'])
                                 ->exists()
                         ) {
-                        throw new \Exception(
-                                'Paciente já está inscrito nesta clínica.'
-                        );
+                                throw new \Exception(
+                                        'Paciente já está inscrito nesta clínica.'
+                                );
                         }
 
-                        return ClinicWaitingList::create([
+                        $waitingList = ClinicWaitingList::create([
                                 'clinic_id' => $clinic->id,
                                 'patient_id' => $data['patient_id'],
                                 'enrolled_at' => now(),
-                                ]);
+                        ]);
+
+                        $patient = Patient::findOrFail($data['patient_id']);
+
+                        $changes = ActivityLogService::getCreatedChanges($waitingList);
+
+                        ActivityLogService::trackRelationChanges(
+                                $changes,
+                                ActivityLogPrefixes::CLINIC,
+                                [],
+                                [$clinic->name],
+                        );
+
+                        ActivityLogService::created(
+                                ActivityModules::PATIENTS,
+                                "Adicionou o paciente {$patient->code} - {$patient->name} à lista de espera da clínica '{$clinic->name}'.",
+                                $patient,
+                                $changes,
+                        );
+
+                        return $waitingList;
                 });
         }
 
-        public function availableClinics(Patient $patient): Collection 
+        public function availableClinics(Patient $patient): Collection
         {
                 $enrolledClinicIds = PatientClinic::query()
                         ->where('patient_id', $patient->id)
@@ -414,17 +627,17 @@ class PatientService
 
                 return Clinic::query()
                         ->when(
-                        $blockedClinicIds->isNotEmpty(),
-                        fn ($query) => $query->whereNotIn(
-                                'id',
-                                $blockedClinicIds
-                        )
+                                $blockedClinicIds->isNotEmpty(),
+                                fn($query) => $query->whereNotIn(
+                                        'id',
+                                        $blockedClinicIds
+                                )
                         )
                         ->orderBy('name')
                         ->get()
-                        ->map(fn (Clinic $clinic) => [
-                        'label' => $clinic->name,
-                        'value' => $clinic->id,
-                ]);
+                        ->map(fn(Clinic $clinic) => [
+                                'label' => $clinic->name,
+                                'value' => $clinic->id,
+                        ]);
         }
 }

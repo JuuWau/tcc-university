@@ -2,6 +2,8 @@
 
 namespace App\Services;
 
+use App\Constants\ActivityLogPrefixes;
+use App\Constants\ActivityModules;
 use App\Data\Users\UserTableFiltersData;
 use App\Models\Person;
 use App\Models\Role;
@@ -30,12 +32,13 @@ class UserService
             ->get(['id', 'name', 'slug']);
     }
 
-    public function paginate(UserTableFiltersData $filters ): LengthAwarePaginator {
+    public function paginate(UserTableFiltersData $filters): LengthAwarePaginator
+    {
         $query = User::withTrashed()
             ->with([
                 'person:id,user_id,name',
                 'role:id,name,slug',
-                'invite' => fn ($q) => $q->select([
+                'invite' => fn($q) => $q->select([
                     'user_invites.id',
                     'user_invites.user_id',
                     'user_invites.used_at',
@@ -94,7 +97,7 @@ class UserService
                 'password' => Hash::make(Str::random(32)),
             ]);
 
-            Person::create([
+            $person = Person::create([
                 'user_id' => $user->id,
                 'university_id' => $universityId,
                 'name' => $data['name'],
@@ -102,7 +105,40 @@ class UserService
 
             $this->userInviteService->create($user);
 
-            return $user->load(['person', 'role', 'invite']);
+            $changes = ActivityLogService::getCreatedChanges(
+                $user,
+                ActivityLogPrefixes::USER,
+            );
+
+            $changes = array_merge(
+                $changes,
+                ActivityLogService::getCreatedChanges(
+                    $person,
+                    ActivityLogPrefixes::PERSON,
+                ),
+            );
+
+            ActivityLogService::trackBelongsToChange(
+                $changes,
+                'user.role_id',
+                ActivityLogPrefixes::ROLE,
+                Role::class,
+                null,
+                $user->role_id,
+            );
+
+            ActivityLogService::created(
+                ActivityModules::USERS,
+                "Cadastrou o usuário '{$person->name}'.",
+                $user,
+                $changes,
+            );
+
+            return $user->load([
+                'person',
+                'role',
+                'invite',
+            ]);
         });
     }
 
@@ -119,7 +155,7 @@ class UserService
     {
         return User::withTrashed()
             ->with([
-                'person' => fn ($q) => $q->withTrashed()->with('address'),
+                'person' => fn($q) => $q->withTrashed()->with('address'),
                 'role',
                 'invite',
             ])
@@ -129,41 +165,87 @@ class UserService
 
     public function deactivate(int $userId): void
     {
-        $user = User::where('id', $userId)
-            ->whereDoesntHave('student')
-            ->whereNull('deleted_at')
-            ->firstOrFail();
+        DB::transaction(function () use ($userId) {
+            $user = User::where('id', $userId)
+                ->whereDoesntHave('student')
+                ->whereNull('deleted_at')
+                ->with('person')
+                ->firstOrFail();
 
-        $user->delete();
+            $user->fill([
+                'deleted_at' => now(),
+            ]);
+
+            $changes = ActivityLogService::getChanges($user);
+
+            $user->delete();
+
+            $name = $user->person?->name ?? $user->email;
+
+            ActivityLogService::deleted(
+                ActivityModules::USERS,
+                "Inativou o usuário '{$name}'.",
+                $user,
+                $changes,
+            );
+        });
     }
 
     public function activate(int $userId): void
     {
-        $user = User::withTrashed()
-            ->with(['person' => fn ($q) => $q->withTrashed()])
-            ->whereDoesntHave('student')
-            ->findOrFail($userId);
+        DB::transaction(function () use ($userId) {
+            $user = User::withTrashed()
+                ->with(['person' => fn($q) => $q->withTrashed()])
+                ->whereDoesntHave('student')
+                ->findOrFail($userId);
 
-        $user->restore();
+            $user->fill([
+                'deleted_at' => null,
+            ]);
 
-        if ($user->relationLoaded('person') && $user->person) {
-            $user->person->restore();
-        }
+            $changes = ActivityLogService::getChanges($user);
+
+            $user->restore();
+
+            if ($user->relationLoaded('person') && $user->person) {
+                $user->person->restore();
+            }
+
+            $name = $user->person?->name ?? $user->email;
+
+            ActivityLogService::updated(
+                ActivityModules::USERS,
+                "Ativou o usuário '{$name}'.",
+                $user,
+                $changes,
+            );
+        });
     }
 
     public function destroy(int $userId): void
     {
         DB::transaction(function () use ($userId) {
             $user = User::withTrashed()
-                ->with(['person' => fn ($q) => $q->withTrashed()])
+                ->with(['person' => fn($q) => $q->withTrashed()])
                 ->whereDoesntHave('student')
                 ->findOrFail($userId);
+
+            $changes = ActivityLogService::getCreatedChanges($user);
 
             UserInvite::where('user_id', $user->id)->delete();
 
             if ($user->person) {
                 $user->person->forceDelete();
             }
+
+            $name = $user->person?->name ?? $user->email;
+
+            ActivityLogService::deleted(
+                ActivityModules::USERS,
+                "Removeu o usuário '{$name}'.",
+                $user,
+                $changes,
+            );
 
             $user->forceDelete();
         });
@@ -177,13 +259,31 @@ class UserService
                 ->whereDoesntHave('student')
                 ->findOrFail($userId);
 
-            $user->update([
+            $changes = [];
+
+            $user->fill([
                 'email' => $data['email'],
             ]);
-            if (! empty($data['password'] ?? '')) {
+
+            $changes = array_merge(
+                $changes,
+                ActivityLogService::getChanges(
+                    $user,
+                    ActivityLogPrefixes::USER,
+                ),
+            );
+
+            $user->save();
+
+            if (!empty($data['password'])) {
                 $user->update([
                     'password' => Hash::make($data['password']),
                 ]);
+
+                $changes['user.password'] = [
+                    'old' => '********',
+                    'new' => '********',
+                ];
             }
 
             if ($user->person) {
@@ -193,9 +293,25 @@ class UserService
                     'phone' => $data['phone'],
                     'birth_date' => $data['birth_date'],
                 ];
-                $user->person->update($personData);
 
-                $addressData = [
+                $user->person->fill($personData);
+
+                $changes = array_merge(
+                    $changes,
+                    ActivityLogService::getChanges(
+                        $user->person,
+                        ActivityLogPrefixes::PERSON,
+                    ),
+                );
+
+                $user->person->save();
+
+                $address = $user->person->address()->firstOrNew([
+                    'addressable_id' => $user->person->id,
+                    'addressable_type' => Person::class,
+                ]);
+
+                $address->fill([
                     'cep' => $data['cep'],
                     'street' => $data['street'],
                     'number' => $data['number'],
@@ -203,33 +319,92 @@ class UserService
                     'city' => $data['city'],
                     'state' => $data['state'],
                     'complement' => $data['complement'] ?? null,
-                ];
-                $user->person->address()->updateOrCreate(
-                    ['addressable_id' => $user->person->id, 'addressable_type' => Person::class],
-                    $addressData
+                ]);
+
+                $changes = array_merge(
+                    $changes,
+                    ActivityLogService::getChanges(
+                        $address,
+                        ActivityLogPrefixes::ADDRESS,
+                    ),
+                );
+
+                $address->save();
+            }
+
+            if (!empty($changes)) {
+                $name = $user->person?->name ?? $user->email;
+
+                ActivityLogService::updated(
+                    ActivityModules::USERS,
+                    "Atualizou os dados pessoais do usuário '{$name}'.",
+                    $user,
+                    $changes,
                 );
             }
 
-            return $user->fresh(['person', 'person.address', 'role', 'invite']);
+            return $user->fresh([
+                'person',
+                'person.address',
+                'role',
+                'invite',
+            ]);
         });
     }
 
     public function updateRole(int $userId, int $roleId): User
     {
-        $user = User::withTrashed()
-            ->whereDoesntHave('student')
-            ->findOrFail($userId);
+        return DB::transaction(function () use ($userId, $roleId) {
+            $user = User::withTrashed()
+                ->with(['person'])
+                ->whereDoesntHave('student')
+                ->findOrFail($userId);
 
-        $user->update(['role_id' => $roleId]);
+            $user->fill([
+                'role_id' => $roleId,
+            ]);
 
-        return $user->fresh(['person', 'role', 'invite']);
+            $changes = ActivityLogService::getChanges($user);
+
+            ActivityLogService::trackBelongsToChange(
+                $changes,
+                'role_id',
+                ActivityLogPrefixes::ROLE,
+                Role::class,
+                $user->getOriginal('role_id'),
+                $roleId,
+            );
+
+            if (empty($changes)) {
+                return $user;
+            }
+
+            $user->save();
+
+            $name = $user->person?->name ?? $user->email;
+
+            ActivityLogService::updated(
+                ActivityModules::USERS,
+                "Atualizou o perfil de acesso do usuário '{$name}'.",
+                $user,
+                $changes,
+            );
+
+            return $user->fresh([
+                'person',
+                'role',
+                'invite',
+            ]);
+        });
     }
 
     public function getResponsible(?int $universityId)
     {
         return User::query()
             ->when($universityId, fn($q) => $q->where('university_id', $universityId))
-            ->whereHas('role', fn ($q) => 
+            ->whereHas(
+                'role',
+                fn($q) =>
                 $q->where('slug', '!=', 'student')
             )
             ->with('person:id,user_id,name')

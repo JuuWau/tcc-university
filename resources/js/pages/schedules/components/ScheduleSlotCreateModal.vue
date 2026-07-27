@@ -50,7 +50,7 @@ const loading = loadingInjected;
 
 const form = reactive({
     date: '',
-    responsible_id: null as number | null,
+    responsible_ids: [] as number[],
     start_time: '',
     end_time: '',
     period_id: null as number | null,
@@ -63,11 +63,18 @@ const form = reactive({
 function close() {
     createModal.isOpen.value = false;
     form.date = '';
-    form.responsible_id = null;
+    form.responsible_ids = [];
     form.start_time = '';
     form.end_time = '';
     form.available_slots = null;
 }
+
+const responsibleLabel = computed(() =>
+    responsibleOptions
+        .filter(option => form.responsible_ids.includes(option.value))
+        .map(option => option.label)
+        .join(', ') || '—'
+);
 
 async function submit() {
     if (loading.value) return;
@@ -124,14 +131,17 @@ async function submit() {
                         Responsável
                     </label>
                     <AppMultiselect
-                        v-model="form.responsible_id"
+                        v-model="form.responsible_ids"
                         :options="responsibleOptions"
                         label="label"
                         value-prop="value"
                         :searchable="true"
+                        :multiple="true"
+                        mode="tags"
                         :close-on-select="true"
-                        :can-clear="false"
-                        placeholder="Responsável"
+                        :can-clear="true"
+                        :append-to-body="true"
+                        placeholder="Selecione o responsável"
                     />
                 </div>
 

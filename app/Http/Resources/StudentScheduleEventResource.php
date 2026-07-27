@@ -29,7 +29,7 @@ class StudentScheduleEventResource extends JsonResource
                 5,
             ),
             'allow_procedure_booking' => $this->allow_procedure_booking,
-            'schedule_enrollment_id' => $this->scheduleEnrollment?->id,
+            'schedule_enrollment_id' => $this->enrollment?->id,
         ];
     }
 }
