@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Constants\ActivityModules;
 use App\Data\ClinicsManagement\ClinicManagementTableFiltersData;
 use App\Models\Clinic;
 use App\Models\ClinicWaitingList;
@@ -61,12 +62,18 @@ class ClinicManagementService
         );
     }
 
-    public function enrollPatient(Clinic $clinic, array $data): PatientClinic 
+    public function enrollPatient(Clinic $clinic, array $data): PatientClinic
     {
         return DB::transaction(function () use ($clinic, $data) {
+            $patient = Patient::find($data['patient_id']);
+
+            if (!$patient) {
+                throw new \Exception('Paciente não encontrado.');
+            }
+
             if (PatientClinic::where('clinic_id', $clinic->id)
-                    ->where('patient_id', $data['patient_id'])
-                    ->exists()
+                ->where('patient_id', $data['patient_id'])
+                ->exists()
             ) {
                 throw new \Exception(
                     'Paciente já está inscrito nesta clínica.'
@@ -83,31 +90,126 @@ class ClinicManagementService
                 ->where('patient_id', $data['patient_id'])
                 ->delete();
 
+            $changes = ActivityLogService::getCreatedChanges($patientClinic);
+
+            ActivityLogService::trackRelationChanges(
+                $changes,
+                'clínica',
+                [],
+                [$clinic->name],
+            );
+
+            ActivityLogService::trackBelongsToChange(
+                $changes,
+                'patient_id',
+                'paciente',
+                Patient::class,
+                null,
+                $patient->id,
+                fn(Patient $patient) => $patient->name ?? "ID: {$patient->id}",
+            );
+
+            ActivityLogService::created(
+                ActivityModules::PATIENTS,
+                "Paciente {$patient->code} - {$patient->name} inscrito na clínica '{$clinic->name}'.",
+                $patientClinic,
+                $changes,
+            );
+
             return $patientClinic;
         });
     }
 
-    public function removeEnrollment(Clinic $clinic, Patient $patient): void 
+    public function removeEnrollment(Clinic $clinic, Patient $patient): void
     {
         DB::transaction(function () use ($clinic, $patient) {
-            PatientClinic::where('clinic_id', $clinic->id)
+            $patientClinic = PatientClinic::where('clinic_id', $clinic->id)
                 ->where('patient_id', $patient->id)
-                ->delete();
+                ->first();
+
+            if (!$patientClinic) {
+                throw new \Exception('Inscrição não encontrada.');
+            }
+
+            $changes = ActivityLogService::getCreatedChanges($patientClinic);
+
+            ActivityLogService::trackRelationChanges(
+                $changes,
+                'clínica',
+                [$clinic->name],
+                [],
+            );
+
+            ActivityLogService::trackBelongsToChange(
+                $changes,
+                'patient_id',
+                'paciente',
+                Patient::class,
+                $patient->id,
+                null,
+                fn(Patient $patient) => $patient->name ?? "ID: {$patient->id}",
+            );
+
+            $patientClinic->delete();
+
+            ActivityLogService::deleted(
+                ActivityModules::PATIENTS,
+                "Inscrição do paciente '{$patient->code} - {$patient->name}' removida da clínica '{$clinic->name}'.",
+                $patientClinic,
+                $changes,
+            );
         });
     }
 
-    public function storeWaitingList(Clinic $clinic, array $patientIds): void 
+    public function storeWaitingList(Clinic $clinic, array $patientIds): void
     {
         DB::transaction(function () use ($clinic, $patientIds) {
+            $patients = Patient::whereIn('id', $patientIds)->get();
+
             $rows = collect($patientIds)
                 ->unique()
-                ->map(fn ($patientId) => [
+                ->map(fn($patientId) => [
                     'clinic_id' => $clinic->id,
                     'patient_id' => $patientId,
                     'enrolled_at' => now(),
                 ])
                 ->all();
+
             ClinicWaitingList::insert($rows);
+
+            foreach ($patients as $patient) {
+                $waitingList = ClinicWaitingList::where('clinic_id', $clinic->id)
+                    ->where('patient_id', $patient->id)
+                    ->first();
+
+                if ($waitingList) {
+                    $changes = ActivityLogService::getCreatedChanges($waitingList);
+
+                    ActivityLogService::trackRelationChanges(
+                        $changes,
+                        'clínica',
+                        [],
+                        [$clinic->name],
+                    );
+
+                    ActivityLogService::trackBelongsToChange(
+                        $changes,
+                        'patient_id',
+                        'paciente',
+                        Patient::class,
+                        null,
+                        $patient->id,
+                        fn(Patient $patient) => $patient->name ?? "ID: {$patient->id}",
+                    );
+
+                    ActivityLogService::created(
+                        ActivityModules::PATIENTS,
+                        "Paciente {$patient->code} - {$patient->name} adicionado à lista de espera da clínica '{$clinic->name}'.",
+                        $waitingList,
+                        $changes,
+                    );
+                }
+            }
         });
     }
 }

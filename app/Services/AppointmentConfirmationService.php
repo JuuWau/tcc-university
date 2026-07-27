@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Constants\ActivityModules;
 use App\Models\Appointment;
 use App\Models\ScheduleEnrollment;
 use Illuminate\Support\Facades\DB;
@@ -13,7 +14,7 @@ class AppointmentConfirmationService
         {
                 $date = $filters['date']
                         ?? now()->toDateString();
-                        
+
                 $query = Appointment::query()
                         ->with([
                                 'student',
@@ -60,11 +61,27 @@ class AppointmentConfirmationService
                         ->get();
         }
 
-        public function updateStatus(Appointment $appointment, string $status): Appointment 
+        public function updateStatus(Appointment $appointment, string $status): Appointment
         {
-                
-                $appointment->update(['status' => $status,]);
 
-                return $appointment->refresh();
+                return DB::transaction(function () use ($appointment, $status) {
+
+                        $appointment->fill([
+                                'status' => $status,
+                        ]);
+
+                        $changes = ActivityLogService::getChanges($appointment);
+
+                        $appointment->save();
+
+                        ActivityLogService::updated(
+                                ActivityModules::APPOINTMENTS,
+                                "Atualizou o status do agendamento do paciente '{$appointment->patient?->code} - {$appointment->patient?->name}'.",
+                                $appointment,
+                                $changes,
+                        );
+
+                        return $appointment->refresh();
+                });
         }
 }

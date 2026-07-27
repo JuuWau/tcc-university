@@ -596,25 +596,30 @@ class StudentService
                         ->pluck('id');
 
                 $slots = ScheduleSlot::query()
-                        ->with('enrollments')
+                        ->with([
+                                'enrollments' => function ($query) use ($studentId) {
+                                        $query->where('student_id', $studentId)
+                                                ->where('status', 'active');
+                                }
+                        ])
                         ->where('clinic_id', $clinicId)
                         ->whereIn('period_id', $periodIds)
+                        ->whereHas('enrollments', function ($query) use ($studentId) {
+                                $query->where('student_id', $studentId)
+                                        ->where('status', 'active');
+                        })
                         ->orderBy('date')
                         ->orderBy('start_time')
                         ->get();
 
-                $enrolledDays = ScheduleSlot::query()
-                        ->where('clinic_id', $clinicId)
-                        ->whereHas('enrollments', function ($query) use ($studentId) {
-                                $query->where('student_id', $studentId);
-                        })
+                $openDays = $slots
                         ->pluck('date')
                         ->map(fn($date) => $date->format('Y-m-d'))
                         ->unique()
                         ->values();
 
                 return [
-                        'open_days' => $enrolledDays,
+                        'open_days' => $openDays,
                         'events' => $slots,
                 ];
         }
