@@ -91,4 +91,9 @@ class User extends Authenticatable
             'schedule_slot_id'
         )->withTimestamps();
     }
+
+    public function actionLogs()
+    {
+        return $this->hasMany(ActivityLog::class);
+    }
 }
