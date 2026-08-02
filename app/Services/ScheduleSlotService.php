@@ -451,7 +451,7 @@ class ScheduleSlotService
 
                 ActivityLogService::trackRelationChanges(
                     $changes,
-                    'responsáveis',
+                    'responsables',
                     $oldResponsibleNames,
                     $newResponsibleNames,
                 );

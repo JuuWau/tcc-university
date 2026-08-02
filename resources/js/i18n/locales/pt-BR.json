@@ -1,0 +1,77 @@
+{
+    "common": {
+        "yes": "Sim",
+        "no": "Não"
+    },
+    "userActionLogs": {
+        "headers": {
+            "field": "Campo",
+            "before": "Antes",
+            "after": "Depois"
+        },
+        "noDetails": "Nenhum detalhe disponível.",
+        "actions": {
+            "create": "Cadastro",
+            "update": "Edição",
+            "delete": "Exclusão"
+        },
+        "status": {
+            "scheduled": "Agendada",
+            "canceled": "Cancelada",
+            "attended": "Atendida",
+            "missed": "Falta",
+            "waiting": "Lista de espera",
+            "active": "Ativo",
+            "inactive": "Inativo",
+            "confirmed": "Confirmado"
+        },
+        "fields": {
+            "university_id": "Universidade",
+            "clinic_id": "Clínica",
+            "date": "Data",
+            "start_time": "Horário de início",
+            "end_time": "Horário de término",
+            "available_slots": "Vagas disponíveis",
+            "allow_student_booking": "Permitir agendamento por aluno",
+            "allow_student_enrollment": "Permitir inscrição por aluno",
+            "allow_procedure_booking": "Permitir agendamento de procedimento",
+            "clinic": "Clínica",
+            "period": "Período",
+            "responsible": "Responsável",
+            "status": "Status",
+            "notes": "Observações",
+            "scheduled_start_at": "Horário de início do agendamento",
+            "scheduled_end_at": "Horário de fim do agendamento",
+            "reason": "Motivo",
+            "note": "Observação",
+            "name": "Nome",
+            "specialties": "Especialidades",
+            "active": "Status",
+            "specialty": "Especialidade",
+            "cpf": "CPF",
+            "patient_type": "Tipo de paciente",
+            "email": "email",
+            "code": "Código",
+            "birth_date": "Data de nascimento",
+            "student": "Estudante",
+            "address.cep": "CEP",
+            "address.street": "Endereço",
+            "address.number": "Número",
+            "address.neighborhood": "Bairro",
+            "address.city": "Cidade",
+            "address.state": "Estado",
+            "address.complement": "Complemento",
+            "patient_id": "ID do paciente",
+            "enrolled_at": "Data de incrição",
+            "schedule": "Agenda",
+            "role": "Perfil",
+            "registration": "Matrícula",
+            "person.name": "Nome",
+            "person.cpf": "CPF",
+            "person.birth_date": "Data de nascimento",
+            "person.email": "Email",
+            "estudante": "Estudante",
+            "user.email": "Email"
+        }
+    }
+}

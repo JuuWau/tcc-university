@@ -14,4 +14,20 @@ class ActivityModules
     public const SCHEDULES = 'Agendas';
     public const ENROLLMENTS = 'Matrículas';
     public const APPOINTMENTS = 'Agendamentos';
+
+    public static function all(): array
+    {
+        return [
+            self::SPECIALTIES,
+            self::PERIODS,
+            self::CLINICS,
+            self::PATIENTS,
+            self::USERS,
+            self::PROCEDURES,
+            self::STUDENTS,
+            self::SCHEDULES,
+            self::ENROLLMENTS,
+            self::APPOINTMENTS,
+        ];
+    }
 }
