@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\ActionLogsController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\AttendanceController;
 use App\Http\Controllers\PatientController;
@@ -65,7 +66,7 @@ Route::prefix('schedule-enrollment')->group(function () {
     Route::delete('slots/{slot}', [ScheduleEnrollmentController::class, 'destroySlot'])->name('schedules.enrollment.slots.destroy');
     Route::delete('multiple-slots', [ScheduleEnrollmentController::class, 'destroyMultipleSlots'])->name('schedules.enrollment.slots.multiple.destroy');
     Route::post('enroll', [ScheduleEnrollmentController::class, 'store'])->name('schedules.enrollment.store');
-    Route::post('student-enroll',[ScheduleEnrollmentController::class, 'enrollSlot'])->name('schedules.enrollment.enrollSlot');
+    Route::post('student-enroll', [ScheduleEnrollmentController::class, 'enrollSlot'])->name('schedules.enrollment.enrollSlot');
     Route::get('slots/{slot}/students', [ScheduleEnrollmentController::class, 'slotStudents'])->name('schedules.enrollment.slots.students');
     Route::delete('slots/{slot}/students/{student}', [ScheduleEnrollmentController::class, 'removeStudentFromSlot'])->name('schedules.enrollment.slots.students.destroy');
 });
@@ -123,7 +124,7 @@ Route::prefix('procedures')->group(function () {
 Route::prefix('students')->group(function () {
     Route::patch('/{student}/academic-data', [StudentsController::class, 'updateAcademicData'])->name('students.update.academic-data');
     Route::get('/{student}/clinics', [StudentsController::class, 'availableClinics'])->name('students.availableClinics');
-    Route::get('/{student}/schedule', [StudentsController::class,'schedule'])->name('students.schedule');
+    Route::get('/{student}/schedule', [StudentsController::class, 'schedule'])->name('students.schedule');
     Route::patch('/{student}', [StudentsController::class, 'update'])->name('students.update');
     Route::get('/', [StudentsController::class, 'index'])->name('students.index');
     Route::get('/table', [StudentsController::class, 'table'])->name('students.table');
@@ -160,11 +161,11 @@ Route::prefix('patients')->group(function () {
     Route::delete('/{patient}', [PatientController::class, 'destroy'])->name('patients.destroy');
     Route::get('/options/{clinic}', [PatientController::class, 'availablePatients'])->name('patients.availablePatients');
     Route::get('/{patient}/clinics/table', [PatientController::class, 'clinicsTable'])->name('patients.clinics.clinicsTable');
-    Route::delete('/{patient}/clinics/{clinic}/remove-enrollment',[PatientController::class, 'removeEnrollment'])->name('patients.clinics.
+    Route::delete('/{patient}/clinics/{clinic}/remove-enrollment', [PatientController::class, 'removeEnrollment'])->name('patients.clinics.
      remove-enrollment');
     Route::post('/clinics/{clinic}/enroll', [PatientController::class, 'enrollClinic'])->name('patients.clinics.enroll');
     Route::post('/clinics/{clinic}/waiting-list', [PatientController::class, 'addToWaitingList'])->name('patients.clinics.addToWaitingList');
-    Route::get('/{patient}/available-clinics',[PatientController::class, 'availableClinics'])->name('patients.clinics.availableClinics');
+    Route::get('/{patient}/available-clinics', [PatientController::class, 'availableClinics'])->name('patients.clinics.availableClinics');
 })->middleware(['auth', 'verified']);
 
 Route::prefix('users')->group(function () {
@@ -178,6 +179,7 @@ Route::prefix('users')->group(function () {
     Route::delete('/deactivate/{user}', [UsersController::class, 'deactivate'])->name('users.deactivate');
     Route::delete('/activate/{user}', [UsersController::class, 'activate'])->name('users.activate');
     Route::delete('/{user}', [UsersController::class, 'destroy'])->name('users.destroy');
+    Route::get('/logs', [ActionLogsController::class, 'index'])->name('action-logs.index');
 })->middleware(['auth', 'verified']);
 
 Route::prefix('attendance')->name('attendance')->group(function () {
@@ -191,7 +193,7 @@ Route::prefix('attendance')->name('attendance')->group(function () {
 Route::prefix('appointments-confirmation')->name('appointments-confirmation.')->group(function () {
     Route::get('/', [AppointmentConfirmationController::class, 'index'])->name('appointments-confirmation.index');
     Route::get('/list', [AppointmentConfirmationController::class, 'list'])->name('appointments-confirmation.list');
-    Route::patch('/{appointment}/status',[AppointmentConfirmationController::class, 'updateStatus'])->name('appointments-confirmation.updateStatus');;
+    Route::patch('/{appointment}/status', [AppointmentConfirmationController::class, 'updateStatus'])->name('appointments-confirmation.updateStatus');;
 });
 
 Route::prefix('clinics-management')->name('clinics-management.')->group(function () {
@@ -201,6 +203,13 @@ Route::prefix('clinics-management')->name('clinics-management.')->group(function
     Route::post('/{clinic}/enroll', [ClinicManagementController::class, 'enroll'])->name('enroll');
     Route::delete('/{clinic}/remove-enrollment/{patient}', [ClinicManagementController::class, 'removeEnrollment'])->name('remove-enrollment');
     Route::post('/{clinic}/waiting-list', [ClinicManagementController::class, 'storeWaitingList'])->name('storeWaitingList');
+});
+
+Route::prefix('action-logs')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('/users/{user}/table', [ActionLogsController::class, 'userTable'])->name('action-logs.users.table');
+    Route::get('/students/{student}/table', [ActionLogsController::class, 'studentTable'])->name('action-logs.students.table');
+    Route::get('/patients/{patient}/table', [ActionLogsController::class, 'patientTable'])->name('action-logs.patients.table');
+    Route::get('/filters', [ActionLogsController::class, 'filters'])->name('action-logs.filters');
 });
 
 Route::prefix('invite')->group(function () {
