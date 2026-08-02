@@ -106,7 +106,7 @@ class AppointmentService
                                 : 'N/A';
 
                         $description = sprintf(
-                                "Horário do agendamento do paciente '%s' alterado de %s - %s para %s - %s.",
+                                "Horário do agendamento do paciente '%s' alterado",
                                 $appointment->patient?->name,
                                 $oldStartFormatted,
                                 $oldEndFormatted,
@@ -207,7 +207,7 @@ class AppointmentService
                         ActivityLogService::trackBelongsToChange(
                                 $changes,
                                 'schedule_enrollment_id',
-                                'agenda',
+                                'schedule',
                                 ScheduleEnrollment::class,
                                 $oldAppointment->schedule_enrollment_id,
                                 $appointment->schedule_enrollment_id,
@@ -313,7 +313,7 @@ class AppointmentService
                         ActivityLogService::trackBelongsToChange(
                                 $changes,
                                 'schedule_enrollment_id',
-                                'agenda',
+                                'schedule',
                                 ScheduleEnrollment::class,
                                 null,
                                 $appointment->schedule_enrollment_id,
