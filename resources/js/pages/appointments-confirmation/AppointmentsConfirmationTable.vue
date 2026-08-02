@@ -3,7 +3,7 @@ import { inject, computed } from 'vue';
 import { AgGridVue } from 'ag-grid-vue3';
 import {AppointmentsConfirmationKey } from '@/keys/appointments-confirmation/appointmentsConfirmationKeys';
 import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale';
-import { formatDateBr } from '@/src/utils/formatters';
+import { formatDateBr, formatDateTimeBr } from '@/src/utils/formatters';
 import StatusBadgeAppointment from '@/components/badges/StatusBadgeAppointment.vue';
 import WhatsappButton from '@/components/buttons/WhatsappButton.vue';
 import AppointmentActions from '@/components/buttons/AppointmentActions.vue';
@@ -59,7 +59,7 @@ const columnDefs = [
         flex: 0.6,
 
         cellRenderer: (params: any) => {
-            const date = formatDateBr(
+            const date = formatDateTimeBr(
                 params.data.scheduled_start_at
             );
 

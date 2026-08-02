@@ -21,6 +21,7 @@
 
             <div>
                 <UserPersonalData v-if="activeTab === 'personal'" />
+                <UserActionLogs v-if="activeTab === 'logs'" />
             </div>
         </div>
 
@@ -32,14 +33,18 @@
 <script setup lang="ts">
 import type { RoleOption, UserTabContext } from '@/keys/users/userKeys';
 import { UserTabContextKey } from '@/keys/users/userKeys';
+import { UserActionLogsContextKey } from '@/keys/action-logs/userActionLogsKeys';
 import AppLayout from '@/layouts/AppLayout.vue';
 import UserPersonalDataEditModal from '@/pages/users/components/UserPersonalDataEditModal.vue';
 import UserRoleEditModal from '@/pages/users/components/UserRoleEditModal.vue';
 import UserHeader from '@/pages/users/UserHeader.vue';
 import UserPersonalData from '@/pages/users/tabs/UserPersonalData.vue';
+import UserActionLogs from '@/pages/users/tabs/UserActionLogs.vue';
 import type { UserForTab } from '@/types/user/user';
+import type { UserActionLog } from '@/types/user/userActionLog';
 import { router, usePage } from '@inertiajs/vue3';
-import { computed, provide, ref } from 'vue';
+import { computed, provide, ref, watch } from 'vue';
+import { useUserActionLogs } from '@/composables/user/useUserActionLogs';
 
 const page = usePage();
 const user = computed(
@@ -51,6 +56,10 @@ const roles = computed(
 
 const editPersonalDataModalOpen = ref(false);
 const editRoleModalOpen = ref(false);
+const actionLogs = useUserActionLogs(
+    'users',
+    computed(() => user.value.id),
+);
 
 provide(UserTabContextKey, {
     user,
@@ -59,10 +68,15 @@ provide(UserTabContextKey, {
     roles,
 } as UserTabContext);
 
-const activeTab = ref<'personal'>('personal');
+provide(UserActionLogsContextKey, actionLogs);
 
-const tabs: { key: 'personal'; label: string }[] = [
+type TabKey = 'personal' | 'logs';
+
+const activeTab = ref<TabKey>('personal');
+
+const tabs: { key: TabKey; label: string }[] = [
     { key: 'personal', label: 'Dados pessoais' },
+    { key: 'logs', label: 'Histórico de ações' },
 ];
 
 function onPersonalDataUpdated() {
@@ -74,4 +88,13 @@ function onRoleUpdated() {
     editRoleModalOpen.value = false;
     void router.reload();
 }
+
+watch(activeTab, async (tab) => {
+    if (
+        tab === 'logs' &&
+        actionLogs.logs.value.data.length === 0
+    ) {
+        await actionLogs.load();
+    }
+});
 </script>
