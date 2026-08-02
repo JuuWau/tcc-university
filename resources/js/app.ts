@@ -11,6 +11,7 @@ import 'vue3-toastify/dist/index.css'
 import '@vueform/multiselect/themes/default.css'
 import VueTheMask from 'vue-the-mask'
 import AppMultiselect from '@/components/AppMultiselect.vue'
+import { i18n } from '@/i18n';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
@@ -29,6 +30,7 @@ createInertiaApp({
     setup({ el, App, props, plugin }) {
         createApp({ render: () => h(App, props) })
             .use(plugin)
+            .use(i18n)
             .component('Multiselect', AppMultiselect)
             .use(ZiggyVue)
             .use(Vue3Toastify, {
