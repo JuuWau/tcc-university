@@ -10,6 +10,7 @@ use App\Http\Controllers\ClinicController;
 // use App\Http\Controllers\ScheduleAttendanceController;
 use App\Http\Controllers\ScheduleEnrollmentController;
 use App\Http\Controllers\AppointmentConfirmationController;
+use App\Http\Controllers\AppointmentReportsController;
 use App\Http\Controllers\ClinicManagementController;
 use App\Http\Controllers\ScheduleSlotController;
 use App\Http\Controllers\Settings\ProfileController;
@@ -74,8 +75,10 @@ Route::prefix('schedule-enrollment')->group(function () {
 //     Route::get('schedule-attendance', [ScheduleAttendanceController::class, 'index'])->name('schedule.attendance.index');
 // })->middleware(['auth', 'verified'])->name('schedule-attendance');
 
-Route::get('/reports/appointments', function () {
-    return Inertia::render('reports/AppointmentsReportMock');
+Route::prefix('reports/appointments')->name('reports.appointments.')->group(function () {
+    Route::get('/', [AppointmentReportsController::class, 'index'])->name('index');
+    Route::get('/data', [AppointmentReportsController::class, 'data'])->name('reports.appointments.data');
+    Route::get('/export-excel', [AppointmentReportsController::class, 'exportExcel'])->name('reports.appointments.exportExcel');
 });
 
 Route::get('/reports/clinics-by-student', function () {
