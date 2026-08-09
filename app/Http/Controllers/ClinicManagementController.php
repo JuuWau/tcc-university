@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\ClinicsManagement\ClinicManagementIndexFiltersData;
 use App\Data\ClinicsManagement\ClinicManagementTableFiltersData;
 use App\Http\Requests\ClinicManagementIndexRequest;
 use App\Http\Requests\ClinicManagementTableRequest;
@@ -22,20 +23,20 @@ class ClinicManagementController extends Controller
         private readonly ClinicManagementService $clinicManagementService,
     ) {}
 
-    public function index(ClinicManagementIndexRequest $request) 
+    public function index()
     {
-        $universityId = auth()->user()->university_id;
-
-        $clinics = $this->clinicManagementService->listClinics($universityId);
-
         return Inertia::render(
-            'clinics-management/ClinicsManagementIndex',
-            [
-                'clinics' => ClinicManagementIndexResource::collection(
-                    $clinics
-                )->resolve(),
-            ]
+            'clinics-management/ClinicsManagementIndex'
         );
+    }
+
+    public function clinicsTable(ClinicManagementIndexRequest $request)
+    {
+        $clinics = $this->clinicManagementService->listClinics(
+            ClinicManagementIndexFiltersData::fromRequest($request)
+        );
+
+        return ClinicManagementIndexResource::collection($clinics);
     }
 
     public function show(Clinic $clinic): Response
@@ -57,13 +58,13 @@ class ClinicManagementController extends Controller
             $clinic,
             ClinicManagementTableFiltersData::fromRequest($request)
         );
-        
+
         return ClinicManagementPatientResource::collection(
             $patients
         );
     }
 
-    public function enroll(EnrollPatientRequest $request,Clinic $clinic,) 
+    public function enroll(EnrollPatientRequest $request, Clinic $clinic,)
     {
         try {
             $patientClinic = $this->clinicManagementService->enrollPatient(
@@ -83,7 +84,7 @@ class ClinicManagementController extends Controller
         }
     }
 
-    public function removeEnrollment(Clinic $clinic, Patient $patient) 
+    public function removeEnrollment(Clinic $clinic, Patient $patient)
     {
         try {
             $this->clinicManagementService->removeEnrollment(
@@ -101,7 +102,7 @@ class ClinicManagementController extends Controller
         }
     }
 
-    public function storeWaitingList(StoreClinicWaitingListRequest $request, Clinic $clinic) 
+    public function storeWaitingList(StoreClinicWaitingListRequest $request, Clinic $clinic)
     {
         try {
             $this->clinicManagementService->storeWaitingList(
@@ -117,7 +118,6 @@ class ClinicManagementController extends Controller
             return response()->json([
                 'message' => 'Erro ao adicionar pacientes à lista de espera.',
             ], 500);
-
         }
     }
 }

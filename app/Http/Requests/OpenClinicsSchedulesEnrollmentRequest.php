@@ -4,7 +4,7 @@ namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
 
-class ClinicManagementIndexRequest extends FormRequest
+class OpenClinicsSchedulesEnrollmentRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -22,22 +22,9 @@ class ClinicManagementIndexRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'search' => [
-                'nullable',
-                'string',
-                'max:255',
-            ],
-            'page' => [
-                'nullable',
-                'integer',
-                'min:1',
-            ],
-            'per_page' => [
-                'nullable',
-                'integer',
-                'min:1',
-                'max:50',
-            ],
+            'page' => ['nullable', 'integer', 'min:1'],
+            'per_page' => ['nullable', 'integer', 'min:1', 'max:100'],
+            'search' => ['nullable', 'string', 'max:255'],
         ];
     }
 }

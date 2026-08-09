@@ -4,6 +4,8 @@ namespace App\Services;
 
 use App\Constants\ActivityLogPrefixes;
 use App\Constants\ActivityModules;
+use App\Data\OpenClinicsManagement\OpenClinicsManagementFiltersData;
+use App\Data\SchedulesEnrollment\OpenClinicsSchedulesEnrollmentFiltersData;
 use App\Jobs\ProcessDeleteScheduleSlotsJob;
 use App\Jobs\ProcessOpenScheduleJob;
 use App\Models\Appointment;
@@ -12,6 +14,7 @@ use App\Models\Period;
 use App\Models\ScheduleEnrollment;
 use App\Models\ScheduleSlot;
 use App\Models\User;
+use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
 class ScheduleSlotService
@@ -104,87 +107,152 @@ class ScheduleSlotService
         ];
     }
 
-    public function listClinicsWithOpenDays(int $universityId): array
+    public function listClinicsWithOpenDays(OpenClinicsManagementFiltersData $filters): LengthAwarePaginator
     {
-        return Clinic::query()
-            ->where('university_id', $universityId)
+        $today = now()->toDateString();
+
+        $query = Clinic::query()
+            ->where('university_id', $filters->universityId)
             ->where('active', true)
-            ->whereHas('scheduleSlots', fn($query) => $query->whereDate('date', '>=', now()->toDateString()))
+            ->whereHas('scheduleSlots', function ($query) use ($today) {
+                $query->whereDate('date', '>=', $today);
+            })
+            ->when($filters->search, function ($query) use ($filters) {
+                $query->where(
+                    'name',
+                    'like',
+                    '%' . $filters->search . '%'
+                );
+            })
             ->with([
-                'scheduleSlots' => fn($query) => $query
-                    ->whereDate('date', '>=', now()->toDateString())
-                    ->orderBy('date')
-                    ->orderBy('start_time'),
+                'scheduleSlots' => function ($query) use ($today) {
+                    $query
+                        ->whereDate('date', '>=', $today)
+                        ->orderBy('date')
+                        ->orderBy('start_time');
+                },
             ])
-            ->orderBy('name')
-            ->get()
-            ->map(function (Clinic $clinic) {
+            ->orderBy('name');
+
+        $clinics = $query->paginate(
+            $filters->perPage,
+            ['*'],
+            'page',
+            $filters->page
+        );
+
+        $clinics->getCollection()->transform(
+            function (Clinic $clinic) {
                 $slots = $clinic->scheduleSlots;
                 $firstSlot = $slots->first();
 
                 return [
                     'clinic_id' => $clinic->id,
                     'clinic_name' => $clinic->name,
-                    'open_days_count' => $slots->pluck('date')->unique()->count(),
+                    'open_days_count' => $slots
+                        ->pluck('date')
+                        ->unique()
+                        ->count(),
                     'open_slots_count' => $slots->count(),
                     'next_open_day' => optional($firstSlot)->date,
                     'next_start_time' => optional($firstSlot)->start_time,
                     'next_end_time' => optional($firstSlot)->end_time,
                 ];
-            })
-            ->values()
-            ->toArray();
+            }
+        );
+
+        return $clinics;
     }
 
-    public function getOpenClinicsForStudentPeriod(int $universityId, int $periodId, int $studentId): array
+    public function getOpenClinicsForStudentPeriod(int $universityId, int $periodId, int $studentId, OpenClinicsSchedulesEnrollmentFiltersData $filters,): LengthAwarePaginator
     {
-        return Clinic::query()
+        $clinics = Clinic::query()
             ->where('university_id', $universityId)
             ->where('active', true)
-            ->whereHas('scheduleSlots', function ($query) use ($periodId) {
-                $query->where('period_id', $periodId)
-                    ->whereDate('date', '>=', now()->toDateString());
+
+            ->when($filters->search, function ($query) use ($filters) {
+                $query->where(
+                    'name',
+                    'like',
+                    '%' . $filters->search . '%'
+                );
             })
+
+            ->whereHas('scheduleSlots', function ($query) use ($periodId) {
+                $query
+                    ->where('period_id', $periodId)
+                    ->whereDate(
+                        'date',
+                        '>=',
+                        now()->toDateString()
+                    );
+            })
+
             ->with([
                 'scheduleSlots' => fn($query) => $query
                     ->where('period_id', $periodId)
-                    ->whereDate('date', '>=', now()->toDateString())
+                    ->whereDate(
+                        'date',
+                        '>=',
+                        now()->toDateString()
+                    )
                     ->orderBy('date')
                     ->orderBy('start_time'),
             ])
+
             ->withCount([
-                'scheduleSlots as enrolled_slots_count' => function ($query) use ($periodId, $studentId) {
-                    $query->where('period_id', $periodId)
-                        ->whereDate('date', '>=', now()->toDateString())
+                'scheduleSlots as enrolled_slots_count' => function ($query) use (
+                    $periodId,
+                    $studentId
+                ) {
+                    $query
+                        ->where('period_id', $periodId)
+                        ->whereDate(
+                            'date',
+                            '>=',
+                            now()->toDateString()
+                        )
                         ->whereHas('enrollments', function ($q) use ($studentId) {
                             $q->where('student_id', $studentId);
                         });
-                }
+                },
             ])
+
             ->orderBy('name')
-            ->get()
-            ->map(function (Clinic $clinic) {
-                $slots = $clinic->scheduleSlots;
-                $totalSlots = $slots->count();
-                $enrolledSlots = $clinic->enrolled_slots_count;
 
-                $status = match (true) {
-                    $enrolledSlots === 0 => 'not_enrolled',
-                    $enrolledSlots === $totalSlots => 'fully_enrolled',
-                    default => 'partially_enrolled',
-                };
+            ->paginate(
+                $filters->perPage,
+                ['*'],
+                'page',
+                $filters->page
+            );
 
-                return [
-                    'clinic_id' => $clinic->id,
-                    'clinic_name' => $clinic->name,
-                    'open_days_count' => $slots->pluck('date')->unique()->count(),
-                    'open_slots_count' => $totalSlots,
-                    'enrolled_slots_count' => $enrolledSlots,
-                    'enrollment_status' => $status,
-                ];
-            })
-            ->values()
-            ->toArray();
+        $clinics->getCollection()->transform(function (Clinic $clinic) {
+            $slots = $clinic->scheduleSlots;
+
+            $totalSlots = $slots->count();
+            $enrolledSlots = $clinic->enrolled_slots_count;
+
+            $status = match (true) {
+                $enrolledSlots === 0 => 'not_enrolled',
+                $enrolledSlots === $totalSlots => 'fully_enrolled',
+                default => 'partially_enrolled',
+            };
+
+            return [
+                'clinic_id' => $clinic->id,
+                'clinic_name' => $clinic->name,
+                'open_days_count' => $slots
+                    ->pluck('date')
+                    ->unique()
+                    ->count(),
+                'open_slots_count' => $totalSlots,
+                'enrolled_slots_count' => $enrolledSlots,
+                'enrollment_status' => $status,
+            ];
+        });
+
+        return $clinics;
     }
 
     public function listForUniversity(int $universityId): array

@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\OpenClinicsManagement\OpenClinicsManagementFiltersData;
+use App\Http\Requests\OpenClinicsManagementRequest;
 use App\Http\Requests\StoreOpenClinicDayRequest;
 use App\Http\Requests\StoreOpenScheduleRequest;
 use App\Http\Requests\UpdateMultipleScheduleSlotsRequest;
@@ -24,7 +26,7 @@ class ScheduleSlotController extends Controller
         protected ScheduleSlotService $scheduleSlotService,
         protected ClinicService $clinicService,
         protected PeriodService $periodService,
-        protected UserService $userService,
+        protected UserService $userService, 
     ) {}
 
     public function openSchedule()
@@ -41,17 +43,22 @@ class ScheduleSlotController extends Controller
         ]);
     }
 
+    public function openClinicsTable(OpenClinicsManagementRequest $request)
+    {
+        $clinics = $this->scheduleSlotService->listClinicsWithOpenDays(
+            OpenClinicsManagementFiltersData::fromRequest($request)
+        );
+
+        return response()->json(
+            $clinics
+        );
+    }
+
     public function openClinicsManagement()
     {
-        $universityId = request()->user()?->university_id;
-        
-        $clinics = $universityId
-            ? $this->scheduleSlotService->listClinicsWithOpenDays($universityId)
-            : [];
-
-        return Inertia::render('schedules/OpenClinicsManagement', [
-            'clinics' => $clinics,
-        ]);
+        return Inertia::render(
+            'schedules/OpenClinicsManagement'
+        );
     }
 
     public function clinicOpenSchedules(Request $request, Clinic $clinic)
