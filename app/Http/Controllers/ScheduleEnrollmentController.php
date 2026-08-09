@@ -2,8 +2,10 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\SchedulesEnrollment\OpenClinicsSchedulesEnrollmentFiltersData;
 use App\Http\Requests\EnrollMultipleSlotsRequest;
 use App\Http\Requests\EnrollSlotRequest;
+use App\Http\Requests\OpenClinicsSchedulesEnrollmentRequest;
 use App\Http\Requests\RemoveStudentFromSlotRequest;
 use App\Http\Requests\SlotStudentsRequest;
 use App\Http\Requests\StoreStudentsToScheduleEnrollmentRequest;
@@ -50,22 +52,39 @@ class ScheduleEnrollmentController extends Controller
             'message' => 'Estudantes adicionados com sucesso.',
         ]);
     }
-    
+
     public function openClinicsSchedullesEnrollmentManagement()
     {
+        return Inertia::render(
+            'schedules-enrollment/OpenClinicsSchedulesEnrollmentManagement'
+        );
+    }
+
+    public function openClinicsSchedullesEnrollmentTable(OpenClinicsSchedulesEnrollmentRequest $request) {
         $user = request()->user();
 
         $universityId = $user?->university_id;
         $periodId = $this->periodService->getIdByUserId($user?->id);
         $studentId = $user?->student?->id;
 
-        $clinics = $universityId && $periodId
-            ? $this->scheduleSlotService->getOpenClinicsForStudentPeriod($universityId, $periodId, $studentId)
-            : [];
+        if (!$universityId || !$periodId) {
+            return response()->json([
+                'data' => [],
+                'current_page' => 1,
+                'last_page' => 1,
+                'per_page' => $request->integer('per_page', 12),
+                'total' => 0,
+            ]);
+        }
 
-        return Inertia::render('schedules-enrollment/OpenClinicsSchedulesEnrollmentManagement', [
-            'clinics' => $clinics,
-        ]);
+        $clinics = $this->scheduleSlotService->getOpenClinicsForStudentPeriod(
+            $universityId,
+            $periodId,
+            $studentId,
+            OpenClinicsSchedulesEnrollmentFiltersData::fromRequest($request),
+        );
+
+        return response()->json($clinics);
     }
 
     public function clinicOpenSchedulesEnrollment(Request $request, Clinic $clinic)
@@ -127,7 +146,7 @@ class ScheduleEnrollmentController extends Controller
         ]);
     }
 
-    public function enrollMultipleSlots(EnrollMultipleSlotsRequest $request): JsonResponse 
+    public function enrollMultipleSlots(EnrollMultipleSlotsRequest $request): JsonResponse
     {
         $user = $request->user();
 
