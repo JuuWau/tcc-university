@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Constants\ActivityModules;
+use App\Data\ClinicsManagement\ClinicManagementIndexFiltersData;
 use App\Data\ClinicsManagement\ClinicManagementTableFiltersData;
 use App\Models\Clinic;
 use App\Models\ClinicWaitingList;
@@ -14,20 +15,32 @@ use Illuminate\Support\Facades\DB;
 
 class ClinicManagementService
 {
-    public function listClinics(int $universityId): Collection
+    public function listClinics(ClinicManagementIndexFiltersData $filters): LengthAwarePaginator 
     {
         return Clinic::query()
             ->select([
                 'id',
                 'name',
             ])
-            ->where('university_id', $universityId)
+            ->where('university_id', $filters->universityId)
+            ->when($filters->search, function ($query) use ($filters) {
+                $query->where(
+                    'name',
+                    'like',
+                    '%' . $filters->search . '%'
+                );
+            })
             ->withCount([
                 'patientClinics as active_patients_count',
                 'waitingList as waiting_patients_count',
             ])
             ->orderBy('name')
-            ->get();
+            ->paginate(
+                $filters->perPage,
+                ['*'],
+                'page',
+                $filters->page
+            );
     }
 
     public function paginate(Clinic $clinic, ClinicManagementTableFiltersData $filters): LengthAwarePaginator
