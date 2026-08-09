@@ -45,6 +45,7 @@ Route::prefix('schedules')->group(function () {
     Route::post('open', [ScheduleSlotController::class, 'storeOpenSchedule'])->name('schedules.open.store');
     Route::get('open-schedule', [ScheduleSlotController::class, 'openSchedule'])->name('schedules.openSchedule');
     Route::get('open-clinics', [ScheduleSlotController::class, 'openClinicsManagement'])->name('schedules.openClinics');
+    Route::get('/open-clinics/table',[ScheduleSlotController::class, 'openClinicsTable'])->name('schedules.openClinics.table');
     Route::get('open-clinics/{clinic}', [ScheduleSlotController::class, 'clinicOpenSchedules'])->name('schedules.openClinics.show');
     Route::post('open-clinics/{clinic}', [ScheduleSlotController::class, 'storeOpenClinicDay'])->name('schedules.openClinics.storeDay');
     Route::patch('slots/{slot}', [ScheduleSlotController::class, 'updateSlot'])->name('schedules.slots.update');
@@ -60,6 +61,7 @@ Route::prefix('schedules')->group(function () {
 Route::prefix('schedule-enrollment')->group(function () {
     Route::post('open', [ScheduleEnrollmentController::class, 'storeOpenSchedule'])->name('schedules.enrollment.open.store');
     Route::get('open-clinics', [ScheduleEnrollmentController::class, 'openClinicsSchedullesEnrollmentManagement'])->name('schedules.enrollment.openClinics');
+    Route::get('open-clinics/table', [ScheduleEnrollmentController::class, 'openClinicsSchedullesEnrollmentTable'] )->name('schedules.enrollment.openClinics.table');
     Route::get('open-clinic/{clinic}', [ScheduleEnrollmentController::class, 'clinicOpenSchedulesEnrollment'])->name('schedules.enrollment.openClinic.show');
     Route::post('open-clinics/{clinic}', [ScheduleEnrollmentController::class, 'storeOpenClinicDay'])->name('schedules.enrollment.openClinics.storeDay');
     Route::patch('slots/{slot}', [ScheduleEnrollmentController::class, 'updateSlot'])->name('schedules.enrollment.slots.update');
@@ -201,6 +203,7 @@ Route::prefix('appointments-confirmation')->name('appointments-confirmation.')->
 
 Route::prefix('clinics-management')->name('clinics-management.')->group(function () {
     Route::get('/', [ClinicManagementController::class, 'index'])->name('index');
+    Route::get('/clinicsTable', [ClinicManagementController::class, 'clinicsTable'])->name('clinics-management.table');
     Route::get('/{clinic}', [ClinicManagementController::class, 'show'])->name('show');
     Route::get('/{clinic}/table', [ClinicManagementController::class, 'table'])->name('table');
     Route::post('/{clinic}/enroll', [ClinicManagementController::class, 'enroll'])->name('enroll');
