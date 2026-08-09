@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Constants\ActivityModules;
+use App\Data\Attendance\AttendanceClinicsTableFiltersData;
 use App\Models\Clinic;
 use App\Models\ScheduleEnrollment;
 use App\Models\ScheduleSlot;
@@ -10,10 +11,11 @@ use App\Models\Student;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
 
 class AttendanceService
 {
-        public function listAvailableClinics(User $user): Collection
+        public function listAvailableClinics(User $user, AttendanceClinicsTableFiltersData $filters): LengthAwarePaginator
         {
                 $query = Clinic::query()
                         ->where('university_id', $user->university_id)
@@ -25,9 +27,22 @@ class AttendanceService
                         });
                 }
 
+                $query->when($filters->search, function ($query) use ($filters) {
+                        $query->where(
+                                'name',
+                                'like',
+                                '%' . $filters->search . '%'
+                        );
+                });
+
                 return $query
                         ->orderBy('name')
-                        ->get();
+                        ->paginate(
+                                $filters->perPage,
+                                ['*'],
+                                'page',
+                                $filters->page
+                        );
         }
 
         public function getAvailableDates(Clinic $clinic, int $periodId, User $user): Collection
