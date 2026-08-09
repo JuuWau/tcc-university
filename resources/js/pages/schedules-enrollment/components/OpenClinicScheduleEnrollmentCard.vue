@@ -53,7 +53,7 @@ function onManage() {
         </header>
 
         <Button
-            class="mt-2 h-9 w-full bg-sky-600 text-white hover:bg-sky-700"
+            class="mt-2 h-9 w-full bg-sky-600 text-white hover:bg-sky-700 cursor-pointer"
             @click="onManage"
         >
             Gerenciar
