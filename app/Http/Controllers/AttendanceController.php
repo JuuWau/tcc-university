@@ -2,6 +2,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\Attendance\AttendanceClinicsTableFiltersData;
+use App\Http\Requests\AttendanceClinicsTableRequest;
 use App\Http\Resources\AttendanceClinicResource;
 use App\Http\Resources\AttendanceDateResource;
 use App\Http\Resources\AttendanceStudentResource;
@@ -25,13 +27,19 @@ class AttendanceController extends Controller
 
     public function clinics()
     {
+        return Inertia::render('attendance/AttendanceClinics');
+    }
+
+    public function clinicsTable(AttendanceClinicsTableRequest $request)
+    {
         $user = request()->user();
 
-        return Inertia::render('attendance/AttendanceClinics', [
-            'clinics' => AttendanceClinicResource::collection(
-                $this->attendanceService->listAvailableClinics($user)
-            ),
-        ]);
+        $clinics = $this->attendanceService->listAvailableClinics(
+            $user,
+            AttendanceClinicsTableFiltersData::fromRequest($request),
+        );
+
+        return AttendanceClinicResource::collection($clinics);
     }
 
     public function showClinic(Request $request, Clinic $clinic)

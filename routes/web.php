@@ -189,6 +189,7 @@ Route::prefix('users')->group(function () {
 
 Route::prefix('attendance')->name('attendance')->group(function () {
     Route::get('/clinics', [AttendanceController::class, 'clinics'])->name('attendance.index');
+    Route::get('/clinics/table', [AttendanceController::class, 'clinicsTable'])->name('attendance.clinics.table');
     Route::get('/clinics/{clinic}', [AttendanceController::class, 'showClinic'])->name('attendance.showClinic');
     Route::get('/clinics/{clinic}/dates', [AttendanceController::class, 'getDates'])->name('attendance.dates');
     Route::get('/schedule-slots/{slot}/students', [AttendanceController::class, 'getStudents'])->name('attendance.students');
