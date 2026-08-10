@@ -12,6 +12,7 @@ use App\Models\ClinicWaitingList;
 use App\Models\Patient;
 use App\Models\PatientClinic;
 use App\Models\Student;
+use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Collection;
@@ -23,7 +24,7 @@ class PatientService
          * @param  'name'|'email'|'created_at'  $sortField
          * @param  'asc'|'desc'  $sortDir
          */
-        public function paginate(PatientTableFiltersData $filters): LengthAwarePaginator
+        public function paginate(PatientTableFiltersData $filters, User $user): LengthAwarePaginator
         {
                 $query = Patient::query()
                         ->with(['students.person', 'address'])
@@ -31,6 +32,12 @@ class PatientService
                                 $filters->universityId,
                                 fn($q) => $q->where('university_id', $filters->universityId)
                         );
+
+                if ($user->hasRole('student')) {
+                        $query->whereHas('students', function ($q) use ($user) {
+                                $q->where('students.id', $user->student->id);
+                        });
+                }
 
                 $query->when($filters->search, function ($query) use ($filters) {
                         $query->where(function ($q) use ($filters) {
@@ -42,7 +49,11 @@ class PatientService
                 });
 
                 $query->whereNull('patients.deleted_at');
-                if ($filters->status !== 'all' && in_array($filters->status, Patient::statuses(), true)) {
+
+                if (
+                        $filters->status !== 'all' &&
+                        in_array($filters->status, Patient::statuses(), true)
+                ) {
                         $query->where('patients.status', $filters->status);
                 }
 
@@ -55,7 +66,12 @@ class PatientService
                                 ->orderBy('id', $filters->sortDir);
                 }
 
-                return $query->paginate($filters->perPage, ['*'], 'page', $filters->page);
+                return $query->paginate(
+                        $filters->perPage,
+                        ['*'],
+                        'page',
+                        $filters->page
+                );
         }
 
         public function find(int $id, ?int $universityId = null): Patient

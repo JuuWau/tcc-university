@@ -13,6 +13,7 @@ import axios from 'axios';
 import { computed, inject, onMounted, ref, watch } from 'vue';
 import ImportExcelButton from '@/components/buttons/ImportExcelButton.vue';
 import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale';
+import { usePage } from '@inertiajs/vue3';
 
 const emit = defineEmits([
     'create',
@@ -57,6 +58,14 @@ const fromTo = computed(() => {
     const t = Math.min(page.value * perPage.value, total.value);
     return total.value ? `${f}-${t} de ${total.value}` : '0';
 });
+
+const pageData = usePage();
+
+const isStudent = computed(() => {
+    return pageData.props.auth.user.role?.slug === 'student';
+});
+
+console.log('isStudent', isStudent.value);
 
 const search = ref('');
 
@@ -237,6 +246,7 @@ const columnDefs = [
             onActivate: (patient: PatientWithInvite) =>
                 emit('activate', patient),
             onDelete: (patient: PatientWithInvite) => emit('delete', patient),
+            isStudent: isStudent.value,
         },
     },
 ];
@@ -264,9 +274,10 @@ const defaultColDef = {
             </div>
 
             <div class="flex gap-2">
-                <ImportExcelButton @click="$emit('import')" />
+                <ImportExcelButton @click="$emit('import')" v-if="!isStudent"/>
 
                 <CreateButton
+                    v-if="!isStudent"
                     label="Novo Paciente"
                     icon="Plus"
                     class="w-full sm:w-auto"

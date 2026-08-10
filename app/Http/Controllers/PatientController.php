@@ -49,7 +49,8 @@ class PatientController extends Controller
     public function table(TablePatientRequest $request)
     {
         $patients = $this->patientService->paginate(
-            PatientTableFiltersData::fromRequest($request)
+            PatientTableFiltersData::fromRequest($request),
+            $request->user()
         );
 
         return PatientResource::collection($patients);
