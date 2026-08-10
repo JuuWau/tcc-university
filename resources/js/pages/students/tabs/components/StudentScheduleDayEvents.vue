@@ -19,7 +19,6 @@ import { computed, inject, watch } from 'vue';
 
 const schedule = inject(StudentScheduleContextKey) as StudentScheduleContext;
 
-
 const emit = defineEmits<{
     (e: 'edit', appointment: any): void;
 
@@ -214,6 +213,25 @@ const calendarOptions = computed(() => ({
     events: [...calendarEvents.value, ...blockedEvents.value],
 
     initialDate: selectedDate.value,
+
+    eventAllow: (dropInfo) => {
+        const newStart = dropInfo.start;
+        const newEnd = dropInfo.end ?? dropInfo.start;
+
+        return !blockedEvents.value.some(blocked => {
+            if (!blocked.start || !blocked.end) {
+                return false;
+            }
+
+            const blockedStart = new Date(blocked.start);
+            const blockedEnd = new Date(blocked.end);
+
+            return (
+                newStart < blockedEnd &&
+                newEnd > blockedStart
+            );
+        });
+    },
 }));
 </script>
 
