@@ -34,6 +34,13 @@ const columnDefs = [
         filter: true,
     },
     {
+        headerName: 'Especialidade',
+        field: 'specialty.name',
+        flex: 2,
+        sortable: true,
+        filter: true,
+    },
+    {
         headerName: 'Status',
         field: 'active',
         sortable: true,
