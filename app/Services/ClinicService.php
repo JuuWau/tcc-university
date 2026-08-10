@@ -13,6 +13,7 @@ class ClinicService
     public function all(int $universityId)
     {
         return Clinic::query()
+            ->with('specialty')
             ->where('university_id', $universityId)
             ->orderBy('name')
             ->get();
@@ -25,6 +26,7 @@ class ClinicService
                 'university_id' => $universityId,
                 'name' => trim((string) $data['name']),
                 'active' => true,
+                'specialty_id' => $data['specialty_id'],
             ]);
 
             ActivityLogService::created(
@@ -42,6 +44,7 @@ class ClinicService
         return DB::transaction(function () use ($clinic, $data) {
             $clinic->fill([
                 'name' => trim((string) $data['name']),
+                'specialty_id' => $data['specialty_id'],
             ]);
 
             $changes = ActivityLogService::getChanges($clinic);

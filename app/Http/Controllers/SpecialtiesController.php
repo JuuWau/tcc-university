@@ -84,4 +84,13 @@ class SpecialtiesController extends Controller
             ], 422);
         }
     }
+
+    public function options(): JsonResponse
+    {
+        $universityId = request()->user()?->university_id;
+
+        return response()->json([
+            'specialties' => $this->specialtyService->all($universityId),
+        ]);
+    }
 }
