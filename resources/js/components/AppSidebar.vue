@@ -19,7 +19,7 @@ import students from '@/routes/students';
 import users from '@/routes/users';
 import { type NavItem } from '@/types';
 import { Link } from '@inertiajs/vue3';
-import { BarChart, Building2, Calendar, ClipboardList, GraduationCap, LayoutGrid, ListPlus, Stethoscope, User, Users, Timer, CalendarPlus, CalendarCog, CalendarCheck, Hospital, LogIn, Notebook, FileUser } from 'lucide-vue-next';
+import { BarChart, Building2, Calendar, ClipboardList, GraduationCap, LayoutGrid, ListPlus, Stethoscope, User, Users, Timer, CalendarPlus, CalendarCog, CalendarCheck, Hospital, LogIn, Notebook, FileUser, BookUser } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import schedules from '@/routes/schedules';
 import clinics from '@/routes/clinics';
@@ -128,6 +128,7 @@ const mainNavItems: NavItem[] = [
             {
                 title: 'Relatórios de pacientes',
                 href: '/reports/patients',
+                icon: BookUser
             },
         ],
     },
