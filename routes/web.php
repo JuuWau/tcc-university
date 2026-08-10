@@ -13,6 +13,7 @@ use App\Http\Controllers\ScheduleEnrollmentController;
 use App\Http\Controllers\AppointmentConfirmationController;
 use App\Http\Controllers\AppointmentReportsController;
 use App\Http\Controllers\ClinicManagementController;
+use App\Http\Controllers\PatientsReportController;
 use App\Http\Controllers\ScheduleSlotController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\SpecialtiesController;
@@ -91,13 +92,15 @@ Route::prefix('reports/students')->middleware(['auth', 'verified'])->group(funct
     Route::get('/export', [StudentsReportController::class, 'exportExcel'])->name('reports.students.export');
 });
 
+Route::prefix('reports/patients')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('/', [PatientsReportController::class, 'index'])->name('reports.patients.index');
+    Route::get('/data', [PatientsReportController::class, 'data'])->name('reports.patients.data');
+    Route::get('/export', [PatientsReportController::class, 'exportExcel'])->name('reports.patients.export');
+});
+
 Route::get('/reports/clinics-by-student', function () {
     return Inertia::render('reports/ClinicsByStudentReportMock');
 });
-
-Route::get('/reports/patients', function () {
-    return Inertia::render('reports/PatientsReportMock');
-})->middleware(['auth', 'verified'])->name('reports.patients');
 
 Route::prefix('specialties')->group(function () {
     Route::get('/', [SpecialtiesController::class, 'index'])->name('specialties.index');
