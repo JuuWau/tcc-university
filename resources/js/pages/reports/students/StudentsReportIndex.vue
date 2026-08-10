@@ -1,55 +1,59 @@
 <script setup lang="ts">
-import { computed, ref, provide } from 'vue';
-import AppLayout from '@/layouts/AppLayout.vue';
-import AppointmentsReportFilters from './components/AppointmentsReportFilters.vue';
-import AppointmentsReportSummaryCards from './components/AppointmentsReportSummaryCards.vue';
-import AppointmentsReportTable from './AppointmentsReportTable.vue';
-import { AppointmentsKey } from '@/keys/appointments-report/appointmentsKeys';
-import { useAppointments } from '@/composables/appointments-report/useAppointments';
+import { computed, provide, ref } from 'vue';
 import { Download } from 'lucide-vue-next';
+import AppLayout from '@/layouts/AppLayout.vue';
 import PageHeader from '@/components/PageHeader.vue';
 import Button from '@/components/ui/button/Button.vue';
+import StudentsReportFilters from './components/StudentsReportFilters.vue';
+import StudentsReportSummaryCards from './components/StudentsReportSummaryCards.vue';
+import StudentsReportTable from './StudentsReportTable.vue';
+import { useStudentsReport } from '@/composables/students-report/useStudentsReport';
+import { StudentsReportKey } from '@/keys/students-report/studentsReportKeys';
 
-const appointments = useAppointments();
+const students = useStudentsReport();
 
-provide(AppointmentsKey, appointments);
+provide(StudentsReportKey, students);
 
 const showFilters = ref(false);
 
-const activeFiltersCount = computed(() => {
-    const filters = appointments.filters.value;
+const hasActiveFilters = computed(() => {
+    const filters = students.filters.value;
 
-    let count = 0;
-
-    if (filters.search) count++;
-    if (filters.clinic_id) count++;
-    if (filters.responsible_id) count++;
-    if (filters.period_id) count++;
-    if (filters.start_date) count++;
-    if (filters.end_date) count++;
-
-    return count;
+    return Boolean(
+        filters.search ||
+        filters.period_id ||
+        filters.status ||
+        filters.invitation_status
+    );
 });
 
-const hasActiveFilters = computed(() => {
-    return activeFiltersCount.value > 0;
+const activeFiltersCount = computed(() => {
+    const filters = students.filters.value;
+
+    return [
+        filters.search,
+        filters.period_id,
+        filters.status,
+        filters.invitation_status,
+    ].filter(Boolean).length;
 });
 </script>
 
 <template>
     <AppLayout>
         <div class="space-y-6 p-6">
-
-            <div class="rounded-xl border border-gray-200 bg-white shadow-sm p-6">
+            <div
+                class="rounded-xl border border-gray-200 bg-white p-6 shadow-sm"
+            >
                 <PageHeader
-                    title="Relatório de Agendamentos"
-                    description="Consulte, filtre e exporte os agendamentos realizados."
+                    title="Relatório de Estudantes"
+                    description="Consulte, filtre e exporte os estudantes cadastrados."
                 >
                     <template #actions>
                         <Button
                             type="button"
                             class="cursor-pointer gap-2 bg-sky-600 text-white hover:bg-sky-700"
-                            @click="appointments.exportExcel()"
+                            @click="students.exportExcel()"
                         >
                             <Download class="h-4 w-4" />
                             Exportar Excel
@@ -58,15 +62,15 @@ const hasActiveFilters = computed(() => {
                 </PageHeader>
             </div>
 
-            <div class="rounded-xl border border-gray-200 bg-white shadow-sm">
-
+            <div
+                class="rounded-xl border border-gray-200 bg-white shadow-sm"
+            >
                 <button
                     type="button"
                     class="flex w-full cursor-pointer items-center justify-between px-5 py-4 text-left"
                     @click="showFilters = !showFilters"
                 >
                     <div class="flex items-center gap-3">
-
                         <div
                             class="flex h-9 w-9 items-center justify-center rounded-lg bg-sky-50 text-sky-600"
                         >
@@ -98,18 +102,22 @@ const hasActiveFilters = computed(() => {
                                 Refine os resultados do relatório
                             </p>
                         </div>
-
                     </div>
 
                     <div class="flex items-center gap-3">
-
                         <span
                             v-if="hasActiveFilters"
                             class="rounded-full bg-sky-50 px-2.5 py-1 text-xs font-medium text-sky-700"
                         >
                             {{ activeFiltersCount }}
-                            {{ activeFiltersCount === 1 ? 'filtro' : 'filtros' }}
-                            aplicado{{ activeFiltersCount === 1 ? '' : 's' }}
+                            {{
+                                activeFiltersCount === 1
+                                    ? 'filtro'
+                                    : 'filtros'
+                            }}
+                            aplicado{{
+                                activeFiltersCount === 1 ? '' : 's'
+                            }}
                         </span>
 
                         <svg
@@ -129,7 +137,6 @@ const hasActiveFilters = computed(() => {
                         >
                             <path d="m6 9 6 6 6-6" />
                         </svg>
-
                     </div>
                 </button>
 
@@ -145,14 +152,16 @@ const hasActiveFilters = computed(() => {
                         v-if="showFilters"
                         class="overflow-hidden border-t border-gray-100"
                     >
-                        <AppointmentsReportFilters />
+                        <StudentsReportFilters />
                     </div>
                 </Transition>
             </div>
 
-            <AppointmentsReportSummaryCards />
+            <!-- Resumo -->
+            <StudentsReportSummaryCards />
 
-            <AppointmentsReportTable />
+            <!-- Tabela -->
+            <StudentsReportTable />
         </div>
     </AppLayout>
 </template>

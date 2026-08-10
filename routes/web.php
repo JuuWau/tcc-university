@@ -17,6 +17,7 @@ use App\Http\Controllers\ScheduleSlotController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\SpecialtiesController;
 use App\Http\Controllers\StudentsController;
+use App\Http\Controllers\StudentsReportController;
 use App\Http\Controllers\UserInviteController;
 use App\Http\Controllers\UsersController;
 use Illuminate\Support\Facades\Route;
@@ -82,6 +83,12 @@ Route::prefix('reports/appointments')->name('reports.appointments.')->group(func
     Route::get('/', [AppointmentReportsController::class, 'index'])->name('index');
     Route::get('/data', [AppointmentReportsController::class, 'data'])->name('reports.appointments.data');
     Route::get('/export-excel', [AppointmentReportsController::class, 'exportExcel'])->name('reports.appointments.exportExcel');
+});
+
+Route::prefix('reports/students')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('/', [StudentsReportController::class, 'index'])->name('reports.students.index');
+    Route::get('/data', [StudentsReportController::class, 'data'])->name('reports.students.data');
+    Route::get('/export', [StudentsReportController::class, 'exportExcel'])->name('reports.students.export');
 });
 
 Route::get('/reports/clinics-by-student', function () {
