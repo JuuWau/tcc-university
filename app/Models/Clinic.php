@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -14,6 +15,7 @@ class Clinic extends Model
         'university_id',
         'name',
         'active',
+        'specialty_id',
     ];
 
     protected $casts = [
@@ -41,5 +43,10 @@ class Clinic extends Model
             Patient::class,
             'patient_clinics'
         )->withPivot('enrolled_at');
+    }
+
+    public function specialty(): BelongsTo
+    {
+        return $this->belongsTo(Specialty::class);
     }
 }
