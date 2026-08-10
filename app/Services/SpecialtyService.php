@@ -70,6 +70,12 @@ class SpecialtyService
                         );
                 }
 
+                if ($specialty->clinics()->exists()) {
+                        throw new \DomainException(
+                        'Não é possível excluir a especialidade pois existem clínicas vinculadas.'
+                        );
+                }
+
                 ActivityLogService::deleted(
                         ActivityModules::SPECIALTIES,
                         "Removeu a especialidade '{$specialty->name}'.",

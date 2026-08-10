@@ -94,6 +94,7 @@ Route::get('/reports/patients', function () {
 
 Route::prefix('specialties')->group(function () {
     Route::get('/', [SpecialtiesController::class, 'index'])->name('specialties.index');
+    Route::get('/options', [SpecialtiesController::class, 'options'])->name('specialties.options');
     Route::get('/create', [SpecialtiesController::class, 'create'])->name('specialties.create');
     Route::post('/', [SpecialtiesController::class, 'store'])->name('specialties.store');
     Route::put('/{specialty}', [SpecialtiesController::class, 'update'])->name('specialties.update');

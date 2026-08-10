@@ -1,16 +1,23 @@
 <script setup lang="ts">
+import AppMultiselect from '@/components/AppMultiselect.vue';
 import CancelButton from '@/components/buttons/CancelButton.vue';
 import SaveButton from '@/components/buttons/SaveButton.vue';
 import { ClinicCreateKey, ClinicsGroupKey } from '@/keys/clinics/clinicKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import { clinicSchema } from '@/schemas/clinic.schema';
 import axios from 'axios';
-import { inject, reactive } from 'vue';
+import { inject, reactive, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 
 const createModal = inject<any>(ClinicCreateKey);
 const clinics = inject<any>(ClinicsGroupKey);
 const loading = inject(LoadingKey);
+const specialtyOptions = ref<
+    {
+        label: string;
+        value: number;
+    }[]
+>([]);
 
 if (!createModal) {
     throw new Error('ClinicCreateModal precisa estar dentro do provider');
@@ -18,12 +25,25 @@ if (!createModal) {
 
 const form = reactive({
     name: '',
+    specialty_id: null as number | null,
 });
 
 function close() {
     createModal.isOpen.value = false;
     form.name = '';
+    form.specialty_id = null;
 }
+
+watch(
+    () => createModal.isOpen.value,
+    async (open) => {
+        if (!open) return;
+
+        if (!specialtyOptions.value.length) {
+            await loadSpecialties();
+        }
+    },
+);
 
 async function submit() {
     if (loading.value) return;
@@ -46,6 +66,22 @@ async function submit() {
         loading.value = false;
     }
 }
+
+async function loadSpecialties() {
+    try {
+        const { data } = await axios.get('/specialties/options');
+
+        specialtyOptions.value = data.specialties.map((specialty: any) => ({
+            label: specialty.name,
+            value: specialty.id,
+        }));
+    } catch (error: any) {
+        toast.error(
+            error.response?.data?.message ??
+                'Erro ao carregar especialidades',
+        );
+    }
+}
 </script>
 
 <template>
@@ -66,6 +102,21 @@ async function submit() {
                     maxlength="120"
                     class="w-full rounded border px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                     placeholder="Ex: Clínica Escola A"
+                />
+            </div>
+            <div class="pb-4">
+                <label class="mb-2 block text-sm font-medium text-gray-700">
+                    Especialidade (*)
+                </label>
+                <AppMultiselect
+                    v-model="form.specialty_id"
+                    :options="specialtyOptions"
+                    label="label"
+                    value-prop="value"
+                    placeholder="Todas as especialidades"
+                    :searchable="true"
+                    :can-clear="true"
+                    :append-to-body="true"
                 />
             </div>
             <div class="flex justify-end gap-2">

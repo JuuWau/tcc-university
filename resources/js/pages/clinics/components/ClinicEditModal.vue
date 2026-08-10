@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import AppMultiselect from '@/components/AppMultiselect.vue';
 import CancelButton from '@/components/buttons/CancelButton.vue';
 import SaveButton from '@/components/buttons/SaveButton.vue';
 import { ClinicEditKey, ClinicsGroupKey } from '@/keys/clinics/clinicKeys';
@@ -6,7 +7,7 @@ import { LoadingKey } from '@/keys/ui/loadingKey';
 import { clinicSchema } from '@/schemas/clinic.schema';
 import type { Clinic } from '@/types/clinic/clinic';
 import axios from 'axios';
-import { inject, reactive, watch } from 'vue';
+import { inject, onMounted, reactive, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 
 const editModal = inject<any>(ClinicEditKey);
@@ -20,7 +21,15 @@ if (!editModal) {
 const form = reactive({
     id: null as number | null,
     name: '',
+    specialty_id: null as number | null,
 });
+
+const specialtyOptions = ref<
+    {
+        label: string;
+        value: number;
+    }[]
+>([]);
 
 watch(
     () => editModal.isOpen.value,
@@ -33,6 +42,7 @@ watch(
 
         form.id = clinic.id;
         form.name = clinic.name;
+        form.specialty_id = clinic.specialty_id;
     },
 );
 
@@ -43,7 +53,7 @@ function close() {
 async function submit() {
     if (!form.id || loading.value) return;
 
-    const result = clinicSchema.safeParse({ name: form.name });
+    const result = clinicSchema.safeParse({ name: form.name, specialty_id: form.specialty_id });
     if (!result.success) {
         toast.error(result.error.issues[0].message);
         return;
@@ -62,6 +72,41 @@ async function submit() {
         loading.value = false;
     }
 }
+
+async function loadSpecialties() {
+    try {
+        const { data } = await axios.get('/specialties/options');
+
+        specialtyOptions.value = data.specialties.map((specialty: any) => ({
+            label: specialty.name,
+            value: specialty.id,
+        }));
+    } catch (error: any) {
+        toast.error(
+            error.response?.data?.message ??
+                'Erro ao carregar especialidades',
+        );
+    }
+}
+
+watch(
+    () => editModal.isOpen.value,
+    (open) => {
+        if (!open) return;
+
+        const clinic = editModal.clinic.value;
+
+        if (!clinic) return;
+
+        form.id = clinic.id;
+        form.name = clinic.name;
+        form.specialty_id = clinic.specialty_id;
+    },
+);
+
+onMounted(() => {
+    loadSpecialties();
+});
 </script>
 
 <template>
@@ -82,6 +127,21 @@ async function submit() {
                     maxlength="120"
                     class="w-full rounded border px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                     placeholder="Nome da clínica"
+                />
+            </div>
+            <div class="pb-4">
+                <label class="mb-2 block text-sm font-medium text-gray-700">
+                    Especialidade (*)
+                </label>
+                <AppMultiselect
+                    v-model="form.specialty_id"
+                    :options="specialtyOptions"
+                    label="label"
+                    value-prop="value"
+                    placeholder="Todas as especialidades"
+                    :searchable="true"
+                    :can-clear="true"
+                    :append-to-body="true"
                 />
             </div>
             <div class="flex justify-end gap-2">

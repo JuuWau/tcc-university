@@ -27,6 +27,14 @@ class UpdateClinicRequest extends FormRequest
                         ->whereNull('deleted_at'))
                     ->ignore($clinicId),
             ],
+            'specialty_id' => [
+                'required',
+                'integer',
+                Rule::exists('specialties', 'id')
+                    ->where(fn ($query) => $query
+                        ->where('university_id', $this->user()->university_id)
+                        ->whereNull('deleted_at')),
+            ],
         ];
     }
 
@@ -37,6 +45,9 @@ class UpdateClinicRequest extends FormRequest
             'name.string' => 'O nome da clínica deve ser um texto.',
             'name.max' => 'O nome da clínica deve ter no máximo 120 caracteres.',
             'name.unique' => 'Já existe uma clínica com esse nome.',
+            'specialty_id.required' => 'A especialidade é obrigatória.',
+            'specialty_id.integer' => 'A especialidade deve ser um número inteiro.',
+            'specialty_id.exists' => 'A especialidade selecionada não existe.',
         ];
     }
 }
