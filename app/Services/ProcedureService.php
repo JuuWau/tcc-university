@@ -4,17 +4,27 @@ namespace App\Services;
 
 use App\Constants\ActivityLogPrefixes;
 use App\Constants\ActivityModules;
+use App\Models\Clinic;
 use App\Models\Procedure;
 use App\Models\Specialty;
 use Illuminate\Support\Facades\DB;
 
 class ProcedureService
 {
-    public function all(int $universityId)
+    public function all(?int $universityId, ?int $clinicId = null)
     {
-        return Procedure::orderBy('name')
+        return Procedure::query()
             ->where('university_id', $universityId)
-            ->with('specialty:id,name')
+            ->when($clinicId, function ($query) use ($clinicId, $universityId) {
+                $query->whereIn(
+                    'specialty_id',
+                    Clinic::query()
+                        ->where('id', $clinicId)
+                        ->where('university_id', $universityId)
+                        ->select('specialty_id')
+                );
+            })
+            ->with('specialty')
             ->get();
     }
 

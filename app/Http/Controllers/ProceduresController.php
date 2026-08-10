@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProcedureRequest;
 use App\Http\Requests\UpdateProcedureRequest;
+use App\Http\Resources\ProcedureListResource;
 use App\Models\Procedure;
 use App\Services\ProcedureService;
 use App\Services\SpecialtyService;
@@ -78,9 +79,15 @@ class ProceduresController extends Controller
     public function list()
     {
         $universityId = request()->user()?->university_id;
-        
+        $clinicId = request()->integer('clinic_id');
+
         return response()->json([
-            'procedures' => $this->procedureService->all($universityId),
+            'procedures' => ProcedureListResource::collection(
+                $this->procedureService->all(
+                    $universityId,
+                    $clinicId
+                )
+            ),
         ]);
     }
 }

@@ -64,9 +64,11 @@ export function useStudentSchedule(studentId: number) {
     }
 
     async function fetchProcedures() {
-        const response = await axios.get(
-            '/procedures/list',
-        );
+        const response = await axios.get('/procedures/list', {
+            params: {
+                clinic_id: selectedClinic.value,
+            },
+        });
 
         procedureOptions.value = response.data.procedures.map(
             (procedure: any) => ({
@@ -144,7 +146,11 @@ export function useStudentSchedule(studentId: number) {
 
     watch(selectedClinic, async () => {
         selectedDate.value = null;
-        await fetchSchedule();
+
+        await Promise.all([
+            fetchSchedule(),
+            fetchProcedures(),
+        ]);
     });
 
     onMounted(async () => {
