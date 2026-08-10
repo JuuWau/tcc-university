@@ -63,7 +63,6 @@ async function submit() {
         loading.value = true;
         const res = await axios.put(`/clinics/${form.id}`, result.data);
         const index = clinics.value.findIndex((clinic: Clinic) => clinic.id === form.id);
-        console.log('INDEX:', res.data.clinic, index);
         if (index !== -1) clinics.value[index] = res.data.clinic;
         toast.success('Clínica atualizada com sucesso');
         close();
@@ -96,10 +95,6 @@ watch(
         if (!open) return;
 
         const clinic = editModal.clinic.value;
-
-        console.log('CLINIC:', clinic);
-        console.log('SPECIALTY ID:', clinic?.specialty_id);
-        console.log('OPTIONS:', specialtyOptions.value);
 
         if (!clinic) return;
 
