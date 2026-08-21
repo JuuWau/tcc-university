@@ -25,6 +25,7 @@ class PatientResource extends JsonResource
             'status' => $this->status,
             'patient_type' => $this->patient_type,
             'birth_date' => $this->birth_date,
+            'biological_sex' => $this->biological_sex,
             'students' => $this->whenLoaded('students', function () {
                 return $this->students->map(fn ($student) => [
                     'id' => $student->id,

@@ -34,6 +34,7 @@ class StorePatientRequest extends FormRequest
             'state' => ['nullable', 'string', 'max:2'],
             'complement' => ['nullable', 'string', 'max:50'],
             'patient_type' => ['required', 'string', 'max:50'],
+            'biological_sex' => ['required', 'string', Rule::in(['male', 'female'])],
         ];
     }
 
