@@ -21,9 +21,9 @@ class ProcessOpenScheduleJob implements ShouldQueue
      * Create a new job instance.
      */
     public function __construct(
-        public array $slots, 
+        public array $slots,
         public array $data
-        ) {}
+    ) {}
 
     /**
      * Execute the job.
@@ -43,8 +43,17 @@ class ProcessOpenScheduleJob implements ShouldQueue
 
                     $students = Student::query()
                         ->select('students.*')
-                        ->join('student_periods', 'student_periods.student_id', '=', 'students.id')
-                        ->where('student_periods.period_id', $this->data['period_id'])
+                        ->join(
+                            'student_periods',
+                            'student_periods.student_id',
+                            '=',
+                            'students.id'
+                        )
+                        ->where(
+                            'student_periods.period_id',
+                            $slot->period_id
+                        )
+                        ->where('student_periods.is_current', true)
                         ->whereNull('student_periods.ended_at')
                         ->get();
 
