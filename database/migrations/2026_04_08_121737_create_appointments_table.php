@@ -24,7 +24,7 @@ return new class extends Migration
                 ->cascadeOnDelete();
              $table->foreignId('procedure_id')
                 ->nullable()
-                ->constrained('users')
+                ->constrained('procedures')
                 ->nullOnDelete();
             $table->dateTime('scheduled_start_at');
             $table->dateTime('scheduled_end_at');
