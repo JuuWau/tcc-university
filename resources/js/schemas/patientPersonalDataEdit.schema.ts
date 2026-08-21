@@ -52,6 +52,13 @@ export const patientPersonalDataEditSchema = z.object({
             return birthDate <= today;
         }, 'A data de nascimento não pode ser futura.'),
     ),
+    biological_sex: z.preprocess(
+        normalizeOptionalString,
+        z.enum(['male', 'female'], {
+            required_error: 'Sexo biológico é obrigatório',
+            invalid_type_error: 'Sexo biológico inválido',
+        }),
+    ),
     cep: z.preprocess(
         normalizeOptionalString,
         z.string().max(9, 'CEP não pode ter mais de 9 caracteres').nullable(),
