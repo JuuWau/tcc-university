@@ -48,6 +48,7 @@ class Patient extends Model
         'status',
         'code',
         'patient_type',
+        'biological_sex',
     ];
 
     public function university()
