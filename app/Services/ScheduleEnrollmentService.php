@@ -4,7 +4,6 @@ namespace App\Services;
 
 use App\Constants\ActivityModules;
 use App\Models\Appointment;
-use App\Models\Clinic;
 use App\Models\ScheduleEnrollment;
 use App\Models\ScheduleSlot;
 use App\Models\Student;
@@ -43,6 +42,10 @@ class ScheduleEnrollmentService
                                 if ($enrollment) {
                                         if ($enrollment->trashed()) {
                                                 $enrollment->restore();
+
+                                                $enrollment->update([
+                                                        'status' => ScheduleEnrollment::STATUS_ACTIVE,
+                                                ]);
 
                                                 ActivityLogService::updated(
                                                         ActivityModules::ENROLLMENTS,
@@ -119,8 +122,8 @@ class ScheduleEnrollmentService
 
                         $clinicName = $slot?->clinic?->name ?? "ID: {$slot?->clinic_id}";
                         $periodName = $slot->period
-                                        ? "{$slot->period->academic_year}º ano {$slot->period->semester}º semestre de {$slot->period->calendar_year}"
-                                        : "ID: {$slot->period_id}";
+                                ? "{$slot->period->academic_year}º ano {$slot->period->semester}º semestre de {$slot->period->calendar_year}"
+                                : "ID: {$slot->period_id}";
 
                         $changes = ActivityLogService::getChanges($enrollment);
 
