@@ -22,8 +22,13 @@ const patient = computed(() => context.patient.value);
 const editPersonalDataModalOpen = context.editPersonalDataModalOpen;
 
 const patientTypeOptions = [
-    { label: 'Adulto', value: 'adulto' },
+    { label: 'Adulto', value: 'adult' },
     { label: 'Pediatria', value: 'pediatria' },
+];
+
+const biologicalSexOptions = [
+    { label: 'Masculino', value: 'male' },
+    { label: 'Feminino', value: 'female' },
 ];
 
 const emit = defineEmits<{
@@ -49,6 +54,7 @@ const form = reactive({
     phone: '',
     cpf: '',
     birth_date: '',
+    biological_sex: null as 'male' | 'female' | null,
     patient_type: null as 'adulto' | 'pediatria' | null,
     cep: '',
     street: '',
@@ -75,6 +81,7 @@ function populateForm() {
     form.phone = p?.phone ?? '';
     form.cpf = p?.cpf ?? '';
     form.birth_date = formatDateForInput(p?.birth_date);
+    form.biological_sex = p?.biological_sex ?? null;
     form.cep = addr?.cep ?? '';
     form.street = addr?.street ?? '';
     form.neighborhood = addr?.neighborhood ?? '';
@@ -146,6 +153,7 @@ async function submit() {
         phone: form.phone,
         cpf: form.cpf,
         birth_date: form.birth_date,
+        biological_sex: form.biological_sex,
         patient_type: form.patient_type,
         cep: form.cep,
         street: form.street,
@@ -260,6 +268,26 @@ async function submit() {
                         v-model="form.birth_date"
                         type="date"
                         class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+                    />
+                </div>
+
+                <div>
+                    <label
+                        class="mb-1 block text-sm font-medium text-gray-700"
+                    >
+                        Sexo biológico (*)
+                    </label>
+
+                    <AppMultiselect
+                        v-model="form.biological_sex"
+                        :options="biologicalSexOptions"
+                        label="label"
+                        value-prop="value"
+                        :searchable="false"
+                        :close-on-select="true"
+                        :can-clear="true"
+                        :append-to-body="true"
+                        placeholder="Selecione o sexo"
                     />
                 </div>
 
