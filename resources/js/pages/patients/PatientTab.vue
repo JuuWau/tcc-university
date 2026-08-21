@@ -20,10 +20,21 @@
             </nav>
 
             <div>
-                <PatientPersonalData v-if="activeTab === 'personal'" />
-                <!-- <PatientSchedules v-if="activeTab === 'schedules'" /> -->
-                <PatientClinicsData v-if="activeTab === 'clinics'" />
-                <PatientActionLogs v-if="activeTab === 'logs'" />
+                <PatientPersonalData
+                    v-if="activeTab === 'personal'"
+                />
+
+                <PatientSchedules
+                    v-if="activeTab === 'schedules'"
+                />
+
+                <PatientClinicsData
+                    v-if="activeTab === 'clinics'"
+                />
+
+                <PatientActionLogs
+                    v-if="activeTab === 'logs'"
+                />
             </div>
         </div>
 
@@ -40,7 +51,7 @@ import PatientPersonalDataEditModal from '@/pages/patients/components/personal-d
 import PatientStudentEditModal from '@/pages/patients/components/student-data/PatientStudentEditModal.vue';
 import PatientHeader from '@/pages/patients/PatientHeader.vue';
 import PatientPersonalData from '@/pages/patients/tabs/PatientPersonalData.vue';
-// import PatientSchedules from '@/pages/patients/tabs/PatientSchedules.vue';
+import PatientSchedules from '@/pages/patients/tabs/patient-schedule/PatientSchedules.vue';
 import type { PatientForTab } from '@/types/patient/patient';
 import { router, usePage } from '@inertiajs/vue3';
 import { computed, provide, ref } from 'vue';
