@@ -53,4 +53,9 @@ class Student extends Model
             'patient_students'
         )->wherePivotNull('deleted_at');
     }
+
+    public function enrollments()
+    {
+        return $this->hasMany(ScheduleEnrollment::class);
+    }
 }

@@ -42,7 +42,9 @@ function selectDay(day: MonthDay) {
 const openDays = computed(() => schedule.openDays?.value ?? []);
 
 function isOpenDay(date: string) {
-    return openDays.value.includes(date);
+    return openDays.value.some(
+        (day) => day === date,
+    );
 }
 </script>
 

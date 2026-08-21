@@ -6,16 +6,20 @@ use App\Constants\ActivityLogPrefixes;
 use App\Constants\ActivityModules;
 use App\Data\Patients\PatientClinicsTableFiltersData;
 use App\Data\Patients\PatientTableFiltersData;
-use App\Models\Address;
+use App\Models\Appointment;
 use App\Models\Clinic;
 use App\Models\ClinicWaitingList;
 use App\Models\Patient;
 use App\Models\PatientClinic;
+use App\Models\Period;
+use App\Models\ScheduleSlot;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Collection;
+use Illuminate\Database\Eloquent\Collection;
+use Illuminate\Support\Collection as Collec;
+use Carbon\Carbon;
 
 class PatientService
 {
@@ -627,7 +631,7 @@ class PatientService
                 });
         }
 
-        public function availableClinics(Patient $patient): Collection
+        public function availableClinics(Patient $patient): Collec
         {
                 $enrolledClinicIds = PatientClinic::query()
                         ->where('patient_id', $patient->id)
@@ -655,5 +659,165 @@ class PatientService
                                 'label' => $clinic->name,
                                 'value' => $clinic->id,
                         ]);
+        }
+
+        public function list(Patient $patient): array
+        {
+                $relations = [
+                        'student.person',
+                        'procedure',
+                        'enrollment.slot.clinic',
+                        'enrollment.slot.period',
+                        'enrollment.slot.responsibles.person',
+                ];
+
+                $upcoming = Appointment::query()
+                        ->with($relations)
+                        ->where('patient_id', $patient->id)
+                        ->where('scheduled_start_at', '>=', now())
+                        ->orderBy('scheduled_start_at')
+                        ->get();
+
+                $completed = Appointment::query()
+                        ->with($relations)
+                        ->where('patient_id', $patient->id)
+                        ->where('scheduled_start_at', '<', now())
+                        ->orderByDesc('scheduled_start_at')
+                        ->get();
+
+                return [
+                        'upcoming' => $upcoming,
+                        'completed' => $completed,
+                ];
+        }
+
+        public function getEnrolledClinics(Patient $patient): Collection
+        {
+                return $patient->clinics()
+                        ->select([
+                                'clinics.id',
+                                'clinics.name',
+                        ])
+                        ->get();
+        }
+
+        public function getClinicPeriods(Clinic $clinic): Collection
+        {
+                return Period::query()
+                        ->where('university_id', $clinic->university_id)
+                        ->whereHas('scheduleSlots', function ($query) use ($clinic) {
+                                $query->where('clinic_id', $clinic->id);
+                        })
+                        ->orderByDesc('calendar_year')
+                        ->orderByDesc('academic_year')
+                        ->orderByDesc('semester')
+                        ->get();
+        }
+
+        public function getClinicStudents(Patient $patient, array $filters)
+        {
+                return Student::query()
+                        ->with('currentPeriod', 'person')
+                        ->whereHas('enrollments.slot', function ($query) use ($filters) {
+                                $query
+                                        ->where('clinic_id', $filters['clinic_id'])
+                                        ->where('period_id', $filters['period_id']);
+                        })
+                        ->whereHas('currentPeriod', function ($query) use ($filters) {
+                                $query->where('period_id', $filters['period_id']);
+                        })
+                        ->get();
+        }
+
+        public function getAvailableDays(Patient $patient, array $data): array
+        {
+                $slots = ScheduleSlot::query()
+                        ->where('clinic_id', $data['clinic_id'])
+                        ->where('period_id', $data['period_id'])
+                        ->whereYear('date', $data['year'])
+                        ->whereMonth('date', $data['month'])
+                        ->orderBy('date')
+                        ->get();
+
+                return [
+                        'available_days' => $slots
+                                ->pluck('date')
+                                ->map(fn($date) => $date->format('Y-m-d'))
+                                ->unique()
+                                ->values()
+                                ->all(),
+                ];
+        }
+
+        public function getAvailableTimes(Patient $patient, array $data): array 
+        {
+                $slot = ScheduleSlot::query()
+                        ->where('clinic_id', $data['clinic_id'])
+                        ->where('period_id', $data['period_id'])
+                        ->whereDate('date', $data['date'])
+                        ->first();
+
+                if (!$slot) {
+                        return [
+                                'available_times' => [],
+                        ];
+                }
+
+                $appointments = Appointment::query()
+                        ->whereDate('scheduled_start_at', $data['date'])
+                        ->whereIn('status', [
+                                'scheduled',
+                                'confirmed',
+                        ])
+                        ->get([
+                                'scheduled_start_at',
+                                'scheduled_end_at',
+                        ]);
+
+                $duration = (int) $data['duration'];
+
+                $start = Carbon::parse(
+                        $data['date'] . ' ' . $slot->start_time
+                );
+
+                $end = Carbon::parse(
+                        $data['date'] . ' ' . $slot->end_time
+                );
+
+                $availableTimes = [];
+
+                while ($start->copy()->addMinutes($duration)->lte($end)) {
+                        $timeStart = $start->copy();
+                        $timeEnd = $start->copy()->addMinutes($duration);
+
+                        $hasConflict = $appointments->contains(function ($appointment) use (
+                                $timeStart,
+                                $timeEnd
+                        ) {
+                                $appointmentStart = Carbon::parse(
+                                        $appointment->scheduled_start_at
+                                );
+
+                                $appointmentEnd = Carbon::parse(
+                                        $appointment->scheduled_end_at
+                                );
+
+                                return $timeStart->lt($appointmentEnd)
+                                        && $timeEnd->gt($appointmentStart);
+                        });
+
+                        if (!$hasConflict) {
+                                $availableTimes[] = [
+                                        'start_time' => $timeStart->format('H:i'),
+                                        'end_time' => $timeEnd->format('H:i'),
+                                ];
+                        }
+
+                        $start->addMinutes($duration);
+                }
+
+                return [
+                        'available_times' => $availableTimes,
+                ];
         }
 }

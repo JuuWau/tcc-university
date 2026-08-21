@@ -7,16 +7,22 @@ use App\Data\Patients\PatientTableFiltersData;
 use App\Http\Requests\AddPatientToWaitingListRequest;
 use App\Http\Requests\EnrollPatientClinicRequest;
 use App\Http\Requests\PatientClinicsTableRequest;
+use App\Http\Requests\PatientScheduleAvailableDaysRequest;
+use App\Http\Requests\PatientScheduleAvailableTimesRequest;
+use App\Http\Requests\PatientScheduleStudentsRequest;
 use App\Http\Requests\StorePatientRequest;
 use App\Http\Requests\TablePatientRequest;
 use App\Http\Requests\UpdatePatientStudentDataRequest;
 use App\Http\Requests\UpdatePatientStudentRequest;
 use App\Http\Requests\UpdatePatientRequest;
 use App\Http\Resources\PatientClinicResource;
+use App\Http\Resources\PeriodResource;
 use App\Http\Resources\PatientCollection;
 use App\Http\Resources\PatientOptionResource;
 use App\Http\Resources\PatientResource;
+use App\Http\Resources\PatientScheduleResource;
 use App\Http\Resources\StudentOptionResource;
+use App\Http\Resources\ClinicResource;
 use App\Models\PatientImport;
 use App\Imports\PatientsImport;
 use App\Models\Clinic;
@@ -194,7 +200,7 @@ class PatientController extends Controller
         );
 
         return response()->json([
-            'message' => 'Importação iniciada', 
+            'message' => 'Importação iniciada',
             'import_id' => $import->id,
         ]);
     }
@@ -216,7 +222,7 @@ class PatientController extends Controller
         )->resolve();
     }
 
-    public function clinicsTable(PatientClinicsTableRequest $request, Patient $patient) 
+    public function clinicsTable(PatientClinicsTableRequest $request, Patient $patient)
     {
         $clinics = $this->patientService->paginateClinics(
             $patient,
@@ -224,13 +230,13 @@ class PatientController extends Controller
                 $request
             )
         );
-        
+
         return PatientClinicResource::collection(
             $clinics
         );
     }
 
-    public function removeEnrollment(Patient $patient, Clinic $clinic): JsonResponse 
+    public function removeEnrollment(Patient $patient, Clinic $clinic): JsonResponse
     {
         try {
             $this->patientService->removeEnrollment(
@@ -249,7 +255,7 @@ class PatientController extends Controller
         }
     }
 
-    public function enrollClinic(EnrollPatientClinicRequest $request, Clinic $clinic) 
+    public function enrollClinic(EnrollPatientClinicRequest $request, Clinic $clinic)
     {
         try {
             $patientClinic = $this->patientService->enrollClinic(
@@ -270,7 +276,7 @@ class PatientController extends Controller
         }
     }
 
-    public function addToWaitingList(Clinic $clinic, AddPatientToWaitingListRequest $request) 
+    public function addToWaitingList(Clinic $clinic, AddPatientToWaitingListRequest $request)
     {
         try {
             $this->patientService->addToWaitingList(
@@ -294,6 +300,54 @@ class PatientController extends Controller
     {
         return response()->json(
             $this->patientService->availableClinics($patient)
+        );
+    }
+
+    public function schedules(Patient $patient)
+    {
+        $schedules = $this->patientService->list($patient);
+
+        return response()->json([
+            'upcoming' => PatientScheduleResource::collection(
+                $schedules['upcoming']
+            ),
+            'completed' => PatientScheduleResource::collection(
+                $schedules['completed']
+            ),
+        ]);
+    }
+
+    public function getEnrolledClinics(Patient $patient)
+    {
+        $clinics = $this->patientService->getEnrolledClinics($patient);
+
+        return ClinicResource::collection($clinics);
+    }
+
+    public function getClinicPeriods(Clinic $clinic)
+    {
+        return PeriodResource::collection(
+            $this->patientService->getClinicPeriods($clinic)
+        );
+    }
+
+    public function getClinicStudents(Patient $patient, PatientScheduleStudentsRequest $request)
+    {
+        return StudentOptionResource::collection(
+            $this->patientService->getClinicStudents($patient, $request->validated())
+        );
+    }
+
+    public function getAvailableDays(Patient $patient, PatientScheduleAvailableDaysRequest $request) {
+        return response()->json(
+            $this->patientService->getAvailableDays($patient, $request->validated())
+        );
+    }
+
+    public function getAvailableTimes(Patient $patient, PatientScheduleAvailableTimesRequest $request) 
+    {
+        return response()->json(
+            $this->patientService->getAvailableTimes($patient, $request->validated())
         );
     }
 }

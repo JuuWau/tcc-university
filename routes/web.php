@@ -162,6 +162,14 @@ Route::prefix('student-calendar')->group(function () {
     Route::post('/{student}', [AppointmentController::class, 'store'])->name('student-calendar.store');
 });
 
+Route::prefix('patient-calendar')->group(function () {
+    Route::get('/{patient}/available-days', [AppointmentController::class, 'availableDays'])->name('patient-calendar.availableDays');
+    Route::get('/{patient}/available-times', [AppointmentController::class, 'availableTimes'])->name('student-calendar.availableTimes');
+    Route::post('/{patient}', [AppointmentController::class, 'storePatientCalendar'])->name('student-calendar.store');
+    Route::put('/{patient}/{appointment}', [AppointmentController::class, 'updatePatientCalendar'])->name('patient-calendar.update');
+    Route::patch('/{patient}/{appointment}/time', [AppointmentController::class, 'updatePatientCalendarTime'])->name('patient-calendar.update');
+});
+
 Route::prefix('patients')->group(function () {
     Route::get('/', [PatientController::class, 'index'])->name('patients.index');
     Route::get('/table', [PatientController::class, 'table'])->name('patients.table');
@@ -182,6 +190,10 @@ Route::prefix('patients')->group(function () {
     Route::post('/clinics/{clinic}/enroll', [PatientController::class, 'enrollClinic'])->name('patients.clinics.enroll');
     Route::post('/clinics/{clinic}/waiting-list', [PatientController::class, 'addToWaitingList'])->name('patients.clinics.addToWaitingList');
     Route::get('/{patient}/available-clinics', [PatientController::class, 'availableClinics'])->name('patients.clinics.availableClinics');
+    Route::get('/{patient}/schedules', [PatientController::class, 'schedules'])->name('patients.schedules');
+    Route::get('/schedule/{patient}/clinics', [PatientController::class, 'getEnrolledClinics'])->name('patients.getEnrolledClinics');
+    Route::get('/schedule/{clinic}/periods', [PatientController::class, 'getClinicPeriods'])->name('patients.getClinicPeriods');
+    Route::get('/schedule/{patient}/students', [PatientController::class, 'getClinicStudents'])->name('patients.getClinicStudents');
 })->middleware(['auth', 'verified']);
 
 Route::prefix('users')->group(function () {
