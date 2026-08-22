@@ -25,6 +25,11 @@ const patientTypeOptions = [
     { label: 'Pediatria', value: 'pediatria' },
 ];
 
+const biologicalSexOptions = [
+    { label: 'Masculino', value: 'male' },
+    { label: 'Feminino', value: 'female' },
+];
+
 const students = computed(
     () => (page.props as { students?: StudentOption[] }).students ?? [],
 );
@@ -51,6 +56,7 @@ const form = reactive({
     cpf: '' as string | null,
     phone: '' as string | null,
     birth_date: '' as string | null,
+    biological_sex: null as 'male' | 'female' | null,
     cep: '' as string | null,
     street: '' as string | null,
     neighborhood: '' as string | null,
@@ -117,6 +123,7 @@ function close() {
     form.cpf = null;
     form.phone = null;
     form.birth_date = null;
+    form.biological_sex = null;
     form.cep = null;
     form.street = null;
     form.neighborhood = null;
@@ -266,6 +273,28 @@ async function submit() {
                         />
                     </div>
 
+                    <div>
+                        <label
+                            class="mb-2 block text-sm font-medium text-gray-700"
+                        >
+                            Sexo biológico (*)
+                        </label>
+
+                        <AppMultiselect
+                            v-model="form.biological_sex"
+                            :options="biologicalSexOptions"
+                            label="label"
+                            value-prop="value"
+                            :searchable="false"
+                            :close-on-select="true"
+                            :can-clear="true"
+                            :append-to-body="true"
+                            placeholder="Selecione o sexo"
+                        />
+                    </div>
+                </div>
+
+                <div>
                     <div>
                         <label class="mb-2 block text-sm font-medium text-gray-700">
                             Tipo de atendimento (*)

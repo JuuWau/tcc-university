@@ -51,6 +51,7 @@ export interface PatientForTab {
     name: string;
     cpf: string | null;
     birth_date: string | null;
+    biological_sex: 'female' | 'male';
     patient_type: 'adulto' | 'pediatria';
     phone: string | null;   
     email: string | null;

@@ -23,6 +23,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('cpf')->nullable()->unique();
             $table->date('birth_date')->nullable();
+            $table->string('biological_sex', 20)->nullable();
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
             $table->string('patient_type');

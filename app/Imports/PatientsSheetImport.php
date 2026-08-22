@@ -17,7 +17,7 @@ use Throwable;
 class PatientsSheetImport implements ToCollection, WithHeadingRow, WithChunkReading, ShouldQueue
 {
     use RemembersChunkOffset;
-    
+
     protected array $errors = [];
 
     public function __construct(
@@ -44,6 +44,28 @@ class PatientsSheetImport implements ToCollection, WithHeadingRow, WithChunkRead
 
             $name = trim((string) $row->get('pacientes'));
             $code = $this->normalizeCode($row->get('codigo'));
+            $biologicalSex = Str::of((string) $row->get('genero'))
+                ->ascii()
+                ->trim()
+                ->lower()
+                ->toString();
+
+            if (!in_array($biologicalSex, [
+                'male',
+                'masculino',
+                'm',
+                'female',
+                'feminino',
+                'f',
+            ], true)) {
+                $this->logError(
+                    $excelRowNumber,
+                    "gênero inválido: {$biologicalSex}",
+                    $name
+                );
+
+                continue;
+            }
 
             if ($name === '' && $code === '') {
                 $this->logError($excelRowNumber, 'linha vazia');
@@ -60,9 +82,15 @@ class PatientsSheetImport implements ToCollection, WithHeadingRow, WithChunkRead
                 continue;
             }
 
+            if ($biologicalSex === '') {
+                $this->logError($excelRowNumber, "paciente {$name} sem gênero");
+                continue;
+            }
+
             $validator = Validator::make($row->toArray(), [
                 'codigo' => ['required'],
                 'pacientes' => ['required'],
+                'genero' => ['required'],
             ]);
 
             if ($validator->fails()) {
@@ -97,11 +125,15 @@ class PatientsSheetImport implements ToCollection, WithHeadingRow, WithChunkRead
                         ? 'adulto'
                         : 'pediatria',
                     'status' => Patient::STATUS_ATIVO,
+                    'biological_sex' => match ($biologicalSex) {
+                        'male', 'masculino', 'm' => 'male',
+                        'female', 'feminino', 'f' => 'female',
+                        default => null,
+                    },
                     'student_ids' => [],
                 ], $this->universityId);
 
                 $this->importLog->increment('imported');
-
             } catch (Throwable $e) {
                 $this->logError($excelRowNumber, $e->getMessage(), $name);
             }

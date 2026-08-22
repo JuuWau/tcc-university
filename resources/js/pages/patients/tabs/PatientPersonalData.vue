@@ -70,6 +70,14 @@
                     {{ formatPatientType(patient?.patient_type) }}
                 </p>
             </div>
+            <div>
+                <p class="text-xs tracking-wide text-gray-400 uppercase">
+                    Sexo biológico
+                </p>
+                <p class="mt-1 text-sm font-medium text-gray-900">
+                    {{ formatPatientBiologicalSex(patient?.biological_sex) }}
+                </p>
+            </div>
         </div>
 
         <div
@@ -149,6 +157,8 @@ if (!ctx) {
 
 const { patient, editPersonalDataModalOpen } = ctx;
 
+
+console.log(patient);
 function openEditModal() {
     editPersonalDataModalOpen.value = true;
 }
@@ -161,6 +171,19 @@ function formatPatientType(type: string | null) {
 
         case 'pediatria':
             return 'Pediatria';
+
+        default:
+            return '-';
+    }
+}
+
+function formatPatientBiologicalSex(type: string | null) {
+    switch (type) {
+        case 'female':
+            return 'Feminino';
+
+        case 'male':
+            return 'Masculino';
 
         default:
             return '-';

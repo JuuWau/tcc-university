@@ -107,6 +107,7 @@ class PatientService
                                 'status' => $data['status'] ?? Patient::STATUS_ATIVO,
                                 'code' => $data['code'],
                                 'patient_type' => $data['patient_type'],
+                                'biological_sex' => $data['biological_sex']
                         ]);
 
                         $changes = ActivityLogService::getCreatedChanges($patient);
@@ -192,6 +193,7 @@ class PatientService
                                         && in_array($data['status'], Patient::statuses(), true)
                                         ? $data['status']
                                         : $patient->status,
+                                'biological_sex' => $data['biological_sex'],
                         ]);
 
                         $changes = ActivityLogService::getChanges($patient);

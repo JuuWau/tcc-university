@@ -26,6 +26,11 @@ const patientTypeOptions = [
     { label: 'Pediatria', value: 'pediatria' },
 ];
 
+const biologicalSexOptions = [
+    { label: 'Masculino', value: 'male' },
+    { label: 'Feminino', value: 'female' },
+];
+
 const emit = defineEmits<{
     updated: [];
 }>();
@@ -50,6 +55,7 @@ const form = reactive({
     cpf: '',
     birth_date: '',
     patient_type: null as 'adulto' | 'pediatria' | null,
+    biological_sex: null as 'male' | 'female' | null,
     cep: '',
     street: '',
     neighborhood: '',
@@ -75,6 +81,7 @@ function populateForm() {
     form.phone = p?.phone ?? '';
     form.cpf = p?.cpf ?? '';
     form.birth_date = formatDateForInput(p?.birth_date);
+    form.biological_sex = p?.biological_sex ?? null;
     form.cep = addr?.cep ?? '';
     form.street = addr?.street ?? '';
     form.neighborhood = addr?.neighborhood ?? '';
@@ -146,6 +153,7 @@ async function submit() {
         phone: form.phone,
         cpf: form.cpf,
         birth_date: form.birth_date,
+        biological_sex: form.biological_sex,
         patient_type: form.patient_type,
         cep: form.cep,
         street: form.street,
@@ -186,15 +194,23 @@ async function submit() {
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
     >
         <div
-            class="max-h-[90vh] w-full max-w-2xl rounded-lg bg-white p-6"
+            class="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white"
         >
-            <h2 class="mb-4 text-lg font-bold">Editar dados do paciente</h2>
-            <hr />
+            <div class="shrink-0 border-b px-6 py-4">
+                <h2 class="text-lg font-bold">
+                    Editar dados do paciente
+                </h2>
+            </div>
 
-            <form class="space-y-4 pt-4" @submit.prevent="submit">
+            <form
+                class="min-h-0 flex-1 overflow-y-auto px-6 py-4"
+                @submit.prevent="submit"
+            >
                 <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
-                        <label class="mb-1 block text-sm font-medium text-gray-700">
+                        <label
+                            class="mb-1 block text-sm font-medium text-gray-700"
+                        >
                             Nome completo (*)
                         </label>
 
@@ -208,7 +224,9 @@ async function submit() {
                     </div>
 
                     <div>
-                        <label class="mb-1 block text-sm font-medium text-gray-700">
+                        <label
+                            class="mb-1 block text-sm font-medium text-gray-700"
+                        >
                             E-mail
                         </label>
 
@@ -221,7 +239,7 @@ async function submit() {
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
                         <label
                             class="mb-1 block text-sm font-medium text-gray-700"
@@ -252,8 +270,10 @@ async function submit() {
                     </div>
                 </div>
 
-                <div>
-                    <label class="mb-1 block text-sm font-medium text-gray-700">
+                <div class="mt-4">
+                    <label
+                        class="mb-1 block text-sm font-medium text-gray-700"
+                    >
                         Data de nascimento
                     </label>
                     <input
@@ -263,8 +283,30 @@ async function submit() {
                     />
                 </div>
 
-                <div>
-                    <label class="mb-1 block text-sm font-medium text-gray-700">
+                <div class="mt-4">
+                    <label
+                        class="mb-1 block text-sm font-medium text-gray-700"
+                    >
+                        Sexo biológico (*)
+                    </label>
+
+                    <AppMultiselect
+                        v-model="form.biological_sex"
+                        :options="biologicalSexOptions"
+                        label="label"
+                        value-prop="value"
+                        :searchable="false"
+                        :close-on-select="true"
+                        :can-clear="false"
+                        :append-to-body="true"
+                        placeholder="Selecione o sexo"
+                    />
+                </div>
+
+                <div class="mt-4">
+                    <label
+                        class="mb-1 block text-sm font-medium text-gray-700"
+                    >
                         Tipo de atendimento (*)
                     </label>
 
@@ -281,7 +323,7 @@ async function submit() {
                     />
                 </div>
 
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                     <div>
                         <label
                             class="mb-1 block text-sm font-medium text-gray-700"
@@ -292,7 +334,7 @@ async function submit() {
                             v-model="form.cep"
                             type="text"
                             v-mask="'#####-###'"
-                            class="w-full rounded border px-3 py-2 text-sm"
+                            class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                         />
                     </div>
                     <div class="md:col-span-2">
@@ -305,12 +347,12 @@ async function submit() {
                             v-model="form.street"
                             type="text"
                             maxlength="100"
-                            class="w-full rounded border px-3 py-2 text-sm"
+                            class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                         />
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                     <div>
                         <label
                             class="mb-1 block text-sm font-medium text-gray-700"
@@ -321,7 +363,7 @@ async function submit() {
                             v-model="form.neighborhood"
                             type="text"
                             maxlength="50"
-                            class="w-full rounded border px-3 py-2 text-sm"
+                            class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                         />
                     </div>
                     <div>
@@ -334,7 +376,7 @@ async function submit() {
                             v-model="form.number"
                             type="text"
                             maxlength="5"
-                            class="w-full rounded border px-3 py-2 text-sm"
+                            class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                         />
                     </div>
                     <div>
@@ -347,12 +389,12 @@ async function submit() {
                             v-model="form.complement"
                             type="text"
                             maxlength="20"
-                            class="w-full rounded border px-3 py-2 text-sm"
+                            class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                         />
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
                     <div>
                         <label
                             class="mb-1 block text-sm font-medium text-gray-700"
@@ -367,6 +409,7 @@ async function submit() {
                             :searchable="true"
                             :close-on-select="true"
                             :can-clear="true"
+                            :append-to-body="true"
                             placeholder="Selecione o estado"
                         />
                     </div>
@@ -384,16 +427,22 @@ async function submit() {
                             :searchable="true"
                             :close-on-select="true"
                             :can-clear="true"
+                            :append-to-body="true"
                             placeholder="Selecione a cidade"
                         />
                     </div>
                 </div>
-
-                <div class="flex justify-end gap-2 pt-4">
-                    <CancelButton @click="close" />
-                    <SaveButton :loading="loading" @click.stop="submit" />
-                </div>
             </form>
+            <div
+                class="flex shrink-0 justify-end gap-2 border-t bg-white px-6 py-4"
+            >
+                <CancelButton @click="close" />
+
+                <SaveButton
+                    :loading="loading"
+                    @click="submit"
+                />
+            </div>
         </div>
     </div>
 </template>

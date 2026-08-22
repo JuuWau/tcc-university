@@ -48,6 +48,13 @@ export const patientCreateSchema = z.object({
         normalizeOptionalString,
         z.string().min(10, 'Data de nascimento inválida').optional().nullable(),
     ),
+    biological_sex: z.preprocess(
+        normalizeOptionalString,
+        z.enum(['male', 'female'], {
+            required_error: 'Sexo biológico é obrigatório',
+            invalid_type_error: 'Sexo biológico inválido',
+        }),
+    ),
     cep: z.preprocess(
         normalizeOptionalString,
         z.string().max(9, 'CEP não pode ter mais de 9 caracteres').optional().nullable(),
@@ -80,7 +87,7 @@ export const patientCreateSchema = z.object({
         .enum(['adulto', 'pediatria'])
         .nullable()
         .refine((value) => value !== null, {
-            message: 'Tipo do paciente é obrigatório',
+            message: 'Tipo de atendimento é obrigatório',
         }),
 });
 
