@@ -24,6 +24,19 @@ class StudentTableResource extends JsonResource
             ],
             'email' => $this->user?->email,
             'deleted_at' => $this->deleted_at,
+            'periods' => $this->whenLoaded('periods', function () {
+                return $this->periods->map(fn($period) => [
+                    'id' => $period->id,
+                    'academic_year' => $period->academic_year,
+                    'semester' => $period->semester,
+                    'calendar_year' => $period->calendar_year,
+                    'pivot' => [
+                        'started_at' => $period->pivot->started_at,
+                        'ended_at' => $period->pivot->ended_at,
+                        'is_current' => $period->pivot->is_current,
+                    ],
+                ]);
+            }),
         ];
     }
 }

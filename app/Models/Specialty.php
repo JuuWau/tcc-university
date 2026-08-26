@@ -4,6 +4,7 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Specialty extends BaseModel
@@ -28,8 +29,8 @@ class Specialty extends BaseModel
         return $this->hasMany(Procedure::class);
     }
 
-    public function clinics(): HasMany
+    public function clinics(): BelongsToMany
     {
-        return $this->hasMany(Clinic::class);
+        return $this->belongsToMany(Clinic::class, 'clinic_specialty');
     }
 }

@@ -4,8 +4,10 @@ namespace App\Services;
 
 use App\Constants\ActivityModules;
 use App\Models\Clinic;
+use App\Models\ClinicSpecialty;
 use App\Models\ScheduleEnrollment;
 use App\Models\ScheduleSlot;
+use App\Models\Specialty;
 use Illuminate\Support\Facades\DB;
 
 class ClinicService
@@ -13,7 +15,7 @@ class ClinicService
     public function all(int $universityId)
     {
         return Clinic::query()
-            ->with('specialty')
+            ->with('specialties')
             ->where('university_id', $universityId)
             ->orderBy('name')
             ->get();
@@ -26,16 +28,32 @@ class ClinicService
                 'university_id' => $universityId,
                 'name' => trim((string) $data['name']),
                 'active' => true,
-                'specialty_id' => $data['specialty_id'],
             ]);
+
+            $changes = [];
+
+            if (!empty($data['specialty_ids'])) {
+                $clinic->specialties()->sync($data['specialty_ids']);
+
+                ActivityLogService::trackRelationChanges(
+                    $changes,
+                    'specialties',
+                    [],
+                    ActivityLogService::getRelationValues(
+                        Specialty::class,
+                        $data['specialty_ids'],
+                    ),
+                );
+            }
 
             ActivityLogService::created(
                 ActivityModules::CLINICS,
                 "Cadastrou a clínica '{$clinic->name}'.",
                 $clinic,
+                $changes,
             );
 
-            return $clinic;
+            return $clinic->load('specialties');
         });
     }
 
@@ -44,25 +62,41 @@ class ClinicService
         return DB::transaction(function () use ($clinic, $data) {
             $clinic->fill([
                 'name' => trim((string) $data['name']),
-                'specialty_id' => $data['specialty_id'],
             ]);
 
             $changes = ActivityLogService::getChanges($clinic);
 
-            if (empty($changes)) {
-                return $clinic;
+            if (isset($data['specialty_ids'])) {
+                ActivityLogService::trackRelationChanges(
+                    $changes,
+                    'specialties',
+                    $clinic->specialties()
+                        ->orderBy('name')
+                        ->pluck('specialties.name')
+                        ->toArray(),
+                    ActivityLogService::getRelationValues(
+                        Specialty::class,
+                        $data['specialty_ids'],
+                    ),
+                );
             }
 
             $clinic->save();
 
-            ActivityLogService::updated(
-                ActivityModules::CLINICS,
-                "Atualizou a clínica '{$clinic->name}'.",
-                $clinic,
-                $changes,
-            );
+            if (isset($data['specialty_ids'])) {
+                $clinic->specialties()->sync($data['specialty_ids']);
+            }
 
-            return $clinic;
+            if (!empty($changes)) {
+                ActivityLogService::updated(
+                    ActivityModules::CLINICS,
+                    "Atualizou a clínica '{$clinic->name}'.",
+                    $clinic,
+                    $changes,
+                );
+            }
+
+            return $clinic->load('specialties');
         });
     }
 
@@ -161,6 +195,16 @@ class ClinicService
 
             $changes = ActivityLogService::getChanges($clinic);
 
+            ActivityLogService::trackRelationChanges(
+                $changes,
+                'specialties',
+                ActivityLogService::getModelRelationValues(
+                    $clinic,
+                    'specialties',
+                ),
+                [],
+            );
+
             $clinic->save();
 
             if (!empty($changes)) {
@@ -171,6 +215,9 @@ class ClinicService
                     $changes,
                 );
             }
+
+            ClinicSpecialty::where('clinic_id', $clinic->id)
+                ->update(['deleted_at' => now()]);
 
             $clinic->delete();
         });

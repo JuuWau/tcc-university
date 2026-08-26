@@ -25,13 +25,13 @@ if (!createModal) {
 
 const form = reactive({
     name: '',
-    specialty_id: null as number | null,
+    specialty_ids: [] as number[],
 });
 
 function close() {
     createModal.isOpen.value = false;
     form.name = '';
-    form.specialty_id = null;
+    form.specialty_ids = [];
 }
 
 watch(
@@ -106,16 +106,18 @@ async function loadSpecialties() {
             </div>
             <div class="pb-4">
                 <label class="mb-2 block text-sm font-medium text-gray-700">
-                    Especialidade (*)
+                    Especialidades (*)
                 </label>
                 <AppMultiselect
-                    v-model="form.specialty_id"
+                    v-model="form.specialty_ids"
                     :options="specialtyOptions"
                     label="label"
+                    mode="tags"
                     value-prop="value"
-                    placeholder="Todas as especialidades"
+                    placeholder="Selecione as especialidades"
                     :searchable="true"
                     :can-clear="true"
+                    :multiple="true"
                     :append-to-body="true"
                 />
             </div>

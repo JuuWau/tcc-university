@@ -65,7 +65,7 @@ function isOpenDay(date: string) {
                 <span
                     class="rounded-md bg-white px-2 py-1 text-xs text-gray-500"
                 >
-                    {{ month.days.length }} dias
+                    {{ month.days.filter(day => day.day !== 0).length }} dias
                 </span>
             </div>
 
