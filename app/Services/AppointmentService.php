@@ -242,10 +242,10 @@ class AppointmentService
         public function createAppointment(int $studentId, array $data,): Appointment
         {
                 return DB::transaction(function () use ($studentId, $data) {
-
                         $scheduledStartAt = Carbon::parse($data['scheduled_start_at']);
-
                         $scheduledEndAt = Carbon::parse($data['scheduled_end_at']);
+
+                        $this->validateStudentBookingDeadline($scheduledStartAt);
 
                         $enrollment = ScheduleEnrollment::query()
                                 ->where('student_id', $studentId)
@@ -510,7 +510,7 @@ class AppointmentService
                 });
         }
 
-        public function updatePatientAppointment(int $patient, Appointment $appointment, array $data,): Appointment 
+        public function updatePatientAppointment(int $patient, Appointment $appointment, array $data,): Appointment
         {
                 return DB::transaction(function () use (
                         $patient,
@@ -631,5 +631,22 @@ class AppointmentService
                                 'enrollment.slot',
                         ]);
                 });
+        }
+
+        private function validateStudentBookingDeadline(Carbon $scheduledStartAt): void
+        {
+                $user = auth()->user();
+
+                if (!$user?->hasRole('student')) {
+                        return;
+                }
+
+                $minimumDateTime = now()->addHours(24);
+
+                if ($scheduledStartAt->lt($minimumDateTime)) {
+                        throw new \DomainException(
+                                'Alunos devem realizar agendamentos com pelo menos 24 horas de antecedência.'
+                        );
+                }
         }
 }
