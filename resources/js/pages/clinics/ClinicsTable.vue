@@ -2,7 +2,7 @@
 import ClinicTableActionsButtons from '@/components/buttons/ClinicTableActionsButtons.vue';
 import CreateButton from '@/components/buttons/CreateButton.vue';
 import { ClinicsGroupKey } from '@/keys/clinics/clinicKeys';
-import type { Clinic } from '@/types/clinic/clinic';
+import type { Clinic, Specialty } from '@/types/clinic/clinic';
 import { AgGridVue } from 'ag-grid-vue3';
 import { computed, inject, ref, type Ref } from 'vue';
 import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale';
@@ -34,11 +34,30 @@ const columnDefs = [
         filter: true,
     },
     {
-        headerName: 'Especialidade',
-        field: 'specialty.name',
+        headerName: 'Especialidades',
+        field: 'specialties',
         flex: 2,
         sortable: true,
         filter: true,
+        autoHeight: true,
+        cellClass: 'cell-center',
+        cellRenderer: (params: any) => {
+            if (!params.value?.length) return '';
+
+            return `
+                <div class="flex flex-wrap items-center h-full gap-1">
+                    ${params.value
+                        .map(
+                            (specialty: Specialty) => `
+                                <span class="px-2 py-0.5 text-xs font-medium rounded-xl bg-sky-100 text-sky-700">
+                                    ${specialty.name}
+                                </span>
+                            `,
+                        )
+                        .join('')}
+                </div>
+            `;
+        },
     },
     {
         headerName: 'Status',

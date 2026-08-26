@@ -21,7 +21,7 @@ if (!editModal) {
 const form = reactive({
     id: null as number | null,
     name: '',
-    specialty_id: null as number | null,
+    specialty_ids: [] as number[],
 });
 
 const specialtyOptions = ref<
@@ -36,24 +36,35 @@ watch(
     (open) => {
         if (!open) return;
 
-        const clinic = editModal.clinic.value;
+        const clinic = editModal.clinic.value as Clinic | null;
 
         if (!clinic) return;
 
         form.id = clinic.id;
         form.name = clinic.name;
-        form.specialty_id = clinic.specialty_id;
+
+        form.specialty_ids = clinic.specialties?.map(
+            (specialty) => specialty.id,
+        ) ?? [];
     },
 );
 
 function close() {
     editModal.isOpen.value = false;
+
+    form.id = null;
+    form.name = '';
+    form.specialty_ids = [];
 }
 
 async function submit() {
     if (!form.id || loading.value) return;
 
-    const result = clinicSchema.safeParse({ name: form.name, specialty_id: form.specialty_id });
+    const result = clinicSchema.safeParse({
+        name: form.name,
+        specialty_ids: form.specialty_ids,
+    });
+
     if (!result.success) {
         toast.error(result.error.issues[0].message);
         return;
@@ -61,13 +72,28 @@ async function submit() {
 
     try {
         loading.value = true;
-        const res = await axios.put(`/clinics/${form.id}`, result.data);
-        const index = clinics.value.findIndex((clinic: Clinic) => clinic.id === form.id);
-        if (index !== -1) clinics.value[index] = res.data.clinic;
+
+        const res = await axios.put(
+            `/clinics/${form.id}`,
+            result.data,
+        );
+
+        const index = clinics.value.findIndex(
+            (clinic: Clinic) => clinic.id === form.id,
+        );
+
+        if (index !== -1) {
+            clinics.value[index] = res.data.clinic;
+        }
+
         toast.success('Clínica atualizada com sucesso');
+
         close();
     } catch (error: any) {
-        toast.error(error.response?.data?.message ?? 'Erro ao atualizar clínica');
+        toast.error(
+            error.response?.data?.message ??
+                'Erro ao atualizar clínica',
+        );
     } finally {
         loading.value = false;
     }
@@ -77,10 +103,12 @@ async function loadSpecialties() {
     try {
         const { data } = await axios.get('/specialties/options');
 
-        specialtyOptions.value = data.specialties.map((specialty: any) => ({
-            label: specialty.name,
-            value: specialty.id,
-        }));
+        specialtyOptions.value = data.specialties.map(
+            (specialty: any) => ({
+                label: specialty.name,
+                value: specialty.id,
+            }),
+        );
     } catch (error: any) {
         toast.error(
             error.response?.data?.message ??
@@ -89,25 +117,11 @@ async function loadSpecialties() {
     }
 }
 
-watch(
-    () => editModal.isOpen.value,
-    (open) => {
-        if (!open) return;
-
-        const clinic = editModal.clinic.value;
-
-        if (!clinic) return;
-
-        form.id = clinic.id;
-        form.name = clinic.name;
-        form.specialty_id = clinic.specialty_id;
-    },
-);
-
 onMounted(() => {
     loadSpecialties();
 });
 </script>
+
 
 <template>
     <div
@@ -134,9 +148,10 @@ onMounted(() => {
                     Especialidade (*)
                 </label>
                 <AppMultiselect
-                    v-model="form.specialty_id"
+                    v-model="form.specialty_ids"
                     :options="specialtyOptions"
                     label="label"
+                    mode="tags"
                     value-prop="value"
                     placeholder="Todas as especialidades"
                     :searchable="true"
