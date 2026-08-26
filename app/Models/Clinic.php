@@ -45,8 +45,8 @@ class Clinic extends Model
         )->withPivot('enrolled_at');
     }
 
-    public function specialty(): BelongsTo
+    public function specialties(): BelongsToMany
     {
-        return $this->belongsTo(Specialty::class);
+        return $this->belongsToMany(Specialty::class, 'clinic_specialty')->withTimestamps();;
     }
 }
