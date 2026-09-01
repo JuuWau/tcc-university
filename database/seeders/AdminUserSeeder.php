@@ -23,16 +23,10 @@ class AdminUserSeeder extends Seeder
             return;
         }
 
-        $adminRole = Role::firstOrCreate(
-            ['slug' => 'admin'],
-            ['name' => 'Admin']
-        );
-
         $user = User::firstOrCreate(
             ['email' => 'juliawauters04@gmail.com'],
             [
                 'university_id' => $university->id,
-                'role_id' => $adminRole->id,
                 'password' => Hash::make('123'),
                 'email_verified_at' => now(),
                 'two_factor_secret' => null,
