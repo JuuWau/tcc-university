@@ -103,57 +103,57 @@ Route::get('/reports/clinics-by-student', function () {
 });
 
 Route::prefix('specialties')->group(function () {
-    Route::get('/', [SpecialtiesController::class, 'index'])->name('specialties.index');
+    Route::get('/', [SpecialtiesController::class, 'index'])->name('specialties.index')->middleware('permission:specialties.view');
     Route::get('/options', [SpecialtiesController::class, 'options'])->name('specialties.options');
     Route::get('/create', [SpecialtiesController::class, 'create'])->name('specialties.create');
-    Route::post('/', [SpecialtiesController::class, 'store'])->name('specialties.store');
-    Route::put('/{specialty}', [SpecialtiesController::class, 'update'])->name('specialties.update');
-    Route::delete('/{specialty}', [SpecialtiesController::class, 'destroy'])->name('specialties.destroy');
-})->middleware(['auth', 'verified'])->name('specialties');
+    Route::post('/', [SpecialtiesController::class, 'store'])->name('specialties.store')->middleware('permission:specialties.create');
+    Route::put('/{specialty}', [SpecialtiesController::class, 'update'])->name('specialties.update')->middleware('permission:specialties.update');
+    Route::delete('/{specialty}', [SpecialtiesController::class, 'destroy'])->name('specialties.destroy')->middleware('permission:specialties.delete');
+})->middleware(['auth', 'verified', 'permission:registrations.view'])->name('specialties');
 
 Route::prefix('periods')->group(function () {
-    Route::get('/', [PeriodsController::class, 'index'])->name('periods.index');
+    Route::get('/', [PeriodsController::class, 'index'])->name('periods.index')->middleware('permission:periods.view');
     Route::get('/create', [PeriodsController::class, 'create'])->name('periods.create');
-    Route::post('/', [PeriodsController::class, 'store'])->name('periods.store');
-    Route::put('/{period}', [PeriodsController::class, 'update'])->name('periods.update');
-    Route::delete('/{period}', [PeriodsController::class, 'destroy'])->name('periods.destroy');
-})->middleware(['auth', 'verified']);
+    Route::post('/', [PeriodsController::class, 'store'])->name('periods.store')->middleware('permission:periods.create');
+    Route::put('/{period}', [PeriodsController::class, 'update'])->name('periods.update')->middleware('permission:periods.update');
+    Route::delete('/{period}', [PeriodsController::class, 'destroy'])->name('periods.destroy')->middleware('permission:periods.delete');
+})->middleware(['auth', 'verified', 'permission:registrations.view']);
 
 Route::prefix('clinics')->group(function () {
-    Route::get('/', [ClinicController::class, 'index'])->name('clinics.index');
+    Route::get('/', [ClinicController::class, 'index'])->name('clinics.index')->middleware('permission:clinics.view');
     Route::get('/table', [ClinicController::class, 'table'])->name('clinics.table');
-    Route::post('/', [ClinicController::class, 'store'])->name('clinics.store');
-    Route::put('/{clinic}', [ClinicController::class, 'update'])->name('clinics.update');
-    Route::patch('/{clinic}/deactivate', [ClinicController::class, 'deactivate'])->name('clinics.deactivate');
-    Route::patch('/{clinic}/activate', [ClinicController::class, 'activate'])->name('clinics.activate');
-    Route::delete('/{clinic}', [ClinicController::class, 'destroy'])->name('clinics.destroy');
-})->middleware(['auth', 'verified']);
+    Route::post('/', [ClinicController::class, 'store'])->name('clinics.store')->middleware('permission:clinics.create');
+    Route::put('/{clinic}', [ClinicController::class, 'update'])->name('clinics.update')->middleware('permission:clinics.update');
+    Route::patch('/{clinic}/deactivate', [ClinicController::class, 'deactivate'])->name('clinics.deactivate')->middleware('permission:clinics.deactivate');
+    Route::patch('/{clinic}/activate', [ClinicController::class, 'activate'])->name('clinics.activate')->middleware('permission:clinics.activate');
+    Route::delete('/{clinic}', [ClinicController::class, 'destroy'])->name('clinics.destroy')->middleware('permission:clinics.delete');
+})->middleware(['auth', 'verified', 'permission:registrations.view']);
 
 Route::prefix('procedures')->group(function () {
-    Route::get('/', [ProceduresController::class, 'index'])->name('procedures.index');
-    Route::post('/', [ProceduresController::class, 'store'])->name('procedures.store');
-    Route::put('/{procedure}', [ProceduresController::class, 'update'])->name('procedures.update');
-    Route::delete('/{procedure}', [ProceduresController::class, 'destroy'])->name('procedures.destroy');
+    Route::get('/', [ProceduresController::class, 'index'])->name('procedures.index')->middleware('permission:procedures.view');
+    Route::post('/', [ProceduresController::class, 'store'])->name('procedures.store')->middleware('permission:procedures.create');
+    Route::put('/{procedure}', [ProceduresController::class, 'update'])->name('procedures.update')->middleware('permission:procedures.update');
+    Route::delete('/{procedure}', [ProceduresController::class, 'destroy'])->name('procedures.destroy')->middleware('permission:procedures.delete');
     Route::get('/list', [ProceduresController::class, 'list'])->name('procedures.list');
-})->middleware(['auth', 'verified']);
+})->middleware(['auth', 'verified', 'permission:registrations.view']);
 
 Route::prefix('students')->group(function () {
-    Route::patch('/{student}/academic-data', [StudentsController::class, 'updateAcademicData'])->name('students.update.academic-data');
+    Route::patch('/{student}/academic-data', [StudentsController::class, 'updateAcademicData'])->name('students.update.academic-data')->middleware('permission:students.personal-page.updateHeaderData');
     Route::get('/{student}/clinics', [StudentsController::class, 'availableClinics'])->name('students.availableClinics');
     Route::get('/{student}/schedule', [StudentsController::class, 'schedule'])->name('students.schedule');
-    Route::patch('/{student}', [StudentsController::class, 'update'])->name('students.update');
-    Route::get('/', [StudentsController::class, 'index'])->name('students.index');
+    Route::patch('/{student}', [StudentsController::class, 'update'])->name('students.update')->middleware('permission:students.personal-page.updatePersonalData');
+    Route::get('/', [StudentsController::class, 'index'])->name('students.index')->middleware('permission:students.view');
     Route::get('/table', [StudentsController::class, 'table'])->name('students.table');
     Route::get('/create', [StudentsController::class, 'create'])->name('students.create');
-    Route::post('/', [StudentsController::class, 'store'])->name('students.store');
-    Route::post('/resend-invite/{student}', [StudentsController::class, 'resendInvite'])->name('students.resend-invite');
+    Route::post('/', [StudentsController::class, 'store'])->name('students.store')->middleware('permission:students.create');
+    Route::post('/resend-invite/{student}', [StudentsController::class, 'resendInvite'])->name('students.invite');
     Route::get('/options', [StudentsController::class, 'options'])->name('students.options');
-    Route::get('/{student}', [StudentsController::class, 'show'])->name('students.show');
-    Route::delete('/{student}', [StudentsController::class, 'destroy'])->name('students.destroy');
-    Route::delete('/deactivate/{student}', [StudentsController::class, 'deactivate'])->name('students.deactivate');
-    Route::delete('/activate/{student}', [StudentsController::class, 'activate'])->name('students.activate');
+    Route::get('/{student}', [StudentsController::class, 'show'])->name('students.show')->middleware('permission:students.personal-page.view');
+    Route::delete('/{student}', [StudentsController::class, 'destroy'])->name('students.destroy')->middleware('permission:students.delete');
+    Route::delete('/deactivate/{student}', [StudentsController::class, 'deactivate'])->name('students.deactivate')->middleware('permission:students.deactivate');
+    Route::delete('/activate/{student}', [StudentsController::class, 'activate'])->name('students.activate')->middleware('permission:students.activate');
     Route::get('/{student}/patients', [StudentsController::class, 'patients'])->name('students.patients');
-});
+})->middleware(['auth', 'verified']);
 
 Route::prefix('student-calendar')->group(function () {
     Route::get('/{student}/appointments', [AppointmentController::class, 'listByStudent'])->name('student-calendar.listByStudent');
@@ -165,30 +165,29 @@ Route::prefix('student-calendar')->group(function () {
 Route::prefix('patient-calendar')->group(function () {
     Route::get('/{patient}/available-days', [AppointmentController::class, 'availableDays'])->name('patient-calendar.availableDays');
     Route::get('/{patient}/available-times', [AppointmentController::class, 'availableTimes'])->name('student-calendar.availableTimes');
-    Route::post('/{patient}', [AppointmentController::class, 'storePatientCalendar'])->name('student-calendar.store');
+    Route::post('/{patient}', [AppointmentController::class, 'storePatientCalendar'])->name('patient-calendar.store');
     Route::put('/{patient}/{appointment}', [AppointmentController::class, 'updatePatientCalendar'])->name('patient-calendar.update');
-    Route::patch('/{patient}/{appointment}/time', [AppointmentController::class, 'updatePatientCalendarTime'])->name('patient-calendar.update');
+    Route::patch('/{patient}/{appointment}/time', [AppointmentController::class, 'updatePatientCalendarTime'])->name('patient-calendar.updateTime');
 });
 
 Route::prefix('patients')->group(function () {
-    Route::get('/', [PatientController::class, 'index'])->name('patients.index');
+    Route::get('/', [PatientController::class, 'index'])->name('patients.index')->middleware('permission:patients.view');
     Route::get('/table', [PatientController::class, 'table'])->name('patients.table');
-    Route::post('/import', [PatientController::class, 'import'])->name('patients.import');
+    Route::post('/import', [PatientController::class, 'import'])->name('patients.import')->middleware('permission:patients.import');;
     Route::get('/imports/{import}', [PatientController::class, 'importStatus'])->name('patients.import.status');
     Route::get('/{patient}', [PatientController::class, 'show'])->name('patients.show')->whereNumber('patient');
-    Route::post('/', [PatientController::class, 'store'])->name('patients.store');
-    Route::patch('/{patient}', [PatientController::class, 'update'])->name('patients.update');
+    Route::post('/', [PatientController::class, 'store'])->name('patients.store')->middleware('permission:patients.create');;
+    Route::patch('/{patient}', [PatientController::class, 'update'])->name('patients.update')->middleware('permission:patients.update');;
     Route::patch('/{patient}/student', [PatientController::class, 'updateStudent'])->name('patients.update.student');
-    Route::patch('/{patient}/student-data', [PatientController::class, 'updateStudentData'])->name('patients.update.student-data');
-    Route::delete('/deactivate/{patient}', [PatientController::class, 'deactivate'])->name('patients.deactivate');
-    Route::delete('/activate/{patient}', [PatientController::class, 'activate'])->name('patients.activate');
-    Route::delete('/{patient}', [PatientController::class, 'destroy'])->name('patients.destroy');
+    Route::patch('/{patient}/student-data', [PatientController::class, 'updateStudentData'])->name('patients.update.student-data')->middleware('permission:patients.updateHeaderData');
+    Route::delete('/deactivate/{patient}', [PatientController::class, 'deactivate'])->name('patients.deactivate')->middleware('permission:patients.deactivate');
+    Route::delete('/activate/{patient}', [PatientController::class, 'activate'])->name('patients.activate')->middleware('permission:patients.activate');
+    Route::delete('/{patient}', [PatientController::class, 'destroy'])->name('patients.destroy')->middleware('permission:patients.delete');
     Route::get('/options/{clinic}', [PatientController::class, 'availablePatients'])->name('patients.availablePatients');
     Route::get('/{patient}/clinics/table', [PatientController::class, 'clinicsTable'])->name('patients.clinics.clinicsTable');
-    Route::delete('/{patient}/clinics/{clinic}/remove-enrollment', [PatientController::class, 'removeEnrollment'])->name('patients.clinics.
-     remove-enrollment');
-    Route::post('/clinics/{clinic}/enroll', [PatientController::class, 'enrollClinic'])->name('patients.clinics.enroll');
-    Route::post('/clinics/{clinic}/waiting-list', [PatientController::class, 'addToWaitingList'])->name('patients.clinics.addToWaitingList');
+    Route::delete('/{patient}/clinics/{clinic}/remove-enrollment', [PatientController::class, 'removeEnrollment'])->name('patients.clinics.remove-enrollment')->middleware('patients.personal-page.removeEnrollmentClinic');
+    Route::post('/clinics/{clinic}/enroll', [PatientController::class, 'enrollClinic'])->name('patients.clinics.enrollClinic')->middleware('patients.personal-page.enrollClinic');
+    Route::post('/clinics/{clinic}/waiting-list', [PatientController::class, 'addToWaitingList'])->name('patients.clinics.addToWaitingList')->middleware('patients.personal-page.addToWaitingList');
     Route::get('/{patient}/available-clinics', [PatientController::class, 'availableClinics'])->name('patients.clinics.availableClinics');
     Route::get('/{patient}/schedules', [PatientController::class, 'schedules'])->name('patients.schedules');
     Route::get('/schedule/{patient}/clinics', [PatientController::class, 'getEnrolledClinics'])->name('patients.getEnrolledClinics');
@@ -197,42 +196,42 @@ Route::prefix('patients')->group(function () {
 })->middleware(['auth', 'verified']);
 
 Route::prefix('users')->group(function () {
-    Route::get('/', [UsersController::class, 'index'])->name('users.index');
+    Route::get('/', [UsersController::class, 'index'])->name('users.index')->middleware('permission:users.view');
     Route::get('/table', [UsersController::class, 'table'])->name('users.table');
     Route::get('/{user}', [UsersController::class, 'show'])->name('users.show');
-    Route::post('/', [UsersController::class, 'store'])->name('users.store');
-    Route::patch('/{user}', [UsersController::class, 'update'])->name('users.update');
-    Route::patch('/{user}/role', [UsersController::class, 'updateRole'])->name('users.update.role');
-    Route::post('/resend-invite/{user}', [UsersController::class, 'resendInvite'])->name('users.resend-invite');
-    Route::delete('/deactivate/{user}', [UsersController::class, 'deactivate'])->name('users.deactivate');
-    Route::delete('/activate/{user}', [UsersController::class, 'activate'])->name('users.activate');
-    Route::delete('/{user}', [UsersController::class, 'destroy'])->name('users.destroy');
-    Route::get('/logs', [ActionLogsController::class, 'index'])->name('action-logs.index');
+    Route::post('/', [UsersController::class, 'store'])->name('users.store')->middleware('users.create');
+    Route::patch('/{user}', [UsersController::class, 'update'])->name('users.update')->middleware('users.update');
+    Route::patch('/{user}/role', [UsersController::class, 'updateRole'])->name('users.update.role')->middleware('users.updateRole');
+    Route::post('/resend-invite/{user}', [UsersController::class, 'resendInvite'])->name('users.resend-invite')->middleware('users.invite');;
+    Route::delete('/deactivate/{user}', [UsersController::class, 'deactivate'])->name('users.deactivate')->middleware('users.deactivate');;
+    Route::delete('/activate/{user}', [UsersController::class, 'activate'])->name('users.activate')->middleware('users.activate');
+    Route::delete('/{user}', [UsersController::class, 'destroy'])->name('users.destroy')->middleware('users.delete');
+    Route::get('/logs', [ActionLogsController::class, 'index'])->name('action-logs.index')->middleware('permission:action-logs.view');
 })->middleware(['auth', 'verified']);
 
 Route::prefix('attendance')->name('attendance')->group(function () {
-    Route::get('/clinics', [AttendanceController::class, 'clinics'])->name('attendance.index');
+    Route::get('/clinics', [AttendanceController::class, 'clinics'])->name('attendance.index')->middleware('permission:attendance.view');
     Route::get('/clinics/table', [AttendanceController::class, 'clinicsTable'])->name('attendance.clinics.table');
     Route::get('/clinics/{clinic}', [AttendanceController::class, 'showClinic'])->name('attendance.showClinic');
     Route::get('/clinics/{clinic}/dates', [AttendanceController::class, 'getDates'])->name('attendance.dates');
     Route::get('/schedule-slots/{slot}/students', [AttendanceController::class, 'getStudents'])->name('attendance.students');
-    Route::put('/schedule-slots/{slot}', [AttendanceController::class, 'updateAttendance'])->name('attendance.updateAttendance');
+    Route::put('/schedule-slots/{slot}', [AttendanceController::class, 'updateAttendance'])->name('attendance.updateAttendance')->middleware('permission:attendance.update');
 });
 
 Route::prefix('appointments-confirmation')->name('appointments-confirmation.')->group(function () {
-    Route::get('/', [AppointmentConfirmationController::class, 'index'])->name('appointments-confirmation.index');
+    Route::get('/', [AppointmentConfirmationController::class, 'index'])->name('appointments-confirmation.index')->middleware('permission:appointments-confirmation.view');
     Route::get('/list', [AppointmentConfirmationController::class, 'list'])->name('appointments-confirmation.list');
-    Route::patch('/{appointment}/status', [AppointmentConfirmationController::class, 'updateStatus'])->name('appointments-confirmation.updateStatus');;
+    Route::patch('/{appointment}/status', [AppointmentConfirmationController::class, 'updateStatus'])->name('appointments-confirmation.updateStatus')->middleware('permission:appointments-confirmation.update');
 });
 
 Route::prefix('clinics-management')->name('clinics-management.')->group(function () {
-    Route::get('/', [ClinicManagementController::class, 'index'])->name('index');
+    Route::get('/', [ClinicManagementController::class, 'index'])->name('index')->middleware('permission:clinics-management.view');
     Route::get('/clinicsTable', [ClinicManagementController::class, 'clinicsTable'])->name('clinics-management.table');
     Route::get('/{clinic}', [ClinicManagementController::class, 'show'])->name('show');
     Route::get('/{clinic}/table', [ClinicManagementController::class, 'table'])->name('table');
-    Route::post('/{clinic}/enroll', [ClinicManagementController::class, 'enroll'])->name('enroll');
-    Route::delete('/{clinic}/remove-enrollment/{patient}', [ClinicManagementController::class, 'removeEnrollment'])->name('remove-enrollment');
-    Route::post('/{clinic}/waiting-list', [ClinicManagementController::class, 'storeWaitingList'])->name('storeWaitingList');
+    Route::post('/{clinic}/enroll', [ClinicManagementController::class, 'enroll'])->name('enroll')->middleware('permission:clinics-management.enrollClinic');
+    Route::delete('/{clinic}/remove-enrollment/{patient}', [ClinicManagementController::class, 'removeEnrollment'])->name('remove-enrollment')->middleware('permission:clinics-management.removeEnrollmentClinic');
+    Route::post('/{clinic}/waiting-list', [ClinicManagementController::class, 'storeWaitingList'])->name('storeWaitingList')->middleware('permission:clinics-management.addPatientToWaitingList');
 });
 
 Route::prefix('action-logs')->middleware(['auth', 'verified'])->group(function () {
