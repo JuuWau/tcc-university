@@ -3,20 +3,20 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
-use Illuminate\Database\Eloquent\Model;
+use Spatie\Permission\Models\Role as SpatieRole;
 
-class Role extends Model
+class Role extends SpatieRole
 {
     use HasFactory;
 
-    public const STUDENT = 2;
-    public const STAFF = 3;
     public const ADMIN = 1;
+    public const STUDENT = 2;
+    public const RECEPTIONIST = 3;
+    public const PROFESSOR = 4;
 
-    protected $fillable = ['name', 'slug'];
-
-    public function users()
-    {
-        return $this->hasMany(User::class);
-    }
+    protected $fillable = [
+        'name',
+        'slug',
+        'guard_name',
+    ];
 }
