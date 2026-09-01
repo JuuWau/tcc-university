@@ -26,7 +26,7 @@ const breadcrumbs: BreadcrumbItem[] = [
                 <h1
                     class="mb-2 text-3xl font-bold text-zinc-800 dark:text-zinc-100"
                 >
-                    Bem-vindo ao Acadent👋
+                    Bem-vindo ao Acadent
                 </h1>
 
                 <p class="mb-8 text-zinc-500">

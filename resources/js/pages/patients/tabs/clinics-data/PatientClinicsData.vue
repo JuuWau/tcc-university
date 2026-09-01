@@ -12,6 +12,13 @@ import PatientClinicRemoveEnrollmentModal from '../../components/clinics-data/Pa
 import { LoadingKey } from '@/keys/ui/loadingKey.js';
 import CreateButton from '@/components/buttons/CreateButton.vue';
 import PatientClinicCreateWaitingListModal from '../../components/clinics-data/PatientClinicCreateWaitingListModal.vue';
+import { usePage } from '@inertiajs/vue3';
+
+const page = usePage();
+
+const can = (permission: string) => {
+    return page.props.auth.permissions.includes(permission);
+};
 
 const patientContext = inject(PatientTabContextKey) as PatientTabContext | undefined;
 
@@ -117,7 +124,7 @@ onMounted(() => {
             </div>
 
             <CreateButton
-                v-if="patientClinics.activeStatus.value === 'waiting'"
+                v-if="patientClinics.activeStatus.value === 'waiting' && can('patients.personal-page.addPatientToWaitingList')"
                 label="Adicionar paciente a lista de espera"
                 icon="Plus"
                 @click="openCreateWaitingListModal"

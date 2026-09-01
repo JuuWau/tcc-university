@@ -1,9 +1,6 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue';
-
-import {
-    AppointmentsConfirmationKey,
-} from '@/keys/appointments-confirmation/appointmentsConfirmationKeys';
+import { AppointmentsConfirmationKey, } from '@/keys/appointments-confirmation/appointmentsConfirmationKeys';
 import Button from '@/components/ui/button/Button.vue';
 import AppMultiselect from '@/components/AppMultiselect.vue';
 import { X } from 'lucide-vue-next';

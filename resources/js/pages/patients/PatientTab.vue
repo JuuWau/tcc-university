@@ -5,7 +5,7 @@
 
             <nav class="flex flex-wrap gap-2 rounded-2xl bg-gray-100 p-1">
                 <button
-                    v-for="tab in tabs"
+                    v-for="tab in visibleTabs"
                     :key="tab.key"
                     @click="activeTab = tab.key"
                     class="cursor-pointer rounded-xl px-4 py-2 text-sm font-medium transition"
@@ -25,15 +25,24 @@
                 />
 
                 <PatientSchedules
-                    v-if="activeTab === 'schedules'"
+                    v-if="
+                        activeTab === 'schedules' &&
+                        can('patients.personal-page.viewAppointments')
+                    "
                 />
 
                 <PatientClinicsData
-                    v-if="activeTab === 'clinics'"
+                    v-if="
+                        activeTab === 'clinics' &&
+                        can('patients.personal-page.viewClinics')
+                    "
                 />
 
                 <PatientActionLogs
-                    v-if="activeTab === 'logs'"
+                    v-if="
+                        activeTab === 'logs' &&
+                        can('action-logs.view')
+                    "
                 />
             </div>
         </div>
@@ -54,13 +63,14 @@ import PatientPersonalData from '@/pages/patients/tabs/PatientPersonalData.vue';
 import PatientSchedules from '@/pages/patients/tabs/patient-schedule/PatientSchedules.vue';
 import type { PatientForTab } from '@/types/patient/patient';
 import { router, usePage } from '@inertiajs/vue3';
-import { computed, provide, ref } from 'vue';
+import { computed, provide, ref, watch } from 'vue';
 import PatientClinicsData from './tabs/clinics-data/PatientClinicsData.vue';
 import PatientActionLogs from '@/pages/users/tabs/UserActionLogs.vue';
 import { useUserActionLogs } from '@/composables/user/useUserActionLogs.js';
 import { UserActionLogsContextKey } from '@/keys/action-logs/userActionLogsKeys.js';
 
 const page = usePage();
+
 const patient = computed(
     () => (page.props as unknown as { patient: PatientForTab }).patient,
 );
@@ -70,6 +80,16 @@ const students = computed(
         (page.props as unknown as { students?: StudentOption[] }).students ??
         [],
 );
+
+const can = (permission: string) => {
+    const props = page.props as unknown as {
+        auth: {
+            permissions: string[];
+        };
+    };
+
+    return props.auth.permissions.includes(permission);
+};
 
 const editPersonalDataModalOpen = ref(false);
 const editStudentModalOpen = ref(false);
@@ -98,6 +118,12 @@ const tabs: { key: TabKey; label: string }[] = [
     { key: 'logs', label: 'Histórico de ações' },
 ];
 
+const visibleTabs = computed(() => {
+    return tabs.filter((tab) => {
+        return !tab.permission || can(tab.permission);
+    });
+});
+
 function onPersonalDataUpdated() {
     editPersonalDataModalOpen.value = false;
     void router.reload();
@@ -107,4 +133,14 @@ function onStudentUpdated() {
     editStudentModalOpen.value = false;
     void router.reload();
 }
+
+watch(activeTab, async (tab) => {
+    if (
+        tab === 'logs' &&
+        can('action-logs.view') &&
+        actionLogs.logs.value.data.length === 0
+    ) {
+        await actionLogs.load();
+    }
+});
 </script>

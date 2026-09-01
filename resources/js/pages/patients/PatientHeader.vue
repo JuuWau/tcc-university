@@ -39,6 +39,7 @@
             class="relative flex w-full flex-col gap-2 sm:ml-auto sm:w-auto sm:flex-row sm:items-center"
         >
             <Button
+                v-if="can('patients.personal-page.updateHeaderData')"
                 variant="outline"
                 size="sm"
                 class="w-full cursor-pointer sm:w-auto"
@@ -95,8 +96,15 @@ import type { PatientTabContext } from '@/keys/patients/patientKeys';
 import { PatientTabContextKey } from '@/keys/patients/patientKeys';
 import type { PatientStatusKey } from '@/types/patient/patient';
 import { PATIENT_STATUS } from '@/types/patient/patient';
+import { usePage } from '@inertiajs/vue3';
 import { ChevronDown, Mail, Pencil, PhoneCall } from 'lucide-vue-next';
 import { computed, inject, ref } from 'vue';
+
+const page = usePage();
+
+const can = (permission: string) => {
+    return page.props.auth.permissions.includes(permission);
+};
 
 const ctx = inject(PatientTabContextKey) as PatientTabContext | undefined;
 

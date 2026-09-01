@@ -5,7 +5,7 @@
 
             <nav class="flex flex-wrap gap-2 rounded-2xl bg-gray-100 p-1">
                 <button
-                    v-for="tab in tabs"
+                    v-for="tab in visibleTabs"
                     :key="tab.key"
                     @click="activeTab = tab.key"
                     class="cursor-pointer rounded-xl px-4 py-2 text-sm font-medium transition"
@@ -22,7 +22,12 @@
             <div>
                 <StudentPersonalData v-if="activeTab === 'personal'" />
                 <StudentScheduleTab v-if="activeTab === 'calendar'" />
-                <StudentActionLogs v-if="activeTab === 'logs'" />
+                <StudentActionLogs
+                    v-if="
+                        activeTab === 'logs' &&
+                        can('action-logs.view')
+                    "
+                />
             </div>
         </div>
 
@@ -48,9 +53,20 @@ import { useUserActionLogs } from '@/composables/user/useUserActionLogs.js';
 import { UserActionLogsContextKey } from '@/keys/action-logs/userActionLogsKeys.js';
 
 const page = usePage();
+
 const student = computed(
     () => (page.props as unknown as { student: Student }).student,
 );
+
+const can = (permission: string) => {
+    const props = page.props as unknown as {
+        auth: {
+            permissions: string[];
+        };
+    };
+
+    return props.auth.permissions.includes(permission);
+};
 
 const editModalOpen = ref(false);
 const academicDataEditModalOpen = ref(false);
@@ -60,8 +76,6 @@ provide(StudentTabContextKey, {
     academicDataEditModalOpen,
 });
 
-
-const userId = computed(() => student.value.user?.id ?? 0);
 
 const actionLogs = useUserActionLogs(
     'students',
@@ -75,11 +89,18 @@ const activeTab = ref<'personal' | 'calendar' | 'logs'>('personal');
 const tabs: {
     key: 'personal' | 'calendar' | 'logs';
     label: string;
+    permission?: string;
 }[] = [
     { key: 'personal', label: 'Dados pessoais' },
     { key: 'calendar', label: 'Agenda' },
-    { key: 'logs', label: 'Histórico de ações' },
+    { key: 'logs', label: 'Histórico de ações', permission: 'action-logs.view' },
 ];
+
+const visibleTabs = computed(() => {
+    return tabs.filter((tab) => {
+        return !tab.permission || can(tab.permission);
+    });
+});
 
 function onStudentUpdated() {
     editModalOpen.value = false;
@@ -94,6 +115,7 @@ function onAcademicDataUpdated() {
 watch(activeTab, async (tab) => {
     if (
         tab === 'logs' &&
+        can('action-logs.view') &&
         actionLogs.logs.value.data.length === 0
     ) {
         await actionLogs.load();
