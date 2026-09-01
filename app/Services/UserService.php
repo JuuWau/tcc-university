@@ -37,7 +37,7 @@ class UserService
         $query = User::withTrashed()
             ->with([
                 'person:id,user_id,name',
-                'role:id,name,slug',
+                'roles:id,name,slug',
                 'invite' => fn($q) => $q->select([
                     'user_invites.id',
                     'user_invites.user_id',
@@ -46,7 +46,9 @@ class UserService
                     'user_invites.token',
                 ]),
             ])
-            ->where('role_id', '!=', Role::STUDENT)
+            ->whereHas('roles', function ($query) {
+                $query->where('slug', '!=', 'student');
+            })
             ->when($filters->universityId, fn($q) => $q->where('users.university_id', $filters->universityId))
             ->whereDoesntHave('student');
 
@@ -92,10 +94,13 @@ class UserService
         return DB::transaction(function () use ($data, $universityId) {
             $user = User::create([
                 'email' => $data['email'],
-                'role_id' => $data['role_id'],
                 'university_id' => $universityId,
                 'password' => Hash::make(Str::random(32)),
             ]);
+
+            $role = Role::findOrFail($data['role_id']);
+
+            $user->assignRole($role);
 
             $person = Person::create([
                 'user_id' => $user->id,
@@ -136,7 +141,7 @@ class UserService
 
             return $user->load([
                 'person',
-                'role',
+                'roles',
                 'invite',
             ]);
         });
@@ -156,7 +161,7 @@ class UserService
         return User::withTrashed()
             ->with([
                 'person' => fn($q) => $q->withTrashed()->with('address'),
-                'role',
+                'roles',
                 'invite',
             ])
             ->whereDoesntHave('student')
@@ -346,7 +351,7 @@ class UserService
             return $user->fresh([
                 'person',
                 'person.address',
-                'role',
+                'roles',
                 'invite',
             ]);
         });
@@ -360,9 +365,9 @@ class UserService
                 ->whereDoesntHave('student')
                 ->findOrFail($userId);
 
-            $user->fill([
-                'role_id' => $roleId,
-            ]);
+            $role = Role::findOrFail($roleId);
+
+            $user->syncRoles([$role]);
 
             $changes = ActivityLogService::getChanges($user);
 
@@ -392,7 +397,7 @@ class UserService
 
             return $user->fresh([
                 'person',
-                'role',
+                'roles',
                 'invite',
             ]);
         });
@@ -403,12 +408,12 @@ class UserService
         return User::query()
             ->when($universityId, fn($q) => $q->where('university_id', $universityId))
             ->whereHas(
-                'role',
+                'roles',
                 fn($q) =>
                 $q->where('slug', '!=', 'student')
             )
             ->with('person:id,user_id,name')
-            ->with('role:id,user_id,name')
+            ->with('roles:id,name')
             ->get(['id'])
             ->map(fn($user) => [
                 'id' => $user->id,

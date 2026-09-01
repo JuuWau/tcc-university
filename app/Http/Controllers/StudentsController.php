@@ -20,9 +20,12 @@ use App\Services\StudentService;
 use App\Services\PeriodService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 
 class StudentsController extends Controller
 {
+    use AuthorizesRequests;
+
     protected $studentService;
     protected $periodService;
 
@@ -93,11 +96,14 @@ class StudentsController extends Controller
         ]);
     }
 
-    public function show(int $student)
+    public function show(Student $student)
     {
+        $this->authorize('view', $student);
+
         $universityId = request()->user()?->university_id;
-        $student = $this->studentService->find($student);
-        
+
+        $student = $this->studentService->find($student->id);
+
         return Inertia::render('students/StudentTab', [
             'student' => $student,
             'periods' => $this->periodService->all($universityId),
@@ -106,6 +112,8 @@ class StudentsController extends Controller
 
     public function update(UpdateStudentRequest $request, int $student)
     {
+        $this->authorize('update', $student);
+
         $student = $this->studentService->update(
             $student,
             $request->validated()

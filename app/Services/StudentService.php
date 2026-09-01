@@ -288,9 +288,12 @@ class StudentService
                         $user = User::create([
                                 'email' => $data['email'],
                                 'university_id' => $universityId,
-                                'role_id' => Role::STUDENT,
                                 'password' => Hash::make(Str::random(32)),
                         ]);
+
+                        $studentRole = Role::findOrFail(Role::STUDENT);
+
+                        $user->assignRole($studentRole);
 
                         $person = Person::create([
                                 'user_id' => null,
