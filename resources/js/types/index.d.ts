@@ -16,6 +16,7 @@ export interface NavItem {
     icon?: LucideIcon;
     isActive?: boolean;
     children?: NavItem[];
+    permission?: string;
 }
 
 export type AppPageProps<
