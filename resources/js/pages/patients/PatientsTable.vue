@@ -245,7 +245,8 @@ const columnDefs = [
                 emit('activate', patient),
             onDelete: (patient: PatientWithInvite) => emit('delete', patient),
             canUpdate: can('patients.update'),
-            canDelete: can('patients.deactivate'),
+            canDeactivate: can('patients.deactivate'),
+            canDelete: can('patients.delete'),
         },
     },
 ];

@@ -111,11 +111,11 @@ provide(PatientTabContextKey, {
 type TabKey = 'personal' | 'schedules' | 'clinics' | 'logs';
 const activeTab = ref<TabKey>('personal');
 
-const tabs: { key: TabKey; label: string }[] = [
+const tabs: { key: TabKey; label: string, permission?: string; }[] = [
     { key: 'personal', label: 'Dados pessoais' },
     { key: 'schedules', label: 'Agendamentos' },
     { key: 'clinics', label: 'Clínicas' },
-    { key: 'logs', label: 'Histórico de ações' },
+    { key: 'logs', label: 'Histórico de ações', permission: 'action-logs.view' },
 ];
 
 const visibleTabs = computed(() => {

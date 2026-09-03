@@ -3,6 +3,8 @@ import { BadgeMinus, Pencil, Trash2, UserCheck } from 'lucide-vue-next';
 
 const props = defineProps<{
     params: {
+        canDelete: boolean;
+        canDeactivate: boolean;
         data?: { active?: boolean } & Record<string, any>;
         onEdit?: (row: any) => void;
         onDeactivate?: (row: any) => void;
@@ -42,6 +44,7 @@ function activate() {
                 @click="edit"
             />
             <BadgeMinus
+                v-if="props.params.canDeactivate"
                 class="cursor-pointer text-amber-500 hover:text-amber-700"
                 :size="18"
                 title="Inativar clínica"
@@ -57,6 +60,7 @@ function activate() {
             />
         </template>
         <Trash2
+            v-if="props.params.canDelete"
             class="cursor-pointer text-red-500 hover:text-red-700"
             :size="18"
             title="Excluir clínica"

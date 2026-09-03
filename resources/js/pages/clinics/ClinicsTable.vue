@@ -6,6 +6,13 @@ import type { Clinic, Specialty } from '@/types/clinic/clinic';
 import { AgGridVue } from 'ag-grid-vue3';
 import { computed, inject, ref, type Ref } from 'vue';
 import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale';
+import { usePage } from '@inertiajs/vue3';
+
+const page = usePage();
+
+const can = (permission: string) => {
+    return page.props.auth.permissions.includes(permission);
+};
 
 const emit = defineEmits<{
     (e: 'create'): void;
@@ -82,6 +89,8 @@ const columnDefs = [
             onDeactivate: (clinic: Clinic) => emit('deactivate', clinic),
             onActivate: (clinic: Clinic) => emit('activate', clinic),
             onDelete: (clinic: Clinic) => emit('delete', clinic),
+            canDelete: can('clinics.delete'),
+            canDeactivate: can('clinics.deactivate')
         },
     },
 ];

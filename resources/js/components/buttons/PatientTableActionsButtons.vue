@@ -6,6 +6,7 @@ const props = defineProps<{
     params: {
         canUpdate: boolean;
         canDelete: boolean;
+        canDeactivate: boolean;
         data: PatientWithInvite;
         onView?: (patient: PatientWithInvite) => void;
         onDeactivate?: (patient: PatientWithInvite) => void;
@@ -34,7 +35,7 @@ const canDeactivate = () => !patient.deleted_at && !isInativo();
             @click="params.onView?.(patient)"
         />
         <BadgeMinus
-            v-if="canDeactivate() && params.canUpdate"
+            v-if="canDeactivate() && params.canDeactivate"
             class="cursor-pointer text-yellow-600 hover:text-yellow-800"
             :size="18"
             title="Inativar paciente"

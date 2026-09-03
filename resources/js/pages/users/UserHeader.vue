@@ -20,7 +20,7 @@
             >
                 <span>
                     <strong class="font-medium text-gray-700">Perfil:</strong>
-                    {{ user?.role?.name ?? '—' }}
+                    {{ user?.roles?.[0]?.name ?? '—' }}
                 </span>
                 <span>
                     <strong class="font-medium text-gray-700">E-mail:</strong>
@@ -33,6 +33,7 @@
             class="relative flex w-full flex-col gap-2 sm:ml-auto sm:w-auto sm:flex-row sm:items-center"
         >
             <Button
+                v-if="can('user.personal-page.updateHeaderData')"
                 variant="outline"
                 size="sm"
                 class="w-full sm:w-auto cursor-pointer"
@@ -87,8 +88,15 @@
 import { Button } from '@/components/ui/button';
 import type { UserTabContext } from '@/keys/users/userKeys';
 import { UserTabContextKey } from '@/keys/users/userKeys';
+import { usePage } from '@inertiajs/vue3';
 import { ChevronDown, MailPlus, Pencil, PhoneCall } from 'lucide-vue-next';
 import { computed, inject, ref } from 'vue';
+
+const page = usePage();
+
+const can = (permission: string) => {
+    return page.props.auth.permissions.includes(permission);
+};
 
 const ctx = inject(UserTabContextKey) as UserTabContext | undefined;
 
@@ -99,6 +107,8 @@ if (!ctx) {
 }
 
 const user = ctx.user;
+
+console.log(user.value);
 const { editRoleModalOpen } = ctx;
 
 const contactOpen = ref(false);

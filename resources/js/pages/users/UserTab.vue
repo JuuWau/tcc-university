@@ -5,7 +5,7 @@
 
             <nav class="flex flex-wrap gap-2 rounded-2xl bg-gray-100 p-1">
                 <button
-                    v-for="tab in tabs"
+                    v-for="tab in visibleTabs"
                     :key="tab.key"
                     @click="activeTab = tab.key"
                     class="cursor-pointer rounded-xl px-4 py-2 text-sm font-medium transition"
@@ -21,7 +21,12 @@
 
             <div>
                 <UserPersonalData v-if="activeTab === 'personal'" />
-                <UserActionLogs v-if="activeTab === 'logs'" />
+                <UserActionLogs 
+                    v-if="
+                        activeTab === 'logs' &&
+                        can('action-logs.view')
+                    " 
+                />
             </div>
         </div>
 
@@ -54,6 +59,16 @@ const roles = computed(
     () => (page.props as unknown as { roles?: RoleOption[] }).roles ?? [],
 );
 
+const can = (permission: string) => {
+    const props = page.props as unknown as {
+        auth: {
+            permissions: string[];
+        };
+    };
+
+    return props.auth.permissions.includes(permission);
+};
+
 const editPersonalDataModalOpen = ref(false);
 const editRoleModalOpen = ref(false);
 const actionLogs = useUserActionLogs(
@@ -74,10 +89,19 @@ type TabKey = 'personal' | 'logs';
 
 const activeTab = ref<TabKey>('personal');
 
-const tabs: { key: TabKey; label: string }[] = [
+const tabs: { key: TabKey; label: string; permission?: string; }[] = [
     { key: 'personal', label: 'Dados pessoais' },
-    { key: 'logs', label: 'Histórico de ações' },
+    { key: 'logs', label: 'Histórico de ações', permission: 'action-logs.view' },
 ];
+
+const visibleTabs = computed(() => {
+    return tabs.filter((tab) => {
+        if (tab.key === 'logs') {
+            return can('action-logs.view');
+        }
+        return true;
+    });
+});
 
 function onPersonalDataUpdated() {
     editPersonalDataModalOpen.value = false;

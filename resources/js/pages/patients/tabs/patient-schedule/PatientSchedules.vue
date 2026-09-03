@@ -11,6 +11,13 @@ import PatientScheduleCard from './components/PatientScheduleCard.vue';
 import PatientScheduleBooking from './components/PatientScheduleBooking.vue';
 import { ArrowLeft } from 'lucide-vue-next';
 import Button from '@/components/ui/button/Button.vue';
+import { usePage } from '@inertiajs/vue3';
+
+const page = usePage();
+
+const can = (permission: string) => {
+    return page.props.auth.permissions.includes(permission);
+};
 
 const patientContext = inject(PatientTabContextKey);
 
@@ -58,7 +65,7 @@ function cancelBooking() {
             >
                 <template #actions>
                     <Button
-                        v-if="!bookingOpen"
+                        v-if="!bookingOpen && can('patients.personal-page.manageAppointments')"
                         class="cursor-pointer rounded-xl bg-sky-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-sky-700"
                         @click="startBooking"
                     >
@@ -66,7 +73,7 @@ function cancelBooking() {
                     </Button>
 
                     <Button 
-                        v-else 
+                        v-else-if="bookingOpen && can('patients.personal-page.manageAppointments')" 
                         variant="outline"
                         class="w-full sm:w-auto" 
                         @click="cancelBooking">
