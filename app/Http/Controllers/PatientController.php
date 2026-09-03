@@ -30,6 +30,7 @@ use App\Models\Patient;
 use App\Models\Student;
 use App\Services\PatientService;
 use App\Services\StudentService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;
@@ -37,6 +38,8 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 
 class PatientController extends Controller
 {
+    use AuthorizesRequests;
+    
     public function __construct(
         protected PatientService $patientService,
         protected StudentService $studentService
@@ -65,8 +68,13 @@ class PatientController extends Controller
     public function show(Request $request, int $patient)
     {
         $universityId = $request->user()?->university_id;
+
         $patient = $this->patientService->find($patient, $universityId);
+
+        $this->authorize('view', $patient);
+
         $students = $this->studentService->getOptionsByUniversity($universityId);
+
 
         return Inertia::render('patients/PatientTab', [
             'patient' => PatientResource::make($patient)->resolve(),
