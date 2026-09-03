@@ -62,16 +62,16 @@ Route::prefix('schedules')->group(function () {
 
 Route::prefix('schedule-enrollment')->group(function () {
     Route::post('open', [ScheduleEnrollmentController::class, 'storeOpenSchedule'])->name('schedules.enrollment.open.store');
-    Route::get('open-clinics', [ScheduleEnrollmentController::class, 'openClinicsSchedullesEnrollmentManagement'])->name('schedules.enrollment.openClinics');
+    Route::get('open-clinics', [ScheduleEnrollmentController::class, 'openClinicsSchedullesEnrollmentManagement'])->name('schedules.enrollment.openClinics')->middleware('permission:open-schedule-management-student.view');
     Route::get('open-clinics/table', [ScheduleEnrollmentController::class, 'openClinicsSchedullesEnrollmentTable'] )->name('schedules.enrollment.openClinics.table');
-    Route::get('open-clinic/{clinic}', [ScheduleEnrollmentController::class, 'clinicOpenSchedulesEnrollment'])->name('schedules.enrollment.openClinic.show');
+    Route::get('open-clinic/{clinic}', [ScheduleEnrollmentController::class, 'clinicOpenSchedulesEnrollment'])->name('schedules.enrollment.openClinic.show')->middleware('permission:open-schedule-management-student.view');
     Route::post('open-clinics/{clinic}', [ScheduleEnrollmentController::class, 'storeOpenClinicDay'])->name('schedules.enrollment.openClinics.storeDay');
-    Route::patch('slots/{slot}', [ScheduleEnrollmentController::class, 'updateSlot'])->name('schedules.enrollment.slots.update');
-    Route::post('multiple-slots', [ScheduleEnrollmentController::class, 'enrollMultipleSlots'])->name('schedules.enrollment.slots.enrollment.multiple');
-    Route::delete('slots/{slot}', [ScheduleEnrollmentController::class, 'destroySlot'])->name('schedules.enrollment.slots.destroy');
-    Route::delete('multiple-slots', [ScheduleEnrollmentController::class, 'destroyMultipleSlots'])->name('schedules.enrollment.slots.multiple.destroy');
-    Route::post('enroll', [ScheduleEnrollmentController::class, 'store'])->name('schedules.enrollment.store');
-    Route::post('student-enroll', [ScheduleEnrollmentController::class, 'enrollSlot'])->name('schedules.enrollment.enrollSlot');
+    Route::patch('slots/{slot}', [ScheduleEnrollmentController::class, 'updateSlot'])->name('schedules.enrollment.slots.update')->middleware('permission:open-schedule-management.updateSlot');
+    Route::post('multiple-slots', [ScheduleEnrollmentController::class, 'enrollMultipleSlots'])->name('schedules.enrollment.slots.enrollment.multiple')->middleware('permission:open-schedule-management-student.enroll');
+    Route::delete('slots/{slot}', [ScheduleEnrollmentController::class, 'destroySlot'])->name('schedules.enrollment.slots.destroy')->middleware('permission:open-schedule-management.deleteSlot');
+    Route::delete('multiple-slots', [ScheduleEnrollmentController::class, 'destroyMultipleSlots'])->name('schedules.enrollment.slots.multiple.destroy')->middleware('permission:open-schedule-management.deleteSlot');
+    Route::post('enroll', [ScheduleEnrollmentController::class, 'store'])->name('schedules.enrollment.store')->middleware('permission:open-schedule-management.enrollStudent');
+    Route::post('student-enroll', [ScheduleEnrollmentController::class, 'enrollSlot'])->name('schedules.enrollment.enrollSlot')->middleware('permission:open-schedule-management-student.enroll');
     Route::get('slots/{slot}/students', [ScheduleEnrollmentController::class, 'slotStudents'])->name('schedules.enrollment.slots.students');
     Route::delete('slots/{slot}/students/{student}', [ScheduleEnrollmentController::class, 'removeStudentFromSlot'])->name('schedules.enrollment.slots.students.destroy');
 });
@@ -84,19 +84,19 @@ Route::prefix('reports/appointments')->name('reports.appointments.')->group(func
     Route::get('/', [AppointmentReportsController::class, 'index'])->name('index');
     Route::get('/data', [AppointmentReportsController::class, 'data'])->name('reports.appointments.data');
     Route::get('/export-excel', [AppointmentReportsController::class, 'exportExcel'])->name('reports.appointments.exportExcel');
-});
+})->middleware('permission:appointments-reports.view');
 
 Route::prefix('reports/students')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/', [StudentsReportController::class, 'index'])->name('reports.students.index');
     Route::get('/data', [StudentsReportController::class, 'data'])->name('reports.students.data');
     Route::get('/export', [StudentsReportController::class, 'exportExcel'])->name('reports.students.export');
-});
+})->middleware('permission:students-reports.view');
 
 Route::prefix('reports/patients')->middleware(['auth', 'verified'])->group(function () {
     Route::get('/', [PatientsReportController::class, 'index'])->name('reports.patients.index');
     Route::get('/data', [PatientsReportController::class, 'data'])->name('reports.patients.data');
     Route::get('/export', [PatientsReportController::class, 'exportExcel'])->name('reports.patients.export');
-});
+})->middleware('permission:patients-reports.view');
 
 Route::get('/reports/clinics-by-student', function () {
     return Inertia::render('reports/ClinicsByStudentReportMock');
@@ -105,7 +105,6 @@ Route::get('/reports/clinics-by-student', function () {
 Route::prefix('specialties')->group(function () {
     Route::get('/', [SpecialtiesController::class, 'index'])->name('specialties.index')->middleware('permission:specialties.view');
     Route::get('/options', [SpecialtiesController::class, 'options'])->name('specialties.options');
-    Route::get('/create', [SpecialtiesController::class, 'create'])->name('specialties.create');
     Route::post('/', [SpecialtiesController::class, 'store'])->name('specialties.store')->middleware('permission:specialties.create');
     Route::put('/{specialty}', [SpecialtiesController::class, 'update'])->name('specialties.update')->middleware('permission:specialties.update');
     Route::delete('/{specialty}', [SpecialtiesController::class, 'destroy'])->name('specialties.destroy')->middleware('permission:specialties.delete');
@@ -113,7 +112,6 @@ Route::prefix('specialties')->group(function () {
 
 Route::prefix('periods')->group(function () {
     Route::get('/', [PeriodsController::class, 'index'])->name('periods.index')->middleware('permission:periods.view');
-    Route::get('/create', [PeriodsController::class, 'create'])->name('periods.create');
     Route::post('/', [PeriodsController::class, 'store'])->name('periods.store')->middleware('permission:periods.create');
     Route::put('/{period}', [PeriodsController::class, 'update'])->name('periods.update')->middleware('permission:periods.update');
     Route::delete('/{period}', [PeriodsController::class, 'destroy'])->name('periods.destroy')->middleware('permission:periods.delete');
@@ -144,7 +142,6 @@ Route::prefix('students')->group(function () {
     Route::patch('/{student}', [StudentsController::class, 'update'])->name('students.update')->middleware('permission:students.personal-page.updatePersonalData');
     Route::get('/', [StudentsController::class, 'index'])->name('students.index')->middleware('permission:students.view');
     Route::get('/table', [StudentsController::class, 'table'])->name('students.table');
-    Route::get('/create', [StudentsController::class, 'create'])->name('students.create');
     Route::post('/', [StudentsController::class, 'store'])->name('students.store')->middleware('permission:students.create');
     Route::post('/resend-invite/{student}', [StudentsController::class, 'resendInvite'])->name('students.invite');
     Route::get('/options', [StudentsController::class, 'options'])->name('students.options');
@@ -199,13 +196,13 @@ Route::prefix('users')->group(function () {
     Route::get('/', [UsersController::class, 'index'])->name('users.index')->middleware('permission:users.view');
     Route::get('/table', [UsersController::class, 'table'])->name('users.table');
     Route::get('/{user}', [UsersController::class, 'show'])->name('users.show');
-    Route::post('/', [UsersController::class, 'store'])->name('users.store')->middleware('users.create');
-    Route::patch('/{user}', [UsersController::class, 'update'])->name('users.update')->middleware('users.update');
-    Route::patch('/{user}/role', [UsersController::class, 'updateRole'])->name('users.update.role')->middleware('users.updateRole');
-    Route::post('/resend-invite/{user}', [UsersController::class, 'resendInvite'])->name('users.resend-invite')->middleware('users.invite');;
-    Route::delete('/deactivate/{user}', [UsersController::class, 'deactivate'])->name('users.deactivate')->middleware('users.deactivate');;
-    Route::delete('/activate/{user}', [UsersController::class, 'activate'])->name('users.activate')->middleware('users.activate');
-    Route::delete('/{user}', [UsersController::class, 'destroy'])->name('users.destroy')->middleware('users.delete');
+    Route::post('/', [UsersController::class, 'store'])->name('users.store')->middleware('permission:users.create');
+    Route::patch('/{user}', [UsersController::class, 'update'])->name('users.update')->middleware('permission:users.personal-page.updatePersonalData');
+    Route::patch('/{user}/role', [UsersController::class, 'updateRole'])->name('users.update.role')->middleware('permission:users.personal-page.updateRole');
+    Route::post('/resend-invite/{user}', [UsersController::class, 'resendInvite'])->name('users.resend-invite')->middleware('permission:users.invite');;
+    Route::delete('/deactivate/{user}', [UsersController::class, 'deactivate'])->name('users.deactivate')->middleware('permission:users.deactivate');;
+    Route::delete('/activate/{user}', [UsersController::class, 'activate'])->name('users.activate')->middleware('permission:users.personal-page.activate');
+    Route::delete('/{user}', [UsersController::class, 'destroy'])->name('users.destroy')->middleware('permission:users.delete');
     Route::get('/logs', [ActionLogsController::class, 'index'])->name('action-logs.index')->middleware('permission:action-logs.view');
 })->middleware(['auth', 'verified']);
 
