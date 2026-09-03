@@ -9,12 +9,16 @@ use App\Http\Requests\UpdateUserPersonalDataRequest;
 use App\Http\Requests\UpdateUserRoleRequest;
 use App\Http\Resources\UserTableResource;
 use App\Models\Role;
+use App\Models\User;
 use App\Services\UserService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 
 class UsersController extends Controller
 {
+    use AuthorizesRequests;
+    
     public function __construct(
         protected UserService $userService
     ) {}
@@ -57,9 +61,12 @@ class UsersController extends Controller
         ]);
     }
 
-    public function show(int $user)
+    public function show(User $user)
     {
-        $model = $this->userService->find($user);
+        $this->authorize('view', $user);
+
+        $model = $this->userService->find($user->id);
+
         $roles = Role::where('id', '!=', Role::STUDENT)
             ->orderBy('name')
             ->get(['id', 'name', 'slug']);
