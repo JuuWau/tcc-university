@@ -51,10 +51,14 @@ class DatabaseSeeder extends Seeder
         $this->call([
             SpecialtySeeder::class,
             PeriodSeeder::class,
-            AdminUserSeeder::class,
-            StudentSeeder::class,
+
             PermissionSeeder::class,
-            ModelHasPermissionsSeeder::class,
+
+            AdminUserSeeder::class,
+            ReceptionistSeeder::class,
+            ProfessorSeeder::class,
+            StudentSeeder::class,
+
             ModelHasRolesSeeder::class,
         ]);
     }

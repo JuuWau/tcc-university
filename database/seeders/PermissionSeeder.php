@@ -43,7 +43,12 @@ class PermissionSeeder extends Seeder
 
             'open-schedule.open', // Permissão para abrir dias na agenda de clínicas específicas
             'open-schedule-management.view', // Permissão para gerenciar agenda de clínicas específicas
-            'open-schedule-management-student.view', // Permissão para se inscrrver em clínicas específicas (estudante)
+            'open-schedule-management.createSlot', // Permissão para criar slot na agenda de clínicas específicas
+            'open-schedule-management.deleteSlot', // Permissão para deletar slot na agenda de clínicas específicas
+            'open-schedule-management.updateSlot', // Permissão para editar agenda de clínicas específicas
+            'open-schedule-management.enrollStudent', // Permissão para adicionar estudante à no slot da agenda de clínicas específicas
+            'open-schedule-management-student.view', // Permissão para acessar página de inscrição em clínicas específicas (estudante)
+            'open-schedule-management-student.enroll', // Permissão para se inscrever em clínicas específicas (estudante)
         
             'students.view', // Permissão para acessar página de cadastros de estudantes
             'students.create', // Permissão para criar estudante
@@ -62,6 +67,7 @@ class PermissionSeeder extends Seeder
             'patients.update', // Permissão para atualizar status paciente
             'patients.import', // Permissão para importar paciente
             'patients.deactivate', // Permissão para desativar paciente
+            'patients.delete', // Permissão para excluir paciente
             'patients.personal-page.view', // Permissão para acessar pagina do paciente
             'patients.personal-page.updatePersonalData', // Permissão para atualizar dados pessoais do paciente
             'patients.personal-page.updateHeaderData', // Permissão para atualizar dados do header do paciente
@@ -78,8 +84,9 @@ class PermissionSeeder extends Seeder
             'users.deactivate', // Permissão para desativar usuário
             'users.invite', // Permissão para convidar usuário
             'users.delete', // Permissão para excluir usuário
-            'users.updateRole', // Permissão para gerenciar papéis do usuário
-            'users.updatePersonalData', // Permissão para atualizar dados pessoais do usuário
+            'users.personal-page.view', // Permissão para acessar pagina do usuário
+            'users.personal-page.updateRole', // Permissão para gerenciar papéis do usuário
+            'users.personal-page.updatePersonalData', // Permissão para atualizar dados pessoais do usuário
 
             'appointments-confirmation.view', // Permissão para acessar página de confirmação de agendamento
             'appointments-confirmation.update', // Permissão para alterar os status dos pacientes na pagina de confirmação
@@ -127,6 +134,7 @@ class PermissionSeeder extends Seeder
             'appointments-confirmation.update', // permissão para alterar os status dos próprios pacientes na pagina de confirmação
 
             'open-schedule-management-student.view', //permissão para se inscrever nas clinicas
+            'open-schedule-management-student.enroll', // Permissão para se inscrever em clínicas específicas (estudante)
 
             'patients.personal-page.view', // Permissão para acessar pagina do paciente
             'patients.personal-page.viewAppointments', // Permissão para acessar tab de agendamentos do paciente
@@ -156,16 +164,14 @@ class PermissionSeeder extends Seeder
             'clinics.view', // Permissão para acessar página de cadastros de clínicas
             'clinics.create', // Permissão para criar clínica
             'clinics.update', // Permissão para editar clínica
-            'clinics.deactivate', // Permissão para desativar clínica
-            'clinics.delete', // Permissão para deletar clínica
-
-            'open-schedule.open', // Permissão para abrir dias na agenda de clínicas específicas
-            'open-schedule-management.view', //Permissão para gerenciar agenda de clínicas específicas
-
+        
             'students.view', // Permissão para acessar página de cadastros de estudantes
             'students.personal-page.view', // Permissão para acessar pagina do estudante
             'students.personal-page.viewSchedule', // Permissão para acessar tab de agendamentos do estudante
             'students.personal-page.updateSchedule', // Permissão para gerenciar tab de agendamentos do estudante
+
+            'users.personal-page.view', // Permissão para acessar pagina do usuário
+            'users.personal-page.updatePersonalData', // Permissão para atualizar dados pessoais do usuário
 
             'patients.view', // Permissão para acessar página de cadastros de pacientes
             'patients.create', // Permissão para criar paciente
@@ -201,6 +207,9 @@ class PermissionSeeder extends Seeder
             'patients.personal-page.view', // Permissão para acessar pagina do paciente
             'patients.personal-page.viewAppointments', // Permissão para acessar tab de agendamentos do paciente
             'patients.personal-page.viewClinics', // Permissão para acessar tab de clínicas do paciente
+
+            'users.personal-page.view', // Permissão para acessar pagina do usuário
+            'users.personal-page.updatePersonalData', // Permissão para atualizar dados pessoais do usuário
 
             'attendance.view',  // Permissao para acessar página de comparecimento dos estudantes
             'attendance.update',  // Gerênciar compareciemento estudante
