@@ -2,6 +2,7 @@
 
 namespace App\Policies;
 
+use App\Models\Role;
 use App\Models\Student;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
@@ -21,11 +22,11 @@ class StudentPolicy
      */
     public function view(User $user, Student $student): bool
     {
-        if ($user->hasRole('Admin')) {
+        if ($user->hasAnyRole(Role::ADMIN, Role::RECEPTIONIST, Role::PROFESSOR)) {
             return true;
         }
 
-        if ($user->hasRole('Student')) {
+        if ($user->hasRole(Role::STUDENT)) {
             return $user->student?->id === $student->id;
         }
 
@@ -45,11 +46,11 @@ class StudentPolicy
      */
     public function update(User $user, Student $student): bool
     {
-        if ($user->hasRole('Admin')) {
+        if ($user->hasRole(Role::ADMIN)) {
             return true;
         }
 
-        if ($user->hasRole('Student')) {
+        if ($user->hasRole(Role::STUDENT)) {
             return $user->student?->id === $student->id;
         }
 

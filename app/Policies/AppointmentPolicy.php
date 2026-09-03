@@ -74,6 +74,6 @@ class AppointmentPolicy
             return $appointment->student_id === $user->student?->id;
         }
 
-        return $user->can('appointments-status.update');
+        return $user->can('appointments-confirmation.update');
     }
 }
