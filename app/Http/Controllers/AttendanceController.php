@@ -13,12 +13,15 @@ use App\Models\ScheduleSlot;
 use App\Services\ClinicService;
 use App\Services\PeriodService;
 use App\Services\AttendanceService;
+use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Illuminate\Http\JsonResponse;
 
 class AttendanceController extends Controller
 {
+    use AuthorizesRequests;
+    
     public function __construct(
         protected AttendanceService $attendanceService,
         protected ClinicService $clinicService,
@@ -99,6 +102,8 @@ class AttendanceController extends Controller
 
     public function updateAttendance(UpdateAttendanceRequest $request, ScheduleSlot $slot): JsonResponse 
     {
+        $this->authorize('updateAttendance', $slot);
+
         try {
             $this->attendanceService->updateAttendance(
                 $slot,

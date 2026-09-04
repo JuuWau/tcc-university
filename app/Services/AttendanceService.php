@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Constants\ActivityModules;
 use App\Data\Attendance\AttendanceClinicsTableFiltersData;
 use App\Models\Clinic;
+use App\Models\Role;
 use App\Models\ScheduleEnrollment;
 use App\Models\ScheduleSlot;
 use App\Models\Student;
@@ -50,6 +51,13 @@ class AttendanceService
                 return ScheduleSlot::query()
                         ->where('clinic_id', $clinic->id)
                         ->where('period_id', $periodId)
+                        ->when(
+                                $user->hasRole(Role::PROFESSOR),
+                                fn($query) => $query->whereHas(
+                                        'responsibles',
+                                        fn($query) => $query->where('users.id', $user->id)
+                                )
+                        )
                         ->orderBy('date')
                         ->orderBy('start_time')
                         ->get();

@@ -8,6 +8,7 @@ import { AgGridVue } from 'ag-grid-vue3';
 import axios from 'axios';
 import { computed, inject, onMounted, ref, watch } from 'vue';
 import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale';
+import { usePage } from '@inertiajs/vue3';
 
 const emit = defineEmits([
     'create',
@@ -18,6 +19,12 @@ const emit = defineEmits([
     'deactivate',
     'resend',
 ]);
+
+const pageData = usePage();
+
+const can = (permission: string) => {
+    return pageData.props.auth.permissions.includes(permission);
+};
 
 type StatusFilter = 'all' | 'pending' | 'active' | 'inactive';
 type SortField = 'person.name' | 'registration' | 'created_at';
@@ -183,6 +190,12 @@ const columnDefs = [
             onActivate: (student: Student) => emit('activate', student),
             onResend: (student: Student) => emit('resend', student),
             onDelete: (student: Student) => emit('delete', student),
+            canDeactivate: (student: Student) => !student.deleted_at,
+            canActivate: (student: Student) => !!student.deleted_at,
+            isAllowedToActivate: can('students.activate'),
+            isAllowedToDeactivate: can('students.deactivate'),
+            isAllowedToDelete: can('students.update'),
+            isAllowedToInvite: can('students.delete'),
         },
     },
 ];

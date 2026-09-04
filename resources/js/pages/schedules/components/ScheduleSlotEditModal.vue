@@ -6,12 +6,7 @@ import { ScheduleSlotEditKey } from '@/keys/schedules/scheduleSlotKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import { scheduleSlotUpdateSchema } from '@/schemas/scheduleSlotUpdate.schema';
 import type { AppPageProps } from '@/types/index';
-import type {
-    OpenClinicScheduleClinic,
-    OpenClinicScheduleResponsibleOption,
-    OpenClinicScheduleRow,
-    OpenClinicSchedulesFilters,
-} from '@/types/schedule/openClinicSchedules';
+import type { OpenClinicScheduleClinic, OpenClinicScheduleResponsibleOption, OpenClinicScheduleRow, OpenClinicSchedulesFilters } from '@/types/schedule/openClinicSchedules';
 import { Switch } from '@headlessui/vue';
 import { router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
@@ -39,7 +34,7 @@ const responsibleOptions = computed(() =>
 );
 
 const form = reactive({
-    responsible_id: null as number | null,
+    responsible_ids: [] as number[],
     date: '',
     start_time: '',
     end_time: '',
@@ -57,7 +52,9 @@ watch(
     () => editModal.row.value,
     (row: OpenClinicScheduleRow | null) => {
         if (!row) return;
-        form.responsible_id = row.responsible_id;
+        form.responsible_ids = Array.isArray(row.responsible_ids)
+            ? [...row.responsible_ids]
+            : [];
         form.date = String(row.date).slice(0, 10);
         form.start_time = timeToInput(row.start_time);
         form.end_time = timeToInput(row.end_time);
@@ -65,6 +62,8 @@ watch(
         form.allow_student_booking = row.allow_student_booking;
         form.allow_student_enrollment = row.allow_student_enrollment;
         form.allow_procedure_booking = row.allow_procedure_booking;
+
+        console.log('editModal.row.value', editModal.row.value);
     },
     { immediate: true },
 );
@@ -78,7 +77,7 @@ async function submit() {
     if (!row || loading?.value) return;
     const result = scheduleSlotUpdateSchema.safeParse({
         period_id: row.period_id,
-        responsible_id: form.responsible_id,
+        responsible_ids: form.responsible_ids,
         date: form.date,
         start_time: form.start_time,
         end_time: form.end_time,
@@ -97,7 +96,7 @@ async function submit() {
         if (loading) loading.value = true;
         await axios.patch(`/schedules/slots/${row.id}`, {
             period_id: result.data.period_id,
-            responsible_id: result.data.responsible_id,
+            responsible_ids: form.responsible_ids,
             date: result.data.date,
             start_time: result.data.start_time,
             end_time: result.data.end_time,
@@ -141,9 +140,11 @@ async function submit() {
                         Responsável
                     </label>
                     <AppMultiselect
-                        v-model="form.responsible_id"
+                        v-model="form.responsible_ids"
                         :options="responsibleOptions"
                         label="label"
+                        :multiple="true"
+                        mode="tags"
                         value-prop="value"
                         :searchable="true"
                         :close-on-select="true"

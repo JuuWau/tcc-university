@@ -31,6 +31,7 @@ use App\Models\Student;
 use App\Services\PatientService;
 use App\Services\StudentService;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Maatwebsite\Excel\Facades\Excel;

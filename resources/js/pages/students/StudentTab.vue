@@ -21,7 +21,11 @@
 
             <div>
                 <StudentPersonalData v-if="activeTab === 'personal'" />
-                <StudentScheduleTab v-if="activeTab === 'calendar'" />
+                <StudentScheduleTab 
+                    v-if="
+                        activeTab === 'calendar' &&
+                        can('students.personal-page.viewSchedule')
+                    " />
                 <StudentActionLogs
                     v-if="
                         activeTab === 'logs' &&
@@ -92,7 +96,7 @@ const tabs: {
     permission?: string;
 }[] = [
     { key: 'personal', label: 'Dados pessoais' },
-    { key: 'calendar', label: 'Agenda' },
+    { key: 'calendar', label: 'Agenda', permission: 'students.personal-page.viewSchedule' },
     { key: 'logs', label: 'Histórico de ações', permission: 'action-logs.view' },
 ];
 

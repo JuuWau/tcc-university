@@ -201,9 +201,10 @@ class PermissionSeeder extends Seeder
         $professor = Role::where('slug', 'professor')->firstOrFail();
 
         $professor->syncPermissions([
+            'students.view', // Permissão para acessar página de cadastros de estudantes
             'students.personal-page.view', // Permissão para acessar pagina do estudante
-            'students.personal-page.viewSchedule', // Permissão para acessar tab de agendamentos do estudante
 
+            'patients.view', // Permissão para acessar página de cadastros de pacientes
             'patients.personal-page.view', // Permissão para acessar pagina do paciente
             'patients.personal-page.viewAppointments', // Permissão para acessar tab de agendamentos do paciente
             'patients.personal-page.viewClinics', // Permissão para acessar tab de clínicas do paciente

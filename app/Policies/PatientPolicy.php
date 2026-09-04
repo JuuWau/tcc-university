@@ -3,6 +3,7 @@
 namespace App\Policies;
 
 use App\Models\Patient;
+use App\Models\Role;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
@@ -25,10 +26,14 @@ class PatientPolicy
             return false;
         }
 
-        return $user->student
-            ?->patients()
-            ->whereKey($patient->id)
-            ->exists() ?? false;
+        if ($user->hasRole(Role::STUDENT)) {
+            return $user->student
+                ?->patients()
+                ->whereKey($patient->id)
+                ->exists() ?? false;
+        }
+
+        return true;
     }
 
     /**

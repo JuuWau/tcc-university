@@ -406,12 +406,16 @@ class UserService
     public function getResponsible(?int $universityId)
     {
         return User::query()
-            ->when($universityId, fn($q) => $q->where('university_id', $universityId))
-            ->whereHas(
-                'roles',
-                fn($q) =>
-                $q->where('slug', '!=', 'student')
+            ->when(
+                $universityId,
+                fn($q) => $q->where('university_id', $universityId)
             )
+            ->whereHas('roles', function ($q) {
+                $q->whereNotIn('id', [
+                    Role::STUDENT,
+                    Role::RECEPTIONIST,
+                ]);
+            })
             ->with('person:id,user_id,name')
             ->with('roles:id,name')
             ->get(['id'])

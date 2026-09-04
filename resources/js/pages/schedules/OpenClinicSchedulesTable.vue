@@ -3,13 +3,7 @@ import CreateButton from '@/components/buttons/CreateButton.vue';
 import OpenClinicSchedulesActionsButtons from '@/components/buttons/OpenClinicSchedulesActionsButtons.vue';
 import { Button } from '@/components/ui/button';
 import type { AppPageProps } from '@/types/index';
-import type {
-    OpenClinicScheduleClinic,
-    OpenClinicSchedulePeriodOption,
-    OpenClinicScheduleResponsibleOption,
-    OpenClinicScheduleRow,
-    OpenClinicSchedulesFilters,
-} from '@/types/schedule/openClinicSchedules';
+import type { OpenClinicScheduleClinic, OpenClinicSchedulePeriodOption, OpenClinicScheduleResponsibleOption, OpenClinicScheduleRow, OpenClinicSchedulesFilters } from '@/types/schedule/openClinicSchedules';
 import { Link, router, usePage } from '@inertiajs/vue3';
 import AppMultiselect from '@/components/AppMultiselect.vue';
 import { AgGridVue } from 'ag-grid-vue3';
@@ -103,23 +97,19 @@ function onSelectionChanged() {
 
     const selectedNodes = gridApi.value.getSelectedNodes();
 
-    // Se não houver nós selecionados, limpa e retorna
     if (selectedNodes.length === 0) {
         selectedRows.value = [];
         return;
     }
 
-    // Verifica se é uma seleção em massa (selecionar todos)
     const allRows = gridApi.value.getRenderedNodes();
     const isSelectAll = selectedNodes.length === allRows.length;
 
     if (isSelectAll) {
-        // Se for selecionar todos, mantém todos selecionados
         selectedRows.value = selectedNodes.map((n: any) => n.data);
         return;
     }
 
-    // Para seleção manual, agrupa por data e mantém apenas 1 por data
     const map = new Map<string, any[]>();
 
     for (const node of selectedNodes) {
@@ -135,11 +125,9 @@ function onSelectionChanged() {
     const finalSelection: any[] = [];
 
     map.forEach((nodes) => {
-        // mantém apenas 1 por data
         finalSelection.push(nodes[0]);
     });
 
-    // Força o estado correto no grid
     gridApi.value.forEachNode((node: any) => {
         const shouldBeSelected = finalSelection.some(
             (n) => n.data.id === node.data.id
@@ -228,10 +216,12 @@ const columnDefs = [
     },
     {
         headerName: 'Responsável',
-        field: 'responsible_name',
+        field: 'responsible_names',
         flex: 1.5,
         sortable: true,
         filter: true,
+        valueFormatter: (params: any) =>
+            params.value?.join(', ') ?? '—',
     },
     {
         headerName: 'Vagas',

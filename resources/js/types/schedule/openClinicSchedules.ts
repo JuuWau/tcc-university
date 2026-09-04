@@ -8,7 +8,7 @@ export interface OpenClinicScheduleRow {
     end_time: string;
     available_slots: number;
     period_id: number;
-    responsible_id: number;
+    responsible_ids: number[];
     period_label: string;
     responsible_name: string;
     enrolled_students_count?: number;
