@@ -34,6 +34,12 @@ const slots = computed(() => page.props.slots);
 const filters = computed(() => page.props.filters);
 console.log(slots);
 
+console.log('oi',
+    slots.value.map(slot => ({
+        id: slot.id,
+        responsible_names: slot.responsible_names,
+    }))
+);
 const gridApi = ref<any>(null);
 
 const form = reactive({
@@ -145,10 +151,16 @@ const columnDefs = [
     },
     {
         headerName: 'Responsável',
-        field: 'responsible_name',
         flex: 1.5,
         sortable: true,
         filter: false,
+        valueGetter: (params: any) => {
+            const names = params.data?.responsible_names;
+
+            return Array.isArray(names)
+                ? names.join(', ')
+                : names ?? '—';
+        },
     },
     {
         headerName: 'Vagas',

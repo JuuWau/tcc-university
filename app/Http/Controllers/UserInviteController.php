@@ -28,30 +28,33 @@ class UserInviteController extends Controller
 
         $user = $invite->user;
 
-        return match ($user->role_id) {
-            Role::STUDENT => inertia('users/CompleteStudentRegistration', [
+        if ($user->hasRole('Student')) {
+            return inertia('users/CompleteStudentRegistration', [
                 'email' => $user->email,
                 'token' => $invite->token,
-            ]),
-            Role::ADMIN, Role::STAFF => inertia('users/CompleteStaffRegistration', [
+            ]);
+        }
+
+        if ($user->hasAnyRole(['Admin', 'Receptionist', 'Professor'])) {
+            return inertia('users/CompleteStaffRegistration', [
                 'email' => $user->email,
                 'token' => $invite->token,
                 'name' => $user->person?->name,
-            ]),
-            default => abort(403),
-        };
+            ]);
+        }
+
+        abort(403);
     }
 
-    public function store(
-        CompleteStaffRequest $request,
-        string $token,
-        UserInviteService $userInviteService
-    ) {
+    public function store(CompleteStaffRequest $request, string $token, UserInviteService $userInviteService) 
+    {
         try {
             $userInviteService->updateStaff($token, $request->validated());
         } catch (ModelNotFoundException) {
             return redirect('/login')
-                ->withErrors(['token' => 'Link inválido ou expirado. Solicite um novo convite.']);
+                ->withErrors([
+                    'token' => 'Link inválido ou expirado. Solicite um novo convite.',
+                ]);
         }
 
         return redirect('/login')

@@ -239,12 +239,15 @@ export function useStudentSchedule(studentId: number) {
         const base = current.value ?? new Date();
 
         return [0, 1, 2].map((i) => {
-                const d = new Date(base);
-                d.setMonth(d.getMonth() + i);
+            const d = new Date(
+                base.getFullYear(),
+                base.getMonth() + i,
+                1,
+            );
 
-                return generateMonth(d);
+            return generateMonth(d);
         });
-        });
+    });
 
     return {
         clinics,

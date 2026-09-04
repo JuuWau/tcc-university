@@ -61,11 +61,9 @@ const fromTo = computed(() => {
 
 const pageData = usePage();
 
-const isStudent = computed(() => {
-    return pageData.props.auth.user.role?.slug === 'student';
-});
-
-console.log('isStudent', isStudent.value);
+const can = (permission: string) => {
+    return pageData.props.auth.permissions.includes(permission);
+};
 
 const search = ref('');
 
@@ -246,7 +244,9 @@ const columnDefs = [
             onActivate: (patient: PatientWithInvite) =>
                 emit('activate', patient),
             onDelete: (patient: PatientWithInvite) => emit('delete', patient),
-            isStudent: isStudent.value,
+            canUpdate: can('patients.update'),
+            canDeactivate: can('patients.deactivate'),
+            canDelete: can('patients.delete'),
         },
     },
 ];
@@ -274,10 +274,10 @@ const defaultColDef = {
             </div>
 
             <div class="flex gap-2">
-                <ImportExcelButton @click="$emit('import')" v-if="!isStudent"/>
+                <ImportExcelButton @click="$emit('import')" v-if="can('patients.import')"/>
 
                 <CreateButton
-                    v-if="!isStudent"
+                    v-if="can('patients.create')"
                     label="Novo Paciente"
                     icon="Plus"
                     class="w-full sm:w-auto"

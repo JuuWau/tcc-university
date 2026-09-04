@@ -27,10 +27,13 @@ class UserInviteMail extends Mailable
 
     public function content(): Content
     {
-        $this->invite->load('user.role');
+        $this->invite->load('user.roles');
 
-        $isStudent = $this->invite->user->role_id === Role::STUDENT;
-        $view = $isStudent ? 'emails.student-invite' : 'emails.staff-invite';
+        $isStudent = $this->invite->user->hasRole(Role::STUDENT);
+
+        $view = $isStudent
+            ? 'emails.student-invite'
+            : 'emails.staff-invite';
 
         return new Content(
             view: $view,

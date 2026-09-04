@@ -4,7 +4,9 @@ import { BadgeMinus, Eye, Trash2, UserCheck } from 'lucide-vue-next';
 
 const props = defineProps<{
     params: {
-        isStudent: boolean;
+        canUpdate: boolean;
+        canDelete: boolean;
+        canDeactivate: boolean;
         data: PatientWithInvite;
         onView?: (patient: PatientWithInvite) => void;
         onDeactivate?: (patient: PatientWithInvite) => void;
@@ -33,21 +35,21 @@ const canDeactivate = () => !patient.deleted_at && !isInativo();
             @click="params.onView?.(patient)"
         />
         <BadgeMinus
-            v-if="canDeactivate() && !params.isStudent"
+            v-if="canDeactivate() && params.canDeactivate"
             class="cursor-pointer text-yellow-600 hover:text-yellow-800"
             :size="18"
             title="Inativar paciente"
             @click="params.onDeactivate?.(patient)"
         />
         <UserCheck
-            v-if="isInativo() && !params.isStudent"
+            v-if="isInativo() && params.canUpdate"
             class="cursor-pointer text-green-600 hover:text-green-800"
             :size="18"
             title="Ativar paciente"
             @click="params.onActivate?.(patient)"
         />
         <Trash2
-            v-if="isInativo() && !params.isStudent"
+            v-if="isInativo() && params.canDelete"
             class="cursor-pointer text-red-500 hover:text-red-700"
             :size="18"
             title="Excluir paciente"

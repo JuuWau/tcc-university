@@ -3,28 +3,27 @@
 namespace Database\Seeders;
 
 use App\Models\Person;
-use App\Models\Role;
 use App\Models\University;
 use App\Models\User;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
 
-class AdminUserSeeder extends Seeder
+class ReceptionistSeeder extends Seeder
 {
-    /**
-     * Cria o usuário admin e seu registro em people (nome).
-     */
     public function run(): void
     {
         $university = University::first();
+
         if (!$university) {
-            $this->command->warn('Nenhuma universidade encontrada. Execute o seed da universidade antes.');
+            $this->command->warn(
+                'Nenhuma universidade encontrada. Execute o seed da universidade antes.'
+            );
 
             return;
         }
 
         $user = User::firstOrCreate(
-            ['email' => 'juliawauters04@gmail.com'],
+            ['email' => 'recepcionista@acadent.com.br'],
             [
                 'university_id' => $university->id,
                 'password' => Hash::make('123'),
@@ -39,7 +38,7 @@ class AdminUserSeeder extends Seeder
             ['user_id' => $user->id],
             [
                 'university_id' => $university->id,
-                'name' => 'Administrador',
+                'name' => 'Recepcionista',
             ]
         );
     }

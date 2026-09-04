@@ -110,7 +110,7 @@ class ScheduleSlotController extends Controller
         return response()->json([
             'message' => 'Agenda atualizada com sucesso.',
             'slots' => $slot,]);
-        }
+    }
 
     public function updateMultipleSlots(UpdateMultipleScheduleSlotsRequest $request): JsonResponse
     {

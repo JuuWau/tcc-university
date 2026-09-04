@@ -13,6 +13,7 @@
             </div>
 
             <Button
+                v-if="can('patients.personal-page.updatePersonalData')"
                 variant="outline"
                 class="cursor-pointer"
                 size="sm"
@@ -144,8 +145,15 @@
 import { Button } from '@/components/ui/button';
 import type { PatientTabContext } from '@/keys/patients/patientKeys';
 import { PatientTabContextKey } from '@/keys/patients/patientKeys';
+import { usePage } from '@inertiajs/vue3';
 import { Pencil } from 'lucide-vue-next';
 import { computed, inject } from 'vue';
+
+const page = usePage();
+
+const can = (permission: string) => {
+    return page.props.auth.permissions.includes(permission);
+};
 
 const ctx = inject(PatientTabContextKey) as PatientTabContext | undefined;
 
@@ -157,12 +165,9 @@ if (!ctx) {
 
 const { patient, editPersonalDataModalOpen } = ctx;
 
-
-console.log(patient);
 function openEditModal() {
     editPersonalDataModalOpen.value = true;
 }
-
 
 function formatPatientType(type: string | null) {
     switch (type) {

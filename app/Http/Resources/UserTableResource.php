@@ -22,9 +22,9 @@ class UserTableResource extends JsonResource
                 'name' => $this->person?->name,
             ],
             'role' => [
-                'id' => $this->role?->id,
-                'name' => $this->role?->name,
-                'slug' => $this->role?->slug,
+                'id' => $this->roles->first()?->id,
+                'name' => $this->roles->first()?->name,
+                'slug' => $this->roles->first()?->slug,
             ],
             'invite' => [
                 'used_at' => $this->invite?->used_at,

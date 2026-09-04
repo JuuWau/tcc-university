@@ -1,6 +1,6 @@
 import '../css/app.css';
 
-import { createInertiaApp } from '@inertiajs/vue3';
+import { createInertiaApp, router } from '@inertiajs/vue3';
 import { resolvePageComponent } from 'laravel-vite-plugin/inertia-helpers';
 import type { DefineComponent } from 'vue';
 import { createApp, h } from 'vue';
@@ -12,10 +12,33 @@ import '@vueform/multiselect/themes/default.css'
 import VueTheMask from 'vue-the-mask'
 import AppMultiselect from '@/components/AppMultiselect.vue'
 import { i18n } from '@/i18n';
+import axios from 'axios';
 
 const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
 
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
+
+axios.interceptors.response.use(
+    response => response,
+    error => {
+        if (error.response?.status === 403) {
+            toast.error(
+                error.response.data?.message ??
+                'Você não possui permissão para realizar esta ação.'
+            );
+        }
+
+        return Promise.reject(error);
+    }
+);
+
+router.on('navigate', (event) => {
+    const flash = event.detail.page.props.flash as { error?: string } | undefined;
+
+    if (flash?.error) {
+        toast.error(flash.error);
+    }
+});
 
 // Register all Community features
 ModuleRegistry.registerModules([AllCommunityModule]);

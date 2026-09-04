@@ -33,6 +33,7 @@
             class="relative flex w-full flex-col gap-2 sm:ml-auto sm:w-auto sm:flex-row sm:items-center"
         >
             <Button
+                v-if="can('students.personal-page.updateHeaderData')"
                 variant="outline"
                 size="sm"
                 class="w-full sm:w-auto cursor-pointer"
@@ -85,13 +86,18 @@
 
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
-import {
-    type StudentTabContext,
-    StudentTabContextKey,
-} from '@/keys/students/studentKeys';
+import { type StudentTabContext, StudentTabContextKey, } from '@/keys/students/studentKeys';
+import { usePage } from '@inertiajs/vue3';
 import { ChevronDown, MailPlus, Pencil, PhoneCall } from 'lucide-vue-next';
 import { computed, inject, ref } from 'vue';
+
+const page = usePage();
+
 const ctx = inject(StudentTabContextKey) as StudentTabContext | undefined;
+
+const can = (permission: string) => {
+    return page.props.auth.permissions.includes(permission);
+};
 
 if (!ctx) {
     throw new Error(
@@ -123,7 +129,10 @@ const whatsappLink = computed(() => {
 function openEditAcademicDataModal() {
     academicDataEditModalOpen.value = true;
 }
-
+console.log(
+    'students.personal-page.updateHeaderData:',
+    page.props.auth.permissions.includes('students.personal-page.updateHeaderData'),
+);
 const initials = computed(() => {
     const name = student?.value?.person?.name?.trim();
     if (!name) return '?';

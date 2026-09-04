@@ -7,6 +7,13 @@ import StatusBadgeClinicManagement from '@/components/badges/StatusBadgeClinicMa
 import ClinicPatientActionsButtons from '@/components/buttons/ClinicPatientActionsButtons.vue';
 import { PatientForTab } from '@/types/patient/patient';
 import { formatDateBr } from '@/src/utils/formatters';
+import { usePage } from '@inertiajs/vue3';
+
+const page = usePage();
+
+const can = (permission: string) => {
+    return page.props.auth.permissions.includes(permission);
+};
 
 const ctx = inject(PatientClinicsKey);
 
@@ -96,6 +103,8 @@ const columnDefs = computed(() => {
                     emit('enroll', patient),
                 onRemove: (patient: PatientForTab) =>
                     emit('remove', patient),
+                canEnroll: can('patients.personal-page.enrollClinic'),
+                canRemove: can('patients.personal-page.removeEnrollmentClinic'),
             },
         },
     ];

@@ -46,6 +46,8 @@ class StudentService
          */
         public function paginate(StudentTableFiltersData $filters): LengthAwarePaginator
         {
+                $user = auth()->user();
+
                 $query = Student::withTrashed()
                         ->with([
                                 'person:id,name,cpf,phone',
@@ -57,6 +59,10 @@ class StudentService
                                 $filters->universityId,
                                 fn($q) => $q->where('university_id', $filters->universityId)
                         );
+
+                if ($user?->hasRole(Role::PROFESSOR)) {
+                        $query->whereNull('students.deleted_at');
+                }
 
                 $query->when($filters->search, function ($query) use ($filters) {
                         $query->where(function ($q) use ($filters) {
@@ -288,9 +294,12 @@ class StudentService
                         $user = User::create([
                                 'email' => $data['email'],
                                 'university_id' => $universityId,
-                                'role_id' => Role::STUDENT,
                                 'password' => Hash::make(Str::random(32)),
                         ]);
+
+                        $studentRole = Role::findOrFail(Role::STUDENT);
+
+                        $user->assignRole($studentRole);
 
                         $person = Person::create([
                                 'user_id' => null,

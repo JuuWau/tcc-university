@@ -6,10 +6,9 @@ export const scheduleSlotUpdateSchema = z
             .number({ message: 'Selecione o período.' })
             .int()
             .positive({ message: 'Selecione o período.' }),
-        responsible_id: z.coerce
-            .number({ message: 'Selecione o responsável.' })
-            .int()
-            .positive({ message: 'Selecione o responsável.' }),
+        responsible_ids: z
+            .array(z.coerce.number().int().positive())
+            .min(1, 'Selecione pelo menos um responsável.'),
         date: z.string()
             .min(1, 'Informe a data.')
             .refine((date) => {

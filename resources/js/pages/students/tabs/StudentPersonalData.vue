@@ -13,6 +13,7 @@
             </div>
 
             <Button
+                v-if="can('students.personal-page.updatePersonalData')"
                 variant="outline"
                 class="cursor-pointer"
                 size="sm"
@@ -23,7 +24,6 @@
             </Button>
         </div>
 
-        <!-- Dados pessoais -->
         <div class="grid grid-cols-1 gap-x-8 gap-y-6 sm:grid-cols-2">
             <div>
                 <p class="text-xs tracking-wide text-gray-400 uppercase">
@@ -65,7 +65,6 @@
             </div>
         </div>
 
-        <!-- Endereço -->
         <div
             v-if="student?.person?.address"
             class="mt-6 border-t border-gray-100 pt-6"
@@ -132,8 +131,15 @@ import {
     type StudentTabContext,
     StudentTabContextKey,
 } from '@/keys/students/studentKeys';
+import { usePage } from '@inertiajs/vue3';
 import { Pencil } from 'lucide-vue-next';
 import { computed, inject } from 'vue';
+
+const page = usePage();
+
+const can = (permission: string) => {
+    return page.props.auth.permissions.includes(permission);
+};
 
 const ctx = inject(StudentTabContextKey) as StudentTabContext | undefined;
 if (!ctx) {

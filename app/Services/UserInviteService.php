@@ -27,17 +27,9 @@ class UserInviteService
                         'expires_at' => now()->addDays(1),
                 ]);
 
-                 try {
-                        Mail::to($user->email)->send(
+                Mail::to($user->email)->send(
                         new UserInviteMail($invite)
-                        );
-                } catch (\Throwable $e) {
-                        \Log::error('Erro ao enviar convite', [
-                        'user_id' => $user->id,
-                        'email' => $user->email,
-                        'error' => $e->getMessage(),
-                        ]);
-                }
+                );
 
                 return $invite;
         }

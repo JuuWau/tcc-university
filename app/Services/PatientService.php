@@ -12,6 +12,7 @@ use App\Models\ClinicWaitingList;
 use App\Models\Patient;
 use App\Models\PatientClinic;
 use App\Models\Period;
+use App\Models\Role;
 use App\Models\ScheduleSlot;
 use App\Models\Student;
 use App\Models\User;
@@ -37,9 +38,12 @@ class PatientService
                                 fn($q) => $q->where('university_id', $filters->universityId)
                         );
 
-                if ($user->hasRole('student')) {
-                        $query->whereHas('students', function ($q) use ($user) {
-                                $q->where('students.id', $user->student->id);
+                if ($user->hasRole(Role::STUDENT)) {
+                        $query->whereHas('students', function ($query) use ($user) {
+                                $query->where(
+                                        'students.id',
+                                        $user->student->id
+                                );
                         });
                 }
 
@@ -751,7 +755,7 @@ class PatientService
                 ];
         }
 
-        public function getAvailableTimes(Patient $patient, array $data): array 
+        public function getAvailableTimes(Patient $patient, array $data): array
         {
                 $slot = ScheduleSlot::query()
                         ->where('clinic_id', $data['clinic_id'])

@@ -15,22 +15,24 @@ class AppointmentConfirmationController extends Controller
 {
     public function __construct(
         private AppointmentConfirmationService $appointmentConfirmationService,
-        private ClinicService $clinicService,
-        private PeriodService $periodService,
     ) {}
 
     public function index(Request $request)
     {
         $universityId = $request->user()?->university_id;
 
+        $user = $request->user();
         return Inertia::render(
             'appointments-confirmation/AppointmentsConfirmationIndex',
             [
                 'appointments' => AppointmentConfirmationResource::collection(
-                    $this->appointmentConfirmationService->list()
+                    $this->appointmentConfirmationService->list($user,
+                    [
+                        'date' => now()->toDateString(),
+                    ])
                 )->resolve(),
-                'clinics' => $this->clinicService->getClinics($universityId),
-                'periods' => $this->periodService->getPeriods($universityId),
+                'clinics' => $this->appointmentConfirmationService->getAvailableClinics($user, $universityId),
+                'periods' => $this->appointmentConfirmationService->getAvailablePeriods($user, $universityId),
                 'filters' => [
                     'date' => now()->toDateString(),
                     'clinic_id' => null,
@@ -45,6 +47,7 @@ class AppointmentConfirmationController extends Controller
     {
         try {
             $appointments = $this->appointmentConfirmationService->list(
+                $request->user(),
                 $request->all()
             );
 

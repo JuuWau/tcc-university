@@ -55,6 +55,6 @@ export interface UserForTab {
         birth_date?: string | null;
         address?: Address | null;
     } | null;
-    role: RoleOption;
+    roles: RoleOption[];
     invite?: UserInvite | null;
 }

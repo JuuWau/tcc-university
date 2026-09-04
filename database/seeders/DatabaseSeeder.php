@@ -26,24 +26,40 @@ class DatabaseSeeder extends Seeder
 
         Role::firstOrCreate(
             ['slug' => 'admin'],
-            ['name' => 'Admin']
+            ['name' => 'Admin'],
+            ['guard_name' => 'web']
         );
 
         Role::firstOrCreate(
             ['slug' => 'student'],
-            ['name' => 'Student']
+            ['name' => 'Student'],
+            ['guard_name' => 'web']
         );
 
         Role::firstOrCreate(
-            ['slug' => 'staff'],
-            ['name' => 'Staff']
+            ['slug' => 'recepcionist'],
+            ['name' => 'Recepção'],
+            ['guard_name' => 'web']
+        );
+
+        Role::firstOrCreate(
+            ['slug' => 'professor'],
+            ['name' => 'Professor'],
+            ['guard_name' => 'web']
         );
 
         $this->call([
             SpecialtySeeder::class,
             PeriodSeeder::class,
+
+            PermissionSeeder::class,
+
             AdminUserSeeder::class,
+            ReceptionistSeeder::class,
+            ProfessorSeeder::class,
             StudentSeeder::class,
+
+            ModelHasRolesSeeder::class,
         ]);
     }
 }
