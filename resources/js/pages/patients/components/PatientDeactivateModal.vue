@@ -6,6 +6,8 @@ import axios from 'axios';
 import { inject } from 'vue';
 import { toast } from 'vue3-toastify';
 import DeactivateButton from '@/components/buttons/DeactivateButton.vue';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
 
 const deactivateModal = inject(PatientDeactivateKey);
 const refreshTableRef = inject(RefreshTableKey);
@@ -41,34 +43,38 @@ async function confirmDeactivate() {
 </script>
 
 <template>
-    <div
-        v-if="deactivateModal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    >
-        <div class="w-full max-w-md rounded-lg bg-white p-6 shadow">
-            <h2 class="mb-4 text-lg font-bold text-gray-800">
-                Inativar paciente
-            </h2>
-            <hr />
+	<div
+		v-if="deactivateModal.isOpen.value"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+	>
+		<div
+			class="flex w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow"
+		>
+			<FormHeader
+				title="Inativar paciente"
+				subtitle="Confirme a inativação do paciente."
+			/>
 
-            <p class="pt-4 text-sm text-gray-600">
-                Tem certeza que deseja inativar o paciente
-                <strong>{{
-                    deactivateModal.patient.value?.name ??
-                    deactivateModal.patient.value?.email
-                }}</strong
-                >?
-            </p>
+			<div class="px-6 py-5">
+				<p class="text-sm text-gray-600">
+					Tem certeza que deseja inativar o paciente
+					<strong class="font-semibold text-gray-900">
+						{{
+							deactivateModal.patient.value?.name ??
+							deactivateModal.patient.value?.email
+						}}
+					</strong>
+					?
+				</p>
+			</div>
 
-            <div class="flex justify-end gap-2 pt-6">
-                <CancelButton @click="close" />
-                <DeactivateButton
-                    type="button"
-                    @click="confirmDeactivate"
-                >
-                    {{ loading ? 'Inativando...' : 'Inativar' }}
-                </DeactivateButton>
-            </div>
-        </div>
-    </div>
+			<FormFooter
+				:loading="loading"
+				action="deactivate"
+				action-label="Inativar"
+				@cancel="close"
+				@deactivate="confirmDeactivate"
+			/>
+		</div>
+	</div>
 </template>
