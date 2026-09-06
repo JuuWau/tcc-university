@@ -1,12 +1,14 @@
 <script setup lang="ts">
+import ActivationButton from '@/components/buttons/ActivationButton.vue';
 import CancelButton from '@/components/buttons/CancelButton.vue';
+import DeactivateButton from '@/components/buttons/DeactivateButton.vue';
 import DeleteButton from '@/components/buttons/DeleteButton.vue';
 import SaveButton from '@/components/buttons/SaveButton.vue';
 
 withDefaults(
 	defineProps<{
 		loading?: boolean;
-		action?: 'save' | 'delete';
+		action?: 'save' | 'delete' | 'deactivate' | 'activate';
 		actionLabel?: string;
 	}>(),
 	{
@@ -20,6 +22,8 @@ const emit = defineEmits<{
 	cancel: [];
 	save: [];
 	delete: [];
+	deactivate: [];
+	activate: [];
 }>();
 </script>
 
@@ -36,6 +40,24 @@ const emit = defineEmits<{
 		>
 			{{ actionLabel || 'Excluir' }}
 		</DeleteButton>
+
+		<DeactivateButton
+			v-else-if="action === 'deactivate'"
+			type="button"
+			:disabled="loading"
+			@click="emit('deactivate')"
+		>
+			{{ loading ? 'Inativando...' : actionLabel || 'Inativar' }}
+		</DeactivateButton>
+
+		<ActivationButton
+			v-else-if="action === 'activate'"
+			type="button"
+			:disabled="loading"
+			@click="emit('activate')"
+		>
+			{{ loading ? 'Ativando...' : actionLabel || 'Ativar' }}
+		</ActivationButton>
 
 		<SaveButton
 			v-else
