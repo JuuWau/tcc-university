@@ -40,10 +40,16 @@ const statusClasses: Record<string, string> = {
 	Excluído: 'bg-gray-200 text-gray-600',
 };
 
-const isInativo = computed(() => props.patient.deleted_at !== null);
+const displayStatus = computed(() => {
+	if (props.patient.deleted_at) return 'inativo';
+
+	return (props.patient.status ?? 'ativo') as string;
+});
+
+const isInativo = computed(() => displayStatus.value === 'inativo');
 
 const canDeactivatePatient = computed(
-	() => !isInativo.value && props.canDeactivate,
+	() => !props.patient.deleted_at && !isInativo.value && props.canDeactivate,
 );
 </script>
 
