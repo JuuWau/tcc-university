@@ -1,30 +1,35 @@
 <script setup lang="ts">
-import Multiselect from '@vueform/multiselect'
+import Multiselect from '@vueform/multiselect';
+
+defineOptions({
+	inheritAttrs: false,
+});
 
 withDefaults(
-    defineProps<{
-        label?: string
-        showLabel?: boolean
-    }>(),
-    {
-        showLabel: true,
-    },
-)
+	defineProps<{
+		fieldLabel?: string;
+		showLabel?: boolean;
+	}>(),
+	{
+		fieldLabel: undefined,
+		showLabel: true,
+	},
+);
 </script>
 
 <template>
-    <div>
-        <label
-            v-if="showLabel && label"
-            class="mb-2 block text-sm font-medium text-gray-700"
-        >
-            {{ label }}
-        </label>
+	<div>
+		<label
+			v-if="showLabel && fieldLabel"
+			class="mb-1 block text-sm font-medium text-gray-700"
+		>
+			{{ fieldLabel }}
+		</label>
 
-        <Multiselect
-            v-bind="$attrs"
-            :no-options-text="'Nenhuma opção disponível'"
-            :no-results-text="'Nenhum resultado encontrado'"
-        />
-    </div>
+		<Multiselect
+			v-bind="$attrs"
+			:no-options-text="'Nenhuma opção disponível'"
+			:no-results-text="'Nenhum resultado encontrado'"
+		/>
+	</div>
 </template>

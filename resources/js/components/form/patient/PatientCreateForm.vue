@@ -106,7 +106,7 @@ const biologicalSexOptions = [
 			<AppMultiselect
 				v-model="model.biological_sex"
 				:options="biologicalSexOptions"
-				label="Sexo biológico"
+				field-label="Sexo biológico"
 				value-prop="value"
 				:searchable="false"
 				:close-on-select="true"
@@ -120,7 +120,7 @@ const biologicalSexOptions = [
 			<AppMultiselect
 				v-model="model.patient_type"
 				:options="patientTypeOptions"
-				label="Tipo de paciente"
+				field-label="Tipo de paciente"
 				value-prop="value"
 				:searchable="false"
 				:close-on-select="true"
@@ -135,7 +135,7 @@ const biologicalSexOptions = [
 				v-model="model.student_ids"
 				:options="studentsOptions"
 				mode="tags"
-				label="Estudantes"
+				field-label="Estudantes"
 				value-prop="value"
 				:append-to-body="true"
 				:searchable="true"
@@ -201,7 +201,7 @@ const biologicalSexOptions = [
 				<AppMultiselect
 					v-model="model.state"
 					:options="stateOptions"
-					label="Estado"
+					field-label="Estado"
 					value-prop="value"
 					:append-to-body="true"
 					:searchable="true"
@@ -213,7 +213,7 @@ const biologicalSexOptions = [
 				<AppMultiselect
 					v-model="model.city"
 					:options="cityOptions"
-					label="Cidade"
+					field-label="Cidade"
 					value-prop="value"
 					:append-to-body="true"
 					:searchable="true"

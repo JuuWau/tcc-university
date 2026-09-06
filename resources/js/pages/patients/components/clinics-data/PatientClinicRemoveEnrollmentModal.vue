@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import CancelButton from '@/components/buttons/CancelButton.vue';
 import DeleteButton from '@/components/buttons/DeleteButton.vue';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
 import { PatientClinicRemoveEnrollmentKey, RefreshTableKey } from '@/keys/patients/patientClinicsKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import axios from 'axios';
@@ -55,33 +57,30 @@ async function submit() {
 <template>
     <div
         v-if="removeModal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
     >
-        <div class="w-full max-w-md rounded-lg bg-white p-6">
-            <h2 class="mb-2 text-lg font-bold text-red-600">
-                Remover inscrição
-            </h2>
+        <div class="flex w-full max-w-md flex-col overflow-hidden rounded-lg bg-white">
+            <FormHeader 
+                title="Remover inscrição" 
+                subtitle="Confirme a remoção da inscrição do paciente." 
+            />
 
-            <hr />
-
-            <p class="mb-6 pt-3 text-sm text-gray-600">
-                Tem certeza que deseja remover a inscrição de
-                <strong>
-                    {{ removeModal.patient.value?.name }}
-                </strong>
-                da clínica?
-            </p>
-
-            <div class="flex justify-end gap-2">
-                <CancelButton @click="close" />
-
-                <DeleteButton
-                    :loading="loading"
-                    @click="submit"
-                >
-                    Remover
-                </DeleteButton>
+            <div class="px-5 py-2">
+                <p class="mb-6 pt-3 text-sm text-gray-600">
+                    Tem certeza que deseja remover a inscrição de
+                    <strong>
+                        {{ removeModal.patient.value?.name }}
+                    </strong>
+                    da clínica?
+                </p>
             </div>
+
+            <FormFooter 
+                :loading="loading" 
+                action="delete" 
+                action-label="Remover" 
+                @cancel="close" 
+                @delete="submit" />
         </div>
     </div>
 </template>

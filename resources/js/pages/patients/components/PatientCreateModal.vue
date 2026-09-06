@@ -3,7 +3,7 @@ import { City, IbgeService, Uf } from '@/api/ibge';
 import { ViaCep } from '@/api/viacep';
 import FormFooter from '@/components/form/FormFooter.vue';
 import FormHeader from '@/components/form/FormHeader.vue';
-import PatientForm from '@/components/form/patient/PatientForm.vue';
+import PatientCreateForm from '@/components/form/patient/PatientCreateForm.vue';
 import { PatientCreateKey, RefreshTableKey } from '@/keys/patients/patientKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import { patientCreateSchema } from '@/schemas/patient.schema';
@@ -20,15 +20,6 @@ const page = usePage();
 const viaCep = ViaCep();
 const states = ref<Uf[]>([]);
 const cities = ref<City[]>([]);
-const patientTypeOptions = [
-    { label: 'Adulto', value: 'adulto' },
-    { label: 'Pediatria', value: 'pediatria' },
-];
-
-const biologicalSexOptions = [
-    { label: 'Masculino', value: 'male' },
-    { label: 'Feminino', value: 'female' },
-];
 
 const students = computed(
     () => (page.props as { students?: StudentOption[] }).students ?? [],
@@ -175,7 +166,7 @@ async function submit() {
             />
 
             <div class="min-h-0 flex-1 overflow-y-auto px-6">
-                <PatientForm
+                <PatientCreateForm
                     v-model="form"
                     :students-options="studentsOptions"
                     :state-options="stateOptions"
