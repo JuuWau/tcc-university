@@ -31,7 +31,7 @@ import {
     ClinicDeactivateKey,
     ClinicDeleteKey,
     ClinicEditKey,
-    ClinicsGroupKey,
+    RefreshTableKey,
 } from '@/keys/clinics/clinicKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import AppLayout from '@/layouts/AppLayout.vue';
@@ -44,12 +44,8 @@ import ClinicEditModal from '@/pages/clinics/components/ClinicEditModal.vue';
 import type { Clinic } from '@/types/clinic/clinic';
 import { provide, ref } from 'vue';
 
-const { clinics } = defineProps({
-    clinics: Array,
-});
-
-const clinicsRef = ref(clinics as Clinic[]);
 const loading = ref(false);
+const refreshTableRef = ref<(() => void) | null>(null);
 
 const createModal = { isOpen: ref(false) };
 const editModal = {
@@ -69,7 +65,7 @@ const deleteModal = {
     clinic: ref<Clinic | null>(null),
 };
 
-provide(ClinicsGroupKey, clinicsRef);
+provide(RefreshTableKey, refreshTableRef);
 provide(ClinicCreateKey, createModal);
 provide(ClinicEditKey, editModal);
 provide(ClinicDeactivateKey, deactivateModal);

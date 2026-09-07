@@ -2,7 +2,10 @@
 import AppMultiselect from '@/components/AppMultiselect.vue';
 import CancelButton from '@/components/buttons/CancelButton.vue';
 import SaveButton from '@/components/buttons/SaveButton.vue';
-import { ClinicCreateKey, ClinicsGroupKey } from '@/keys/clinics/clinicKeys';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
+import BaseInput from '@/components/inputs/BaseInput.vue';
+import { ClinicCreateKey, RefreshTableKey } from '@/keys/clinics/clinicKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import { clinicSchema } from '@/schemas/clinic.schema';
 import axios from 'axios';
@@ -10,7 +13,7 @@ import { inject, reactive, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 
 const createModal = inject<any>(ClinicCreateKey);
-const clinics = inject<any>(ClinicsGroupKey);
+const refreshTableRef = inject(RefreshTableKey);
 const loading = inject(LoadingKey);
 const specialtyOptions = ref<
     {
@@ -56,8 +59,8 @@ async function submit() {
 
     try {
         loading.value = true;
-        const res = await axios.post('/clinics', result.data);
-        clinics.value.unshift(res.data.clinic);
+        await axios.post('/clinics', result.data);
+        refreshTableRef?.value?.();
         toast.success('Clínica criada com sucesso');
         close();
     } catch (error: any) {
@@ -85,46 +88,51 @@ async function loadSpecialties() {
 </script>
 
 <template>
-    <div
-        v-if="createModal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    >
-        <div class="w-full max-w-md rounded-lg bg-white p-6">
-            <h2 class="mb-4 text-lg font-bold">Nova Clínica</h2>
-            <hr />
-            <div class="py-4">
-                <label class="mb-2 block text-sm font-medium text-gray-700">
-                    Nome da clínica (*)
-                </label>
-                <input
-                    v-model="form.name"
-                    type="text"
-                    maxlength="120"
-                    class="w-full rounded border px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                    placeholder="Ex: Clínica Escola A"
-                />
-            </div>
-            <div class="pb-4">
-                <label class="mb-2 block text-sm font-medium text-gray-700">
-                    Especialidades (*)
-                </label>
-                <AppMultiselect
-                    v-model="form.specialty_ids"
-                    :options="specialtyOptions"
-                    label="label"
-                    mode="tags"
-                    value-prop="value"
-                    placeholder="Selecione as especialidades"
-                    :searchable="true"
-                    :can-clear="true"
-                    :multiple="true"
-                    :append-to-body="true"
-                />
-            </div>
-            <div class="flex justify-end gap-2">
-                <CancelButton @click="close" />
-                <SaveButton :loading="loading" @click.stop="submit" />
-            </div>
-        </div>
-    </div>
+	<div
+		v-if="createModal.isOpen.value"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+	>
+		<div
+			class="flex w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow"
+		>
+			<FormHeader
+				title="Nova clínica"
+				subtitle="Cadastre a clínica e suas especialidades."
+			/>
+
+			<div class="min-h-0 flex-1 px-6">
+				<div class="space-y-4 py-5">
+					<BaseInput
+						v-model="form.name"
+						label="Nome da clínica (*)"
+						type="text"
+						maxlength="120"
+						placeholder="Ex: Clínica Escola A"
+					/>
+
+					<AppMultiselect
+						v-model="form.specialty_ids"
+						:options="specialtyOptions"
+						field-label="Especialidades (*)"
+						label="label"
+						value-prop="value"
+						mode="tags"
+						:searchable="true"
+						:close-on-select="false"
+						:can-clear="true"
+						:append-to-body="true"
+						placeholder="Selecione as especialidades"
+					/>
+				</div>
+			</div>
+
+			<FormFooter
+				:loading="loading"
+				action="save"
+				action-label="Salvar"
+				@cancel="close"
+				@save="submit"
+			/>
+		</div>
+	</div>
 </template>

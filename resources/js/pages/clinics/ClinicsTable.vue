@@ -1,12 +1,16 @@
 <script setup lang="ts">
+import axios from 'axios';
 import ClinicTableActionsButtons from '@/components/buttons/ClinicTableActionsButtons.vue';
 import CreateButton from '@/components/buttons/CreateButton.vue';
-import { ClinicsGroupKey } from '@/keys/clinics/clinicKeys';
+import BaseInput from '@/components/inputs/BaseInput.vue';
+import { RefreshTableKey } from '@/keys/clinics/clinicKeys';
 import type { Clinic, Specialty } from '@/types/clinic/clinic';
 import { AgGridVue } from 'ag-grid-vue3';
-import { computed, inject, ref, type Ref } from 'vue';
+import { computed, inject, onMounted, ref, watch } from 'vue';
 import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale';
+import { Search } from 'lucide-vue-next';
 import { usePage } from '@inertiajs/vue3';
+import ClinicCard from './components/ClinicCard.vue';
 
 const page = usePage();
 
@@ -22,9 +26,21 @@ const emit = defineEmits<{
     (e: 'delete', clinic: Clinic): void;
 }>();
 
-const clinics = inject<Ref<Clinic[]>>(ClinicsGroupKey);
 type StatusFilter = 'all' | 'active' | 'inactive';
+type SortField = 'name' | 'created_at';
+type SortDir = 'asc' | 'desc';
 const activeStatus = ref<StatusFilter>('all');
+const refreshTableRef = inject(RefreshTableKey);
+const rowData = ref<Clinic[]>([]);
+const loading = ref(false);
+const pageNumber = ref(1);
+const perPage = ref(15);
+const total = ref(0);
+const totalPages = ref(0);
+const sortField = ref<SortField>('name');
+const sortDir = ref<SortDir>('asc');
+const search = ref('');
+let searchTimeout: number;
 
 const statusLabel: Record<StatusFilter, string> = {
     all: 'Todos',
@@ -32,20 +48,73 @@ const statusLabel: Record<StatusFilter, string> = {
     inactive: 'Inativas',
 };
 
+const fromTo = computed(() => {
+    const from = (pageNumber.value - 1) * perPage.value + 1;
+    const to = Math.min(pageNumber.value * perPage.value, total.value);
+    return total.value ? `${from}-${to} de ${total.value}` : '0';
+});
+
+async function fetchClinics() {
+    loading.value = true;
+    try {
+        const { data } = await axios.get<{
+            data: Clinic[];
+            meta: { last_page: number; total: number };
+        }>('/clinics/table', {
+            params: {
+                page: pageNumber.value,
+                per_page: perPage.value,
+                sort_field: sortField.value,
+                sort_dir: sortDir.value,
+                status: activeStatus.value,
+                search: search.value,
+            },
+        });
+        rowData.value = data.data;
+        total.value = data.meta.total;
+        totalPages.value = data.meta.last_page;
+    } catch {
+        rowData.value = [];
+        total.value = 0;
+        totalPages.value = 0;
+    } finally {
+        loading.value = false;
+    }
+}
+
+watch(search, () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = window.setTimeout(() => {
+        pageNumber.value = 1;
+        fetchClinics();
+    }, 400);
+});
+
+watch([pageNumber, perPage, activeStatus, sortField, sortDir], fetchClinics);
+
+onMounted(() => {
+    fetchClinics();
+    if (refreshTableRef) refreshTableRef.value = fetchClinics;
+});
+
+function goToPage(newPage: number) {
+    if (newPage >= 1 && newPage <= totalPages.value) pageNumber.value = newPage;
+}
+
 const columnDefs = [
     {
         headerName: 'Nome',
         field: 'name',
         flex: 2,
-        sortable: true,
-        filter: true,
+        sortable: false,
+        filter: false,
     },
     {
         headerName: 'Especialidades',
         field: 'specialties',
         flex: 2,
-        sortable: true,
-        filter: true,
+        sortable: false,
+        filter: false,
         autoHeight: true,
         cellClass: 'cell-center',
         cellRenderer: (params: any) => {
@@ -69,8 +138,8 @@ const columnDefs = [
     {
         headerName: 'Status',
         field: 'active',
-        sortable: true,
-        filter: true,
+        sortable: false,
+        filter: false,
         cellRenderer: (params: any) => {
             const active = !!params.value;
             const bgClass = active
@@ -102,16 +171,8 @@ const defaultColDef = {
 
 function filterByStatus(status: StatusFilter) {
     activeStatus.value = status;
+    pageNumber.value = 1;
 }
-
-const filteredClinics = computed(() => {
-    const list = clinics?.value ?? [];
-    if (activeStatus.value === 'active')
-        return list.filter((clinic) => clinic.active);
-    if (activeStatus.value === 'inactive')
-        return list.filter((clinic) => !clinic.active);
-    return list;
-});
 </script>
 
 <template>
@@ -155,21 +216,107 @@ const filteredClinics = computed(() => {
             />
         </div>
 
+        <div class="mb-4">
+            <BaseInput
+                v-model="search"
+                type="text"
+                placeholder="Pesquisar clínica..."
+                :icon="Search"
+            />
+        </div>
+
         <div class="overflow-x-auto">
             <div
-                class="ag-theme-alpine relative rounded-xl border border-gray-200"
+                class="ag-theme-alpine relative hidden rounded-xl border border-gray-200 md:block"
                 style="height: 520px; width: 100%"
             >
                 <AgGridVue
                     class="ag-theme-alpine h-full"
-                    :rowData="filteredClinics"
+                    :rowData="rowData"
                     :columnDefs="columnDefs"
                     :defaultColDef="defaultColDef"
-                    :pagination="true"
-                    :paginationPageSize="10"
-                    :paginationPageSizeSelector="[10, 20, 50, 100]"
                     :localeText="AG_GRID_LOCALE_BR"
                 />
+
+                <div
+                    v-if="loading"
+                    class="absolute inset-0 z-10 flex items-center justify-center bg-white/70"
+                >
+                    <span
+                        class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent"
+                    ></span>
+                    Carregando clínicas
+                </div>
+            </div>
+
+            <div class="space-y-3 md:hidden">
+                <div
+                    v-if="loading"
+                    class="flex items-center justify-center py-10 text-sm text-gray-600"
+                >
+                    <span
+                        class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent"
+                    ></span>
+                    Carregando clínicas
+                </div>
+
+                <ClinicCard
+                    v-for="clinic in rowData"
+                    :key="clinic.id"
+                    :clinic="clinic"
+                    :can-delete="can('clinics.delete')"
+                    :can-deactivate="can('clinics.deactivate')"
+                    @edit="emit('edit', $event)"
+                    @deactivate="emit('deactivate', $event)"
+                    @activate="emit('activate', $event)"
+                    @delete="emit('delete', $event)"
+                />
+
+                <div
+                    v-if="!loading && rowData.length === 0"
+                    class="rounded-xl border border-gray-200 bg-white p-6 text-center text-sm text-gray-500"
+                >
+                    Nenhuma clínica encontrada.
+                </div>
+            </div>
+        </div>
+
+        <div
+            v-if="totalPages > 0"
+            class="mt-4 flex flex-wrap items-center justify-between gap-2"
+        >
+            <p class="text-sm text-gray-600">{{ fromTo }}</p>
+            <div class="flex items-center gap-1">
+                <button
+                    type="button"
+                    :disabled="pageNumber <= 1"
+                    class="rounded border border-gray-300 bg-white px-3 py-1 text-sm disabled:opacity-50"
+                    @click="goToPage(pageNumber - 1)"
+                >
+                    Anterior
+                </button>
+                <button
+                    v-for="currentPage in totalPages"
+                    :key="currentPage"
+                    type="button"
+                    :class="[
+                        'rounded px-3 py-1 text-sm',
+                        currentPage === pageNumber
+                            ? 'bg-sky-600 text-white'
+                            : 'text-gray-600 hover:bg-gray-100',
+                    ]"
+                    @click="goToPage(currentPage)"
+                >
+                    {{ currentPage }}
+                </button>
+                <button
+                    type="button"
+                    :disabled="pageNumber >= totalPages"
+                    class="rounded border border-gray-300 bg-white px-3 py-1 text-sm disabled:opacity-50"
+                    @click="goToPage(pageNumber + 1)"
+                >
+                    Próxima
+                </button>
             </div>
         </div>
     </div>
