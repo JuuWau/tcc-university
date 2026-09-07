@@ -88,6 +88,7 @@ class ScheduleSlotController extends Controller
             'responsible' => $this->userService->getResponsible($universityId),
             'filters' => [
                 'period_id' => $filters->periodId,
+                'student_id' => $filters->studentId,
                 'date' => $filters->date,
             ],
         ]);

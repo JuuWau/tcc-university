@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePeriodRequest;
 use App\Http\Requests\UpdatePeriodRequest;
+use App\Http\Requests\TablePeriodRequest;
+use App\Data\Periods\PeriodTableFiltersData;
+use App\Http\Resources\PeriodTableResource;
 use App\Models\Period;
 use Illuminate\Http\Request;
 use Illuminate\Http\JsonResponse;
@@ -30,9 +33,17 @@ class PeriodsController extends Controller
         $universityId = request()->user()?->university_id;
         
         return Inertia::render('periods/PeriodsIndex', [
-            'periods' => $this->periodService->all($universityId),
             'specialties' => $this->specialtyService->all($universityId),
         ]);
+    }
+
+    public function table(TablePeriodRequest $request)
+    {
+        $periods = $this->periodService->paginate(
+            PeriodTableFiltersData::fromRequest($request)
+        );
+
+        return PeriodTableResource::collection($periods);
     }
 
     public function update(UpdatePeriodRequest $request, Period $period): JsonResponse 

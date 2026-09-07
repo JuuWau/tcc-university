@@ -4,6 +4,9 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreProcedureRequest;
 use App\Http\Requests\UpdateProcedureRequest;
+use App\Http\Requests\TableProcedureRequest;
+use App\Data\Procedures\ProcedureTableFiltersData;
+use App\Http\Resources\ProcedureTableResource;
 use App\Http\Resources\ProcedureListResource;
 use App\Models\Procedure;
 use App\Services\ProcedureService;
@@ -26,9 +29,17 @@ class ProceduresController extends Controller
         $universityId = request()->user()?->university_id;
         
         return Inertia::render('procedures/ProceduresIndex', [
-            'procedures' => $this->procedureService->all($universityId),
             'specialties' => $this->specialtyService->all($universityId),
         ]);
+    }
+
+    public function table(TableProcedureRequest $request)
+    {
+        $procedures = $this->procedureService->paginate(
+            ProcedureTableFiltersData::fromRequest($request)
+        );
+
+        return ProcedureTableResource::collection($procedures);
     }
 
     public function store(StoreProcedureRequest $request)
