@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import CancelButton from '@/components/buttons/CancelButton.vue';
-import DeactivateButton from '@/components/buttons/DeactivateButton.vue';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import { RefreshTableKey, UserDeactivateKey } from '@/keys/users/userKeys';
 import axios from 'axios';
@@ -43,33 +43,36 @@ async function confirmDeactivate() {
 <template>
     <div
         v-if="deactivateModal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
     >
-        <div class="w-full max-w-md rounded-lg bg-white p-6 shadow">
-            <h2 class="mb-4 text-lg font-bold text-gray-800">
-                Inativar colaborador
-            </h2>
-            <hr />
-
-            <p class="pt-4 text-sm text-gray-600">
-                Tem certeza que deseja inativar o colaborador
-                <strong>{{
-                    deactivateModal.user.value?.person?.name ??
-                    deactivateModal.user.value?.email
-                }}</strong
-                >?
-            </p>
-
-            <div class="flex justify-end gap-2 pt-6">
-                <CancelButton @click="close" />
-                <DeactivateButton
-                    type="button"
-                    :disabled="loading"
-                    @click="confirmDeactivate"
-                >
-                    {{ loading ? 'Inativando...' : 'Inativar' }}
-                </DeactivateButton>
+        <div
+            class="flex w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow"
+        >
+            <FormHeader
+                title="Inativar colaborador"
+                subtitle="Confirme a inativação do colaborador."
+            />
+            
+            <div class="px-6 py-5">
+                <p class="text-sm text-gray-600">
+                    Tem certeza que deseja inativar o colaborador
+                    <strong class="font-semibold text-gray-900">
+                        {{
+                            deactivateModal.user.value?.person?.name ??
+                            deactivateModal.user.value?.email
+                        }}
+                    </strong>
+                    ?
+                </p>
             </div>
+
+            <FormFooter
+                :loading="loading"
+                action="deactivate"
+                action-label="Inativar"
+                @cancel="close"
+                @deactivate="confirmDeactivate"
+            />
         </div>
     </div>
 </template>
