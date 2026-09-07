@@ -6,6 +6,11 @@ import AppMultiselect from '@/components/AppMultiselect.vue';
 import { PatientScheduleBookingContextKey, PatientScheduleViewModalKey, type PatientScheduleBookingAppointment,} from '@/keys/patients/patientScheduleBookingKeys';
 import { formatDateBr } from '@/src/utils/formatters';
 import { patientScheduleBookingSchema } from '@/schemas/patientScheduleBooking.schema';
+import CancelButton from '@/components/buttons/CancelButton.vue';
+import SaveButton from '@/components/buttons/SaveButton.vue';
+import { Pencil } from 'lucide-vue-next';
+import BaseInput from '@/components/inputs/BaseInput.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
 
 const modal = inject(PatientScheduleViewModalKey);
 
@@ -195,262 +200,197 @@ function close() {
 </script>
 
 <template>
-    <div
-        v-if="modal.isOpen.value && appointment"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-    >
-        <div
-            class="w-full max-w-2xl rounded-lg bg-white p-6"
-        >
-            <div
-                class="mb-4 flex items-center justify-between"
-            >
-                <div>
-                    <h2
-                        class="text-lg font-bold text-gray-900"
-                    >
-                        {{ isEditing
-                            ? 'Editar agendamento'
-                            : 'Agendamento' }}
-                    </h2>
+	<div
+		v-if="modal.isOpen.value && appointment"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+	>
+		<div
+			class="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow"
+		>
+			<FormHeader
+				:title="isEditing ? 'Editar agendamento' : 'Agendamento'"
+				:subtitle="
+					!canEdit
+						? 'Este agendamento pertence a outro paciente e não pode ser editado.'
+						: isEditing
+							? 'Atualize os dados do agendamento.'
+							: 'Visualize os dados do agendamento.'
+				"
+			/>
 
-                    <p
-                        v-if="!canEdit"
-                        class="mt-1 text-xs text-gray-500"
-                    >
-                        Este agendamento pertence a outro
-                        paciente e não pode ser editado.
-                    </p>
-                </div>
+			<div class="min-h-0 flex-1 overflow-y-auto px-6">
+				<div class="space-y-5 py-5">
+					<BaseInput
+						:model-value="
+							appointment.patient ??
+							'Paciente não informado'
+						"
+						label="Paciente"
+						type="text"
+						disabled
+					/>
 
-                <button
-                    type="button"
-                    class="text-2xl text-gray-400 hover:text-gray-600"
-                    @click="close"
-                >
-                    ×
-                </button>
-            </div>
+					<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+						<BaseInput
+							:model-value="formatDateBr(appointment.date)"
+							label="Data"
+							type="text"
+							disabled
+						/>
 
-            <hr />
+						<div>
+							<BaseInput
+								v-if="isEditing"
+								v-model="form.start_time"
+								label="Início"
+								type="text"
+								v-mask="'##:##'"
+								placeholder="HH:mm"
+							/>
 
-            <div class="space-y-4 pt-4">
-                <div>
-                    <label
-                        class="mb-1 block text-sm font-medium text-gray-700"
-                    >
-                        Paciente
-                    </label>
+							<BaseInput
+								v-else
+								:model-value="appointment.start_time"
+								label="Início"
+								type="text"
+								disabled
+							/>
+						</div>
 
-                    <div
-                        class="w-full rounded border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700"
-                    >
-                        {{
-                            appointment.patient ??
-                            'Paciente não informado'
-                        }}
-                    </div>
-                </div>
+						<div>
+							<BaseInput
+								v-if="isEditing"
+								v-model="form.end_time"
+								label="Fim"
+								type="text"
+								v-mask="'##:##'"
+								placeholder="HH:mm"
+							/>
 
-                <div class="grid grid-cols-3 gap-4">
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Data
-                        </label>
+							<BaseInput
+								v-else
+								:model-value="appointment.end_time"
+								label="Fim"
+								type="text"
+								disabled
+							/>
+						</div>
+					</div>
 
-                        <div
-                            class="w-full rounded border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700"
-                        >
-                            {{ formatDateBr(appointment.date) }}
-                        </div>
-                    </div>
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Início
-                        </label>
+					<div>
+						<AppMultiselect
+							v-if="isEditing && canSelectProcedure"
+							v-model="form.procedure_id"
+							:options="booking.procedureOptions.value"
+							field-label="Procedimento"
+							label="label"
+							value-prop="value"
+							track-by="value"
+							:searchable="true"
+							:can-clear="true"
+							:close-on-select="true"
+							:append-to-body="true"
+							placeholder="Selecione o procedimento"
+						/>
 
-                        <input
-                            v-if="isEditing"
-                            v-model="form.start_time"
-                            type="text"
-                            placeholder="HH:mm"
-                            v-mask="'##:##'"
-                            class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                        />
+						<BaseInput
+							v-else
+							:model-value="
+								appointment.procedure ??
+								'Não informado'
+							"
+							label="Procedimento"
+							type="text"
+							disabled
+						/>
+					</div>
 
-                        <div
-                            v-else
-                            class="w-full rounded border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700"
-                        >
-                            {{ appointment.start_time }}
-                        </div>
-                    </div>
+					<div>
+						<AppMultiselect
+							v-if="isEditing"
+							v-model="form.status"
+							:options="statusOptions"
+							field-label="Status"
+							label="label"
+							value-prop="value"
+							:searchable="true"
+							:close-on-select="true"
+							:can-clear="false"
+							:append-to-body="true"
+							placeholder="Selecione o status"
+						/>
 
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Fim
-                        </label>
+						<BaseInput
+							v-else
+							:model-value="statusLabel"
+							label="Status"
+							type="text"
+							disabled
+						/>
+					</div>
 
-                        <input
-                            v-if="isEditing"
-                            v-model="form.end_time"
-                            type="text"
-                            placeholder="HH:mm"
-                            v-mask="'##:##'"
-                            class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                        />
+					<div>
+						<label
+							class="mb-1 block text-sm font-medium text-gray-700"
+						>
+							Observações
+						</label>
 
-                        <div
-                            v-else
-                            class="w-full rounded border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700"
-                        >
-                            {{ appointment.end_time }}
-                        </div>
-                    </div>
-                </div>
+						<textarea
+							v-if="isEditing"
+							v-model="form.notes"
+							rows="4"
+							class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm transition placeholder:text-gray-400 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+							placeholder="Digite alguma observação sobre o agendamento"
+						/>
 
-                <div>
-                    <label
-                        class="mb-1 block text-sm font-medium text-gray-700"
-                    >
-                        Procedimento
-                    </label>
+						<div
+							v-else
+							class="min-h-[100px] w-full rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm whitespace-pre-wrap text-gray-700"
+						>
+							{{
+								appointment.notes ||
+								'Nenhuma observação.'
+							}}
+						</div>
+					</div>
+				</div>
+			</div>
 
-                    <AppMultiselect
-                        v-if="
-                            isEditing &&
-                            canSelectProcedure
-                        "
-                        v-model="form.procedure_id"
-                        :options="
-                            booking.procedureOptions.value
-                        "
-                        label="label"
-                        track-by="value"
-                        value-prop="value"
-                        :searchable="true"
-                        :can-clear="true"
-                        :close-on-select="true"
-                        placeholder="Selecione o procedimento"
-                    />
+			<div
+				class="flex shrink-0 justify-end gap-2 border-t border-gray-200 bg-white p-4"
+			>
+				<template v-if="!isEditing">
+					<CancelButton
+						label="Fechar"
+						@click="close"
+					/>
 
-                    <div
-                        v-else
-                        class="w-full rounded border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700"
-                    >
-                        {{
-                            appointment.procedure ??
-                            'Não informado'
-                        }}
-                    </div>
-                </div>
+					<Button
+						v-if="canEdit"
+						type="button"
+						class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg bg-sky-600 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-sky-700 focus:outline-none focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 active:scale-[0.98]"
+						@click="startEditing"
+					>
+						<Pencil class="h-4 w-4" />
+						Editar
+					</Button>
+				</template>
 
-                <div>
-                    <label
-                        class="mb-1 block text-sm font-medium text-gray-700"
-                    >
-                        Status
-                    </label>
+				<template v-else>
+					<CancelButton
+						label="Cancelar"
+						@click="cancelEditing"
+					/>
 
-                    <AppMultiselect
-                        v-if="isEditing"
-                        v-model="form.status"
-                        :options="statusOptions"
-                        label="label"
-                        value-prop="value"
-                        :searchable="true"
-                        :close-on-select="true"
-                        :can-clear="false"
-                        :append-to-body="true"
-                        placeholder="Selecione o status"
-                    />
-
-                    <div
-                        v-else
-                        class="w-full rounded border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-700"
-                    >
-                        {{ statusLabel }}
-                    </div>
-                </div>
-
-                <div>
-                    <label
-                        class="mb-1 block text-sm font-medium text-gray-700"
-                    >
-                        Observações
-                    </label>
-
-                    <textarea
-                        v-if="isEditing"
-                        v-model="form.notes"
-                        rows="4"
-                        class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-sky-500 focus:outline-none focus:ring-1 focus:ring-sky-500"
-                    />
-
-                    <div
-                        v-else
-                        class="min-h-[100px] w-full rounded border border-gray-200 bg-gray-50 px-3 py-2 text-sm whitespace-pre-wrap text-gray-700"
-                    >
-                        {{
-                            appointment.notes ||
-                            'Nenhuma observação.'
-                        }}
-                    </div>
-                </div>
-            </div>
-
-            <div
-                class="flex justify-end gap-2 pt-4"
-            >
-                <template v-if="!isEditing">
-                    <button
-                        type="button"
-                        class="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-200"
-                        @click="close"
-                    >
-                        Fechar
-                    </button>
-
-                    <button
-                        v-if="canEdit"
-                        type="button"
-                        class="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-700"
-                        @click="startEditing"
-                    >
-                        Editar
-                    </button>
-                </template>
-
-                <template v-else>
-                    <button
-                        type="button"
-                        class="rounded-md bg-gray-100 px-4 py-2 text-sm font-medium text-gray-700 transition hover:bg-gray-200 disabled:opacity-50"
-                        :disabled="loading"
-                        @click="cancelEditing"
-                    >
-                        Cancelar
-                    </button>
-
-                    <button
-                        type="button"
-                        class="rounded-md bg-sky-600 px-4 py-2 text-sm font-medium text-white transition hover:bg-sky-700 disabled:cursor-not-allowed disabled:opacity-50"
-                        :disabled="loading"
-                        @click="submit"
-                    >
-                        {{
-                            loading
-                                ? 'Salvando...'
-                                : 'Salvar alterações'
-                        }}
-                    </button>
-                </template>
-            </div>
-        </div>
-    </div>
+					<SaveButton
+						:loading="loading"
+						@click="submit"
+					>
+						Salvar alterações
+					</SaveButton>
+				</template>
+			</div>
+		</div>
+	</div>
 </template>

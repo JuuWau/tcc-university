@@ -321,6 +321,9 @@ const calendarOptions = computed(() => ({
 
     eventDrop: saveEventTime,
 
+    longPressDelay: 300,
+    eventLongPressDelay: 300,
+    selectLongPressDelay: 300,
     eventResize: saveEventTime,
 
     events: [
