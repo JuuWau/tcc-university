@@ -46,7 +46,7 @@ const inputValue = computed({
 		<label
 			v-if="label"
 			:for="id"
-			class="mb-2 block text-sm font-medium text-gray-700"
+			class="mb-1 block text-sm font-medium text-gray-700"
 		>
 			{{ label }}
 
