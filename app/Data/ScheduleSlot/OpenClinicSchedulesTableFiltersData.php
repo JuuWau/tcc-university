@@ -12,12 +12,17 @@ class OpenClinicSchedulesTableFiltersData
                 public readonly string $sortField,
                 public readonly string $sortDir,
                 public readonly ?int $periodId,
+                public readonly ?int $studentId,
                 public readonly ?string $date,
                 public readonly int $universityId,
                 public readonly int $clinicId
         ) {}
 
-        public static function fromRequest(TableOpenClinicSchedulesRequest $request, int $clinicId): self
+        public static function fromRequest(
+                TableOpenClinicSchedulesRequest $request,
+                int $clinicId,
+                ?int $studentId = null,
+        ): self
         {
                 return new self(
                         $request->integer('page', 1),
@@ -25,6 +30,7 @@ class OpenClinicSchedulesTableFiltersData
                         $request->input('sort_field', 'date'),
                         $request->input('sort_dir', 'asc'),
                         $request->integer('period_id') ?: null,
+                        $studentId,
                         $request->input('date'),
                         $request->user()?->university_id,
                         $clinicId,
