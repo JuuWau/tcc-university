@@ -1,10 +1,7 @@
 <script setup lang="ts">
 import FormFooter from '@/components/form/FormFooter.vue';
 import FormHeader from '@/components/form/FormHeader.vue';
-import {
-    ClinicDeactivateKey,
-	RefreshTableKey,
-} from '@/keys/clinics/clinicKeys';
+import { ClinicDeactivateKey, RefreshTableKey } from '@/keys/clinics/clinicKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import axios from 'axios';
 import { inject, type Ref } from 'vue';
