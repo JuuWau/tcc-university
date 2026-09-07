@@ -7,12 +7,19 @@ import { ClinicManagementShowKey, RefreshTableKey } from '@/keys/clinics-managem
 import StatusBadgeClinicManagement from '@/components/badges/StatusBadgeClinicManagement.vue';
 import { PatientForTab } from '@/types/patient/patient';
 import ClinicPatientActionsButtons from '@/components/buttons/ClinicPatientActionsButtons.vue';
+import { usePage } from '@inertiajs/vue3';
 
 const ctx = inject(ClinicManagementShowKey);
 
 const emit = defineEmits([
     'enroll',
 ]);
+
+const pageData = usePage();
+
+const can = (permission: string) => {
+    return pageData.props.auth.permissions.includes(permission);
+};
 
 const columnDefs = computed(() => {
     const isWaiting = ctx.activeStatus.value === 'waiting';
@@ -73,6 +80,8 @@ const columnDefs = computed(() => {
                     emit('enroll', patient),
                 onRemove: (patient: PatientForTab) =>
                     emit('remove', patient),
+                isAllowedToEnroll: can('clinics-management.addPatientToWaitingList'),
+                isAllowedToRemove: can('clinics-management.removeEnrollmentClinic'),
             },
         },
     ];

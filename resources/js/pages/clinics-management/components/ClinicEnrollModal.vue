@@ -7,6 +7,8 @@ import CancelButton from '@/components/buttons/CancelButton.vue';
 import SaveButton from '@/components/buttons/SaveButton.vue';
 
 import { ClinicEnrollKey, RefreshTableKey } from '@/keys/clinics-management/clinicManagementShowKeys';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
 
 const enrollModal = inject<any>(ClinicEnrollKey);
 const refreshTableRef = inject(RefreshTableKey);
@@ -48,34 +50,34 @@ async function submit() {
 </script>
 
 <template>
-    <div
-        v-if="enrollModal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    >
-        <div class="w-full max-w-md rounded-lg bg-white p-6">
-            <h2 class="mb-4 text-lg font-bold">
-                Inscrever paciente
-            </h2>
+	<div
+		v-if="enrollModal.isOpen.value"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+	>
+		<div
+			class="flex w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow"
+		>
+			<FormHeader
+				title="Inscrever paciente"
+				subtitle="Confirme a inscrição do paciente na clínica."
+			/>
 
-            <hr />
+			<div class="px-6 py-5">
+				<p class="text-sm leading-relaxed text-gray-600">
+					Deseja mesmo inscrever
+					<strong class="font-semibold text-gray-900">
+						{{ enrollModal.patient.value?.name }}
+					</strong>
+					na clínica?
+				</p>
+			</div>
 
-            <div class="py-4">
-                <p class="text-sm text-gray-500">
-                Deseja mesmo inscrever
-                <strong>
-                        {{ enrollModal.patient.value?.name }}
-                </strong>
-                na clínica?
-                </p>
-            </div>
-
-            <div class="flex justify-end gap-2">
-                <CancelButton @click="close" />
-
-                <SaveButton
-                    @click.stop="submit"
-                />
-            </div>
-        </div>
-    </div>
+			<FormFooter
+				action="save"
+				action-label="Inscrever"
+				@cancel="close"
+				@save="submit"
+			/>
+		</div>
+	</div>
 </template>
