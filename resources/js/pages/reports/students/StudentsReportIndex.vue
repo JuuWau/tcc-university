@@ -9,6 +9,7 @@ import StudentsReportSummaryCards from './components/StudentsReportSummaryCards.
 import StudentsReportTable from './StudentsReportTable.vue';
 import { useStudentsReport } from '@/composables/students-report/useStudentsReport';
 import { StudentsReportKey } from '@/keys/students-report/studentsReportKeys';
+import ExportExcelButton from '@/components/buttons/ExportExcelButton.vue';
 
 const students = useStudentsReport();
 
@@ -50,14 +51,9 @@ const activeFiltersCount = computed(() => {
                     description="Consulte, filtre e exporte os estudantes cadastrados."
                 >
                     <template #actions>
-                        <Button
-                            type="button"
-                            class="cursor-pointer gap-2 bg-sky-600 text-white hover:bg-sky-700"
-                            @click="students.exportExcel()"
-                        >
-                            <Download class="h-4 w-4" />
-                            Exportar Excel
-                        </Button>
+                        <ExportExcelButton
+                            @click="students.exportExcel()" 
+                        />
                     </template>
                 </PageHeader>
             </div>
