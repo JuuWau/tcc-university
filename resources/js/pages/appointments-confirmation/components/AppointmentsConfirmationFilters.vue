@@ -13,6 +13,8 @@ if (!context) {
     );
 }
 
+console.log(context);
+
 const {
     filters,
     clinics,
