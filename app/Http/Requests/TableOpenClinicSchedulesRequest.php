@@ -25,6 +25,7 @@ class TableOpenClinicSchedulesRequest extends FormRequest
             'page' => ['sometimes', 'integer', 'min:1'],
             'per_page' => ['sometimes', 'integer', 'min:5', 'max:100'],
             'period_id' => ['nullable', 'integer', 'exists:periods,id'],
+            'student_id' => ['nullable', 'integer', 'exists:students,id'],
             'date' => ['nullable', 'date'],
             'sort_field' => ['sometimes', 'string', 'in:date,start_time,end_time,created_at'],
             'sort_dir' => ['sometimes', 'string', 'in:asc,desc'],

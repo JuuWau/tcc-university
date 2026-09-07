@@ -29,7 +29,14 @@ class StoreProcedureRequest extends FormRequest
                     ->where('specialty_id', $this->input('specialty_id'))
                     ->whereNull('deleted_at'),
             ],
-            'specialty_id' => ['required', 'integer', 'exists:specialties,id'],
+            'specialty_id' => [
+                'required',
+                'integer',
+                Rule::exists('specialties', 'id')
+                    ->where(fn ($query) => $query
+                        ->where('university_id', $userId)
+                        ->whereNull('deleted_at')),
+            ],
         ];
     }
 
