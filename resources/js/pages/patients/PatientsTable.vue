@@ -301,7 +301,7 @@ const defaultColDef = {
             </div>
             <div class="relative">
                 <div
-                    class="flex w-full overflow-x-auto rounded-full bg-gray-100 p-1 pr-8 scrollbar-none sm:inline-flex sm:w-auto sm:pr-1"
+                    class="flex w-full overflow-x-auto rounded-full bg-gray-100 p-1 pr-7 scrollbar-none sm:inline-flex sm:w-auto sm:pr-1"
                 >
                     <button
                         v-for="s in statusFilterOptions"
@@ -320,9 +320,9 @@ const defaultColDef = {
                 </div>
 
                 <div
-                    class="pointer-events-none absolute top-8 right-0 flex h-10 items-center bg-gradient-to-l from-gray-100 via-gray-100/80 to-transparent pl-5 sm:hidden"
+                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center bg-gradient-to-l from-gray-100 via-gray-100/80 to-transparent pl-4 sm:hidden"
                 >
-                    <span class="pr-2 text-lg text-gray-400">
+                    <span class="pr-2 text-base text-gray-400">
                         →
                     </span>
                 </div>
