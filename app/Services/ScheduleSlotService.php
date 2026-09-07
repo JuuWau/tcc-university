@@ -20,6 +20,96 @@ use Illuminate\Support\Facades\DB;
 
 class ScheduleSlotService
 {
+    public function listOpenSchedulesForClinic(
+        int $universityId,
+        int $clinicId,
+        ?int $periodId = null,
+        ?string $date = null,
+        ?int $studentId = null,
+    ): array {
+        $clinic = Clinic::query()
+            ->where('university_id', $universityId)
+            ->where('id', $clinicId)
+            ->first();
+
+        if (! $clinic) {
+            return [];
+        }
+
+        $baseQuery = ScheduleSlot::query()
+            ->where('university_id', $universityId)
+            ->where('clinic_id', $clinicId)
+            ->whereDate('date', '>=', now()->toDateString());
+
+        $periodOptions = (clone $baseQuery)
+            ->with('period:id,calendar_year,semester,academic_year')
+            ->get()
+            ->map(fn (ScheduleSlot $slot) => $slot->period)
+            ->filter()
+            ->unique('id')
+            ->sortBy([
+                ['calendar_year', 'desc'],
+                ['academic_year', 'asc'],
+                ['semester', 'asc'],
+            ])
+            ->values()
+            ->map(fn ($period) => [
+                'id' => $period->id,
+                'label' => "{$period->academic_year}º ano {$period->semester}º semestre de {$period->calendar_year}",
+            ])
+            ->toArray();
+
+        $slots = $baseQuery
+            ->when($periodId, fn ($query) => $query->where('period_id', $periodId))
+            ->when($date, fn ($query) => $query->whereDate('date', $date))
+            ->with([
+                'period:id,calendar_year,semester,academic_year',
+                'responsibles.person:id,user_id,name',
+            ])
+            ->withExists([
+                'enrollments as is_enrolled' => function ($query) use ($studentId) {
+                    $query->where('status', 'active')
+                        ->when(
+                            $studentId,
+                            fn ($query) => $query->where('student_id', $studentId)
+                        );
+                },
+            ])
+            ->orderBy('date')
+            ->orderBy('start_time')
+            ->get()
+            ->map(fn (ScheduleSlot $slot) => [
+                'id' => $slot->id,
+                'date' => $slot->date->format('Y-m-d'),
+                'start_time' => $slot->start_time,
+                'end_time' => $slot->end_time,
+                'available_slots' => $slot->available_slots,
+                'allow_student_booking' => (bool) $slot->allow_student_booking,
+                'allow_student_enrollment' => (bool) $slot->allow_student_enrollment,
+                'allow_procedure_booking' => (bool) $slot->allow_procedure_booking,
+                'is_enrolled' => (bool) $slot->is_enrolled,
+                'period_id' => $slot->period_id,
+                'responsible_ids' => $slot->responsibles->pluck('id'),
+                'period_label' => $slot->period
+                    ? "{$slot->period->academic_year}º ano {$slot->period->semester}º semestre de {$slot->period->calendar_year}"
+                    : '—',
+                'responsible_names' => $slot->responsibles
+                    ->map(fn ($user) => $user->person?->name)
+                    ->filter()
+                    ->values(),
+            ])
+            ->toArray();
+
+        return [
+            'clinic' => [
+                'id' => $clinic->id,
+                'name' => $clinic->name,
+            ],
+            'periods' => $periodOptions,
+            'slots' => $slots,
+        ];
+    }
+
     public function paginate(OpenClinicSchedulesTableFiltersData $filters): array
     {
         $clinic = Clinic::query()
@@ -68,8 +158,16 @@ class ScheduleSlotService
                 'responsibles.person:id,user_id,name',
             ])
             ->withExists([
-                'enrollments as is_enrolled' => fn($query) => $query
-                    ->where('status', 'active')
+                    'enrollments as is_enrolled' => function ($query) use ($filters) {
+                        $query->where('status', 'active')
+                            ->when(
+                                $filters->studentId,
+                                fn ($query) => $query->where(
+                                    'student_id',
+                                    $filters->studentId
+                                )
+                            );
+                    },
             ])
             ->orderBy($filters->sortField, $filters->sortDir)
             ->paginate(

@@ -3,6 +3,7 @@
 namespace App\Services;
 
 use App\Constants\ActivityModules;
+use App\Data\Periods\PeriodTableFiltersData;
 use App\Models\Clinic;
 use App\Models\Period;
 use App\Models\PeriodSpecialty;
@@ -10,9 +11,42 @@ use App\Models\Specialty;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Http\JsonResponse;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class PeriodService
 {
+        public function paginate(PeriodTableFiltersData $filters): LengthAwarePaginator
+        {
+                $query = Period::query()
+                        ->with('specialties')
+                        ->when(
+                                $filters->universityId,
+                                fn ($q) => $q->where('university_id', $filters->universityId)
+                        )
+                        ->when($filters->search, function ($query) use ($filters) {
+                                $query->where(function ($q) use ($filters) {
+                                        $search = $filters->search;
+
+                                        $q->where('academic_year', 'like', "%{$search}%")
+                                                ->orWhere('semester', 'like', "%{$search}%")
+                                                ->orWhere('calendar_year', 'like', "%{$search}%")
+                                                ->orWhereHas('specialties', fn ($specialties) =>
+                                                        $specialties->where('name', 'like', "%{$search}%")
+                                                );
+                                });
+                        });
+
+                $query->orderBy($filters->sortField, $filters->sortDir)
+                        ->orderBy('id', $filters->sortDir);
+
+                return $query->paginate(
+                        $filters->perPage,
+                        ['*'],
+                        'page',
+                        $filters->page
+                );
+        }
+
         /**
          * Return all periods from a university
          */
