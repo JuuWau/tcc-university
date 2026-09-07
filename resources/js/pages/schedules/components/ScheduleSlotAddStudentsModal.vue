@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import CancelButton from '@/components/buttons/CancelButton.vue';
-import SaveButton from '@/components/buttons/SaveButton.vue';
+import AppMultiselect from '@/components/AppMultiselect.vue';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
 import { ScheduleSlotAddStudentsKey } from '@/keys/schedules/scheduleSlotKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import type { OpenClinicScheduleRow } from '@/types/schedule/openClinicSchedules';
 import axios from 'axios';
-import AppMultiselect from '@/components/AppMultiselect.vue';
+import { X } from 'lucide-vue-next';
 import { computed, inject, reactive, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
-import { X } from 'lucide-vue-next';
 
 type StudentOption = {
     label: string;
@@ -44,9 +44,7 @@ const firstSlot = computed(() => slots.value?.[0] ?? null);
 const availableStudents = computed(() => {
     return studentOptions.value.filter(
         (option) =>
-            !form.students.some(
-                (student) => student.value === option.value,
-            ),
+            !form.students.some((student) => student.value === option.value),
     );
 });
 
@@ -57,10 +55,7 @@ watch(
 
         resetForm();
 
-        await Promise.all([
-            loadStudents(),
-            loadSlotStudents(),
-        ]);
+        await Promise.all([loadStudents(), loadSlotStudents()]);
     },
 );
 
@@ -69,7 +64,7 @@ async function loadStudents() {
 
     try {
         loadingStudents.value = true;
-
+        console.log('Loading students for period_id:', firstSlot.value.period_id, 'and date:', firstSlot.value.date);
         const { data } = await axios.get('/students/options', {
             params: {
                 period_id: firstSlot.value.period_id,
@@ -94,7 +89,7 @@ async function loadSlotStudents() {
         loadingSlotStudents.value = true;
 
         const { data } = await axios.get(
-            `/schedule-enrollment/slots/${slotId}/students`
+            `/schedule-enrollment/slots/${slotId}/students`,
         );
 
         form.students = data ?? [];
@@ -108,8 +103,9 @@ async function loadSlotStudents() {
 function addStudent(student: StudentOption | number | null) {
     if (!student) return;
 
-    const studentObj = typeof student === 'number'
-            ? studentOptions.value.find(s => s.value === student)
+    const studentObj =
+        typeof student === 'number'
+            ? studentOptions.value.find((s) => s.value === student)
             : student;
 
     if (!studentObj) return;
@@ -131,12 +127,10 @@ function addStudent(student: StudentOption | number | null) {
 async function removeStudent(studentId: number) {
     try {
         await axios.delete(
-            `/schedule-enrollment/slots/${firstSlot.value.id}/students/${studentId}`
+            `/schedule-enrollment/slots/${firstSlot.value.id}/students/${studentId}`,
         );
 
-        form.students = form.students.filter(
-            s => s.value !== studentId
-        );
+        form.students = form.students.filter((s) => s.value !== studentId);
 
         toast.success('Aluno removido com sucesso');
     } catch {
@@ -177,8 +171,7 @@ async function submit() {
         close();
     } catch (error: any) {
         toast.error(
-            error.response?.data?.message ??
-                'Erro ao adicionar estudantes',
+            error.response?.data?.message ?? 'Erro ao adicionar estudantes',
         );
     } finally {
         loading.value = false;
@@ -189,156 +182,166 @@ async function submit() {
 <template>
     <div
         v-if="addStudentsModal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
     >
-        <div class="w-full max-w-4xl rounded-lg bg-white p-6 shadow-xl">
-            <div class="mb-4">
-                <h2 class="text-lg font-bold text-gray-900">
-                    Adicionar estudantes
-                </h2>
+        <div
+            class="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg bg-white shadow-xl"
+        >
+            <FormHeader
+                title="Adicionar estudantes"
+                subtitle="Vincule estudantes aos dias selecionados."
+            />
 
-                <p class="text-sm text-gray-500">
-                    Vincule estudantes aos dias selecionados
-                </p>
-            </div>
-
-            <hr />
-
-            <div class="mt-4 space-y-3 rounded-md bg-gray-50 p-4 text-sm">
-                <div v-if="firstSlot">
-                    <p>
-                        <span class="font-semibold">Período:</span>
-                        {{ firstSlot.period_label }}
-                    </p>
-
-                    <p>
-                        <span class="font-semibold">Horário:</span>
-                        {{ firstSlot.start_time.slice(0, 5) }}
-                        às
-                        {{ firstSlot.end_time.slice(0, 5) }}
-                    </p>
-
-                    <p>
-                        <span class="font-semibold">Dias selecionados:</span>
-                        {{ slots.length }}
-                    </p>
-                </div>
-            </div>
-
-            <div class="grid grid-cols-2 gap-6 py-6">
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-700">
-                        Buscar estudantes
-                    </label>
-
-                    <AppMultiselect
-                        v-model="selectedStudent"
-                        :options="availableStudents"
-                        :searchable="true"
-                        :loading="loadingStudents"
-                        :can-clear="true"
-                        :close-on-select="true"
-                        label="label"
-                        track-by="value"
-                        placeholder="Buscar estudante"
-                        @select="addStudent"
-                    />
-
-                    <p
-                        v-if="!availableStudents.length"
-                        class="mt-2 text-sm text-gray-500"
-                    >
-                        Nenhum estudante disponível
-                    </p>
-                </div>
-
-                <div>
-                    <div class="mb-2 flex items-center justify-between">
-                        <label
-                            class="block text-sm font-medium text-gray-700"
-                        >
-                            Estudantes inscritos
-                        </label>
-
-                        <span
-                            class="rounded-full bg-sky-100 px-2 py-1 text-xs font-medium text-sky-700"
-                        >
-                            {{ form.students.length }}
-                        </span>
-                    </div>
-
+            <div class="min-h-0 flex-1 overflow-y-auto px-6">
+                <div class="space-y-5 py-5">
                     <div
-                        class="min-h-50 max-h-50 space-y-2 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-3 items"
+                        v-if="firstSlot"
+                        class="rounded-lg border border-gray-200 bg-gray-50 p-4"
                     >
                         <div
-                            v-for="student in form.students"
-                            :key="student.value"
-                            class="flex items-center justify-between rounded-md border border-gray-200 bg-white px-3 py-2 shadow-sm"
+                            class="grid grid-cols-1 gap-3 text-sm sm:grid-cols-2"
                         >
-                            <span class="text-sm text-gray-700">
-                                {{ student.label }}
-                            </span>
-
-                            <div class="relative">
-                                <button
-                                    type="button"
-                                    class="text-red-500 hover:text-red-700 cursor-pointer"
-                                    @click="confirmRemoveId = student.value"
+                            <div>
+                                <p class="text-xs text-gray-500">Período</p>
+                                <p class="font-medium text-gray-800">
+                                    {{ firstSlot.period_label }}
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">Horário</p>
+                                <p class="font-medium text-gray-800">
+                                    {{ firstSlot.start_time.slice(0, 5) }} às
+                                    {{ firstSlot.end_time.slice(0, 5) }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+                        <div>
+                            <AppMultiselect
+                                v-model="selectedStudent"
+                                :options="availableStudents"
+                                field-label="Buscar estudantes"
+                                label="label"
+                                value-prop="value"
+                                track-by="value"
+                                :searchable="true"
+                                :loading="loadingStudents"
+                                :can-clear="true"
+                                :close-on-select="true"
+                                :append-to-body="true"
+                                placeholder="Buscar estudante"
+                                @select="addStudent"
+                            />
+                            <p
+                                v-if="!availableStudents.length"
+                                class="mt-2 text-sm text-gray-500"
+                            >
+                                Nenhum estudante disponível.
+                            </p>
+                        </div>
+                        <div>
+                            <div class="mb-2 flex items-center justify-between">
+                                <label
+                                    class="block text-sm font-medium text-gray-700"
                                 >
-                                    <X />
-                                </button>
-
+                                    Estudantes inscritos
+                                </label>
+                                <span
+                                    class="inline-flex min-w-6 items-center justify-center rounded-full bg-sky-100 px-2 py-1 text-xs font-medium text-sky-700"
+                                >
+                                    {{ form.students.length }}
+                                </span>
+                            </div>
+                            <div
+                                class="max-h-64 min-h-50 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-3"
+                            >
                                 <div
-                                    v-if="confirmRemoveId === student.value"
-                                    class="absolute right-0 top-6 z-50 w-64 rounded-md border bg-white p-3 shadow-lg"
+                                    v-for="student in form.students"
+                                    :key="student.value"
+                                    class="mb-2 flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2.5 shadow-sm last:mb-0"
                                 >
-                                    <p class="text-xs text-gray-700 mb-2">
-                                        Isso vai remover o aluno e cancelar todos os agendamentos dele neste horário.
-                                    </p>
-
-                                    <div class="flex justify-end gap-2">
+                                    <span
+                                        class="min-w-0 truncate pr-3 text-sm text-gray-700"
+                                    >
+                                        {{ student.label }}
+                                    </span>
+                                    <div class="relative shrink-0">
                                         <button
-                                            class="text-xs text-gray-500 cursor-pointer"
-                                            @click="confirmRemoveId = null"
+                                            type="button"
+                                            class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md text-gray-400 transition hover:bg-red-50 hover:text-red-600"
+                                            @click="
+                                                confirmRemoveId = student.value
+                                            "
                                         >
-                                            Cancelar
+                                            <X class="h-4 w-4" />
                                         </button>
-
-                                        <button
-                                            class="text-xs text-red-600 font-bold cursor-pointer"
-                                            @click="removeStudent(student.value)"
+                                        <div
+                                            v-if="
+                                                confirmRemoveId ===
+                                                student.value
+                                            "
+                                            class="absolute top-9 right-0 z-50 w-64 rounded-lg border border-gray-200 bg-white p-3 shadow-lg"
                                         >
-                                            Confirmar
-                                        </button>
+                                            <p
+                                                class="text-xs leading-relaxed text-gray-700"
+                                            >
+                                                Isso removerá o aluno e
+                                                cancelará todos os agendamentos
+                                                dele neste horário.
+                                            </p>
+                                            <div
+                                                class="mt-3 flex justify-end gap-2"
+                                            >
+                                                <button
+                                                    type="button"
+                                                    class="cursor-pointer text-xs font-medium text-gray-500 hover:text-gray-700"
+                                                    @click="
+                                                        confirmRemoveId = null
+                                                    "
+                                                >
+                                                    Cancelar
+                                                </button>
+                                                <button
+                                                    type="button"
+                                                    class="cursor-pointer text-xs font-medium text-red-600 hover:text-red-700"
+                                                    @click="
+                                                        removeStudent(
+                                                            student.value,
+                                                        )
+                                                    "
+                                                >
+                                                    Confirmar
+                                                </button>
+                                            </div>
+                                        </div>
                                     </div>
+                                </div>
+                                <div
+                                    v-if="loadingSlotStudents"
+                                    class="flex h-40 items-center justify-center text-sm text-gray-500"
+                                >
+                                    Carregando estudantes...
+                                </div>
+                                <div
+                                    v-else-if="!form.students.length"
+                                    class="flex h-40 items-center justify-center text-sm text-gray-500"
+                                >
+                                    Nenhum estudante inscrito.
                                 </div>
                             </div>
                         </div>
-
-                        <div v-if="loadingSlotStudents" class="flex h-40 items-center justify-center text-sm text-gray-500">
-                            Carregando estudantes...
-                        </div>
-
-                        <div
-                            v-else-if="!form.students.length"
-                            class="flex h-40 items-center justify-center text-sm text-gray-500"
-                        >
-                            Nenhum estudante inscrito
-                        </div>
                     </div>
                 </div>
             </div>
-
-            <div class="flex justify-end gap-2">
-                <CancelButton @click="close" />
-
-                <SaveButton
-                    :loading="loading"
-                    @click="submit"
-                >
-                    Adicionar estudantes
-                </SaveButton>
-            </div>
+            
+            <FormFooter
+                :loading="loading"
+                action="save"
+                action-label="Adicionar estudantes"
+                @cancel="close"
+                @save="submit"
+            />
         </div>
     </div>
 </template>

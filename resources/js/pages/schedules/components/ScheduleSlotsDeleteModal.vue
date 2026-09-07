@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import CancelButton from '@/components/buttons/CancelButton.vue';
 import DeleteButton from '@/components/buttons/DeleteButton.vue';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
 import { ScheduleSlotDeleteMultipleKey } from '@/keys/schedules/scheduleSlotKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import { router } from '@inertiajs/vue3';
@@ -48,34 +50,59 @@ async function submit() {
 </script>
 
 <template>
-    <div
-        v-if="deleteMultipleModal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    >
-        <div class="w-full max-w-md rounded-lg bg-white p-6">
-            <h2 class="mb-2 text-lg font-bold text-red-600">Excluir agenda</h2>
-            <hr />
+	<div
+		v-if="deleteMultipleModal.isOpen.value"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+	>
+		<div
+			class="flex w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow"
+		>
+			<FormHeader
+				title="Excluir agendas"
+				subtitle="Confirme a exclusão dos horários selecionados."
+			/>
 
-            <span class="mb-6 text-sm text-gray-600 leading-relaxed">
-                Tem certeza que deseja excluir os horários?
+			<div class="px-6 py-5">
+				<p class="text-sm leading-relaxed text-gray-600">
+					Tem certeza que deseja excluir os horários selecionados?
+				</p>
 
-                <br />
+				<div class="mt-4 rounded-lg border border-red-200 bg-red-50 p-4">
+					<p class="mb-2 text-sm font-medium text-red-800">
+						Esta ação é irreversível e irá:
+					</p>
 
-                Esta ação é irreversível e irá:
-            </span>
+					<ul class="space-y-2 text-sm text-red-700">
+						<li class="flex gap-2">
+							<span>•</span>
+							<span>Remover os slots das agendas.</span>
+						</li>
 
-            <ul class="mb-6 list-disc pl-5 text-sm text-gray-600 space-y-1">
-                <li>Remover os slot de agendas</li>
-                <li>Cancelar todas as inscrições dos alunos</li>
-                <li>Cancelar todos os agendamentos vinculados a esses alunos</li>
-            </ul>
+						<li class="flex gap-2">
+							<span>•</span>
+							<span>
+								Cancelar todas as inscrições dos alunos.
+							</span>
+						</li>
 
-            <div class="flex justify-end gap-2">
-                <CancelButton @click="close" />
-                <DeleteButton :loading="loading" @click="submit">
-                    Excluir
-                </DeleteButton>
-            </div>
-        </div>
-    </div>
+						<li class="flex gap-2">
+							<span>•</span>
+							<span>
+								Cancelar todos os agendamentos vinculados a esses
+								alunos.
+							</span>
+						</li>
+					</ul>
+				</div>
+			</div>
+
+			<FormFooter
+				:loading="loading"
+				action="delete"
+				action-label="Excluir agendas"
+				@cancel="close"
+				@delete="submit"
+			/>
+		</div>
+	</div>
 </template>
