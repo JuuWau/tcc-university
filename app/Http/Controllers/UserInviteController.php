@@ -35,7 +35,7 @@ class UserInviteController extends Controller
             ]);
         }
 
-        if ($user->hasAnyRole(['Admin', 'Receptionist', 'Professor'])) {
+        if ($user->hasAnyRole([Role::ADMIN, Role::RECEPTIONIST, Role::PROFESSOR])) {
             return inertia('users/CompleteStaffRegistration', [
                 'email' => $user->email,
                 'token' => $invite->token,

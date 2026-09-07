@@ -3,9 +3,11 @@
 namespace App\Http\Controllers;
 
 use App\Data\OpenClinicsManagement\OpenClinicsManagementFiltersData;
+use App\Data\ScheduleSlot\OpenClinicSchedulesTableFiltersData;
 use App\Http\Requests\OpenClinicsManagementRequest;
 use App\Http\Requests\StoreOpenClinicDayRequest;
 use App\Http\Requests\StoreOpenScheduleRequest;
+use App\Http\Requests\TableOpenClinicSchedulesRequest;
 use App\Http\Requests\UpdateMultipleScheduleSlotsRequest;
 use App\Http\Requests\UpdateScheduleSlotRequest;
 use App\Models\Clinic;
@@ -61,30 +63,32 @@ class ScheduleSlotController extends Controller
         );
     }
 
-    public function clinicOpenSchedules(Request $request, Clinic $clinic)
+    public function clinicOpenSchedules(TableOpenClinicSchedulesRequest $request, Clinic $clinic)
     {
         $universityId = $request->user()?->university_id;
+
         if (! $universityId || $clinic->university_id !== $universityId) {
             abort(404);
         }
 
-        $periodId = $request->integer('period_id') ?: null;
-        $date = $request->input('date');
-        $payload = $this->scheduleSlotService->listOpenSchedulesForClinic(
-            $universityId,
-            $clinic->id,
-            $periodId,
-            $date ?: null
+        $filters = OpenClinicSchedulesTableFiltersData::fromRequest(
+            $request,
+            $clinic->id
         );
+        
+        $payload = $this->scheduleSlotService->paginate($filters);
 
         return Inertia::render('schedules/OpenClinicSchedules', [
-            'clinic' => $payload['clinic'] ?? ['id' => $clinic->id, 'name' => $clinic->name],
+            'clinic' => [
+                'id' => $clinic->id,
+                'name' => $clinic->name,
+            ],
             'periods' => $payload['periods'] ?? [],
             'slots' => $payload['slots'] ?? [],
             'responsible' => $this->userService->getResponsible($universityId),
             'filters' => [
-                'period_id' => $periodId,
-                'date' => $date,
+                'period_id' => $filters->periodId,
+                'date' => $filters->date,
             ],
         ]);
     }

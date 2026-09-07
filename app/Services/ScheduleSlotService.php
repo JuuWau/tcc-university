@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Constants\ActivityLogPrefixes;
 use App\Constants\ActivityModules;
 use App\Data\OpenClinicsManagement\OpenClinicsManagementFiltersData;
+use App\Data\ScheduleSlot\OpenClinicSchedulesTableFiltersData;
 use App\Data\SchedulesEnrollment\OpenClinicsSchedulesEnrollmentFiltersData;
 use App\Jobs\ProcessDeleteScheduleSlotsJob;
 use App\Jobs\ProcessOpenScheduleJob;
@@ -19,16 +20,11 @@ use Illuminate\Support\Facades\DB;
 
 class ScheduleSlotService
 {
-    public function listOpenSchedulesForClinic(
-        int $universityId,
-        int $clinicId,
-        ?int $periodId = null,
-        ?string $date = null,
-        ?int $studentId = null,
-    ): array {
+    public function paginate(OpenClinicSchedulesTableFiltersData $filters): array
+    {
         $clinic = Clinic::query()
-            ->where('university_id', $universityId)
-            ->where('id', $clinicId)
+            ->where('university_id', $filters->universityId)
+            ->where('id', $filters->clinicId)
             ->first();
 
         if (! $clinic) {
@@ -36,8 +32,8 @@ class ScheduleSlotService
         }
 
         $baseQuery = ScheduleSlot::query()
-            ->where('university_id', $universityId)
-            ->where('clinic_id', $clinicId)
+            ->where('university_id', $filters->universityId)
+            ->where('clinic_id', $filters->clinicId)
             ->whereDate('date', '>=', now()->toDateString());
 
         $periodOptions = (clone $baseQuery)
@@ -59,21 +55,32 @@ class ScheduleSlotService
             ->toArray();
 
         $slots = $baseQuery
-            ->when($periodId, fn($query) => $query->where('period_id', $periodId))
-            ->when($date, fn($query) => $query->whereDate('date', $date))
+            ->when(
+                $filters->periodId,
+                fn($query) => $query->where('period_id', $filters->periodId)
+            )
+            ->when(
+                $filters->date,
+                fn($query) => $query->whereDate('date', $filters->date)
+            )
             ->with([
                 'period:id,calendar_year,semester,academic_year',
                 'responsibles.person:id,user_id,name',
             ])
             ->withExists([
                 'enrollments as is_enrolled' => fn($query) => $query
-                    ->where('student_id', $studentId)
                     ->where('status', 'active')
             ])
-            ->orderBy('date')
-            ->orderBy('start_time')
-            ->get()
-            ->map(fn(ScheduleSlot $slot) => [
+            ->orderBy($filters->sortField, $filters->sortDir)
+            ->paginate(
+                $filters->perPage,
+                ['*'],
+                'page',
+                $filters->page
+            );
+
+        $slots->getCollection()->transform(
+            fn(ScheduleSlot $slot) => [
                 'id' => $slot->id,
                 'date' => $slot->date->format('Y-m-d'),
                 'start_time' => $slot->start_time,
@@ -94,8 +101,8 @@ class ScheduleSlotService
                     ->map(fn($user) => $user->person?->name)
                     ->filter()
                     ->values(),
-            ])
-            ->toArray();
+            ]
+        );
 
         return [
             'clinic' => [
