@@ -25,14 +25,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-    ClinicActivateKey,
-    ClinicCreateKey,
-    ClinicDeactivateKey,
-    ClinicDeleteKey,
-    ClinicEditKey,
-    RefreshTableKey,
-} from '@/keys/clinics/clinicKeys';
+import { ClinicActivateKey, ClinicCreateKey, ClinicDeactivateKey, ClinicDeleteKey, ClinicEditKey, RefreshTableKey, } from '@/keys/clinics/clinicKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import AppLayout from '@/layouts/AppLayout.vue';
 import ClinicsTable from '@/pages/clinics/ClinicsTable.vue';
