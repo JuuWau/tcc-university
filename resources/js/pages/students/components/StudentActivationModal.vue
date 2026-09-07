@@ -2,6 +2,8 @@
 import AppMultiselect from '@/components/AppMultiselect.vue';
 import ActivationButton from '@/components/buttons/ActivationButton.vue';
 import CancelButton from '@/components/buttons/CancelButton.vue';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
 import { STUDENT_ACTIVATION_REASONS } from '@/constants/studentActivationReason';
 import {
     RefreshTableKey,
@@ -84,61 +86,74 @@ async function confirmActivation() {
 </script>
 
 <template>
-    <div
-        v-if="activationModal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    >
-        <div class="w-full max-w-md rounded-lg bg-white p-6">
-            <h2 class="mb-4 text-lg font-bold text-gray-800">Ativar Aluno</h2>
-            <hr />
+	<div
+		v-if="activationModal.isOpen.value"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+	>
+		<div
+			class="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow"
+		>
+			<FormHeader
+				title="Ativar aluno"
+				subtitle="Informe o motivo da ativação do aluno."
+			/>
 
-            <div class="pt-4 text-sm text-gray-600">
-                Tem certeza que deseja ativar?
-                <strong>{{ activationModal.student?.person?.name }}</strong>
-            </div>
+			<div class="min-h-0 flex-1 overflow-y-auto px-6">
+				<div class="space-y-4 py-5">
+					<div class="text-sm text-gray-600">
+						Tem certeza que deseja ativar o aluno
+						<strong class="font-semibold text-gray-900">
+							{{ activationModal.student?.person?.name }}
+						</strong>
+						?
+					</div>
 
-            <div>
-                <label class="mb-6 pt-3 text-sm text-gray-600">
-                    Motivo da ativação
-                </label>
+					<AppMultiselect
+						v-model="selectedReason"
+						:options="reasonOptions"
+						field-label="Motivo da ativação (*)"
+						label="label"
+						value-prop="value"
+						placeholder="Selecione um motivo"
+						:searchable="false"
+						:close-on-select="true"
+						:can-clear="false"
+						:append-to-body="true"
+					/>
 
-                <AppMultiselect
-                    v-model="selectedReason"
-                    :options="reasonOptions"
-                    label="label"
-                    value-prop="value"
-                    placeholder="Selecione um motivo"
-                    :searchable="false"
-                    :close-on-select="true"
-                />
-            </div>
+					<div
+						v-if="selectedReasonData"
+						class="rounded-lg border border-gray-200 bg-gray-50 p-3"
+					>
+						<p class="text-xs leading-relaxed text-gray-600">
+							{{ selectedReasonData.description }}
+						</p>
+					</div>
 
-            <p v-if="selectedReasonData" class="mt-1 text-xs text-gray-500">
-                {{ selectedReasonData.description }}
-            </p>
+					<div v-if="selectedReasonData?.requiresNote">
+						<label
+							class="mb-1 block text-sm font-medium text-gray-700"
+						>
+							Descrição do motivo (*)
+						</label>
 
-            <div v-if="selectedReasonData?.requiresNote" class="mt-3">
-                <label class="pt-3 text-sm text-gray-600">
-                    Descrição do motivo
-                </label>
+						<textarea
+							v-model="otherReasonText"
+							rows="3"
+							class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm transition placeholder:text-gray-400 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+							placeholder="Descreva o motivo da ativação"
+						/>
+					</div>
+				</div>
+			</div>
 
-                <textarea
-                    v-model="otherReasonText"
-                    rows="3"
-                    class="w-full rounded-md border border-gray-300 p-2 text-sm"
-                    placeholder="Descreva o motivo da inativação"
-                />
-            </div>
-
-            <div class="flex justify-end gap-2 pt-4">
-                <CancelButton @click="close" />
-                <ActivationButton
-                    :loading="loading"
-                    @click="confirmActivation()"
-                >
-                    Ativar
-                </ActivationButton>
-            </div>
-        </div>
-    </div>
+			<FormFooter
+				:loading="loading"
+				action="activate"
+				action-label="Ativar"
+				@cancel="close"
+				@activate="confirmActivation"
+			/>
+		</div>
+	</div>
 </template>

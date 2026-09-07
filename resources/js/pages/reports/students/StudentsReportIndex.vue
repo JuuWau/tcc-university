@@ -157,10 +157,7 @@ const activeFiltersCount = computed(() => {
                 </Transition>
             </div>
 
-            <!-- Resumo -->
             <StudentsReportSummaryCards />
-
-            <!-- Tabela -->
             <StudentsReportTable />
         </div>
     </AppLayout>

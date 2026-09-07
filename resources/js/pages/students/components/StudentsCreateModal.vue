@@ -2,6 +2,9 @@
 import AppMultiselect from '@/components/AppMultiselect.vue';
 import CancelButton from '@/components/buttons/CancelButton.vue';
 import SaveButton from '@/components/buttons/SaveButton.vue';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
+import BaseInput from '@/components/inputs/BaseInput.vue';
 import {
     StudentCreateKey,
     RefreshTableKey,
@@ -89,87 +92,67 @@ async function submit() {
 </script>
 
 <template>
-    <div
-        v-if="createModal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    >
-        <div class="w-full max-w-md rounded-lg bg-white p-6">
-            <h2 class="mb-4 text-lg font-bold">Novo Aluno</h2>
-            <hr />
+	<div
+		v-if="createModal.isOpen.value"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+	>
+		<div
+			class="flex w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow"
+		>
+			<FormHeader
+				title="Novo aluno"
+				subtitle="Preencha os dados para cadastrar um novo aluno."
+			/>
 
-            <div class="py-4">
-                <label
-                    for="name"
-                    class="mb-2 block text-sm font-medium text-gray-700"
-                >
-                    Nome completo (*)
-                </label>
+			<div class="min-h-0 flex-1 overflow-y-auto px-6">
+				<div class="space-y-4 py-4">
+					<BaseInput
+						v-model="form.name"
+						label="Nome completo (*)"
+						type="text"
+						maxlength="50"
+						placeholder="Escreva o nome completo do aluno"
+					/>
 
-                <input
-                    id="name"
-                    type="text"
-                    v-model="form.name"
-                    maxlength="50"
-                    class="w-full rounded border px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                    placeholder="Escreva o nome completo do aluno"
-                />
-            </div>
-            <div class="py-4">
-                <label
-                    for="registration"
-                    class="mb-2 block text-sm font-medium text-gray-700"
-                >
-                    Registro do Aluno (*)
-                </label>
+					<BaseInput
+						v-model="form.registration"
+						label="Registro do aluno (*)"
+						type="text"
+						maxlength="20"
+						placeholder="Escreva o registro do aluno"
+					/>
 
-                <input
-                    type="text"
-                    v-model="form.registration"
-                    maxlength="20"
-                    class="w-full rounded border px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                    placeholder="Escreva o registro do aluno"
-                    id="registration"
-                />
-            </div>
-            <div class="py-4">
-                <label
-                    for="email"
-                    class="mb-2 block text-sm font-medium text-gray-700"
-                >
-                    Email do Aluno(*)
-                </label>
+					<BaseInput
+						v-model="form.email"
+						label="Email do aluno (*)"
+						type="email"
+						maxlength="50"
+						placeholder="Escreva o email do aluno"
+					/>
 
-                <input
-                    id="email"
-                    type="text"
-                    v-model="form.email"
-                    maxlength="50"
-                    class="w-full rounded border px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                    placeholder="Escreva o email do aluno"
-                />
-            </div>
+					<AppMultiselect
+						v-model="form.period"
+						:options="periodsOptions"
+						field-label="Período (*)"
+						label="label"
+						value-prop="value"
+						:searchable="true"
+						:close-on-select="true"
+						:can-clear="true"
+						:append-to-body="true"
+						placeholder="Selecione o período do aluno"
+					/>
+				</div>
+			</div>
 
-            <div class="py-4">
-                <label class="mb-2 block text-sm font-medium text-gray-700">
-                    Período (*)
-                </label>
-
-                <AppMultiselect
-                    v-model="form.period"
-                    :options="periodsOptions"
-                    label="label"
-                    value-prop="value"
-                    :searchable="true"
-                    :close-on-select="true"
-                    :can-clear="true"
-                    placeholder="Selecione o período do aluno"
-                />
-            </div>
-
-            <div class="flex justify-end gap-2">
-                <CancelButton @click="close" />
-                <SaveButton :loading="loading" @click.stop="submit" />
-            </div>
-        </div>
-    </div>
+			<FormFooter
+				:loading="loading"
+				action="save"
+				action-label="Salvar"
+				@cancel="close"
+				@save="submit"
+			/>
+		</div>
+	</div>
 </template>
+
