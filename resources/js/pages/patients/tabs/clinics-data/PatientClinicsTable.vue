@@ -8,6 +8,7 @@ import ClinicPatientActionsButtons from '@/components/buttons/ClinicPatientActio
 import { PatientForTab } from '@/types/patient/patient';
 import { formatDateBr } from '@/src/utils/formatters';
 import { usePage } from '@inertiajs/vue3';
+import PatientClinicCard from './PatientClinicCard.vue';
 
 const page = usePage();
 
@@ -103,8 +104,8 @@ const columnDefs = computed(() => {
                     emit('enroll', patient),
                 onRemove: (patient: PatientForTab) =>
                     emit('remove', patient),
-                canEnroll: can('patients.personal-page.enrollClinic'),
-                canRemove: can('patients.personal-page.removeEnrollmentClinic'),
+                isAllowedToEnroll: can('patients.personal-page.enrollClinic'),
+                isAllowedToRemove: can('patients.personal-page.removeEnrollmentClinic'),
             },
         },
     ];
@@ -133,7 +134,7 @@ const defaultColDef = {
 </script>
 
 <template>
-    <div class="relative mt-4">
+    <div class="relative mt-4 hidden md:block">
         <div
             v-if="ctx?.loading.value"
             class="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-sm"
@@ -159,6 +160,36 @@ const defaultColDef = {
                 AG_GRID_LOCALE_BR
             "
         />
+    </div>
+
+
+    <div class="mt-4 space-y-3 md:hidden">
+        <div
+            v-if="ctx?.loading.value"
+            class="flex h-40 items-center justify-center text-sm text-gray-500"
+        >
+            Carregando clínicas...
+        </div>
+
+        <template v-else>
+            <PatientClinicCard
+                v-for="clinic in ctx?.clinics.value ?? []"
+                :key="clinic.id"
+                :patient="clinic"
+                :active-status="ctx.activeStatus.value"
+                :can-enroll="can('patients.personal-page.enrollClinic')"
+                :can-remove="can('patients.personal-page.removeEnrollmentClinic')"
+                @enroll="emit('enroll', $event)"
+                @remove="emit('remove', $event)"
+            />
+
+            <div
+                v-if="!ctx?.clinics.value?.length"
+                class="rounded-lg border border-gray-200 bg-white py-10 text-center text-sm text-gray-500"
+            >
+                Nenhuma clínica encontrada.
+            </div>
+        </template>
     </div>
 
     <div

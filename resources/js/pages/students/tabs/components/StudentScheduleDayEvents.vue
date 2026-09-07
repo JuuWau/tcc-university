@@ -205,6 +205,9 @@ const calendarOptions = computed(() => ({
 
     editable: true,
 
+    longPressDelay: 300,
+    eventLongPressDelay: 300,
+    selectLongPressDelay: 300,
     eventClick: handleEventClick,
     select: handleDateSelect,
     eventDrop: saveEventTime,
