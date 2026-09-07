@@ -1,28 +1,31 @@
 <script setup lang="ts">
 import OpenClinicSchedulesEnrollmentActionsButtons from '@/components/buttons/OpenClinicSchedulesEnrollmentActionsButtons.vue';
+import { RefreshTableKey } from '@/keys/schedule-enrollment/scheduleSlotEnrollmentKeys';
 import { Button } from '@/components/ui/button';
+import axios from 'axios';
 import type { AppPageProps } from '@/types/index';
 import type {
     OpenClinicScheduleEnrollmentClinic,
     OpenClinicScheduleEnrollmentRow,
     OpenClinicSchedulesEnrollmentFilters,
 } from '@/types/schedule-enrollment/openClinicSchedulesEnrollment';
-import { Link, router, usePage } from '@inertiajs/vue3';
+import { Link, usePage } from '@inertiajs/vue3';
 import { AgGridVue } from 'ag-grid-vue3';
 import { ArrowLeft, CheckCheck, X } from 'lucide-vue-next';
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, inject, onMounted, reactive, ref, watch } from 'vue';
 import { formatDateBr } from '@/src/utils/formatters';
+import OpenClinicScheduleEnrollmentSlotCard from './components/OpenClinicScheduleEnrollmentSlotCard.vue';
 
 const emit = defineEmits<{
     (e: 'enroll', slot: OpenClinicScheduleEnrollmentRow): void;
     (e: 'enrollMultiple', slots: OpenClinicScheduleEnrollmentRow[]): void;
 }>();
 
-const isUpdatingFromServer = ref(false);
+const refreshTableRef = inject(RefreshTableKey);
 
 type OpenClinicSchedulesPage = AppPageProps<{
     clinic: OpenClinicScheduleEnrollmentClinic;
-    slots: OpenClinicScheduleEnrollmentRow[];
+    slots: [];
     filters: OpenClinicSchedulesEnrollmentFilters;
 }>;
 
@@ -30,16 +33,17 @@ const page = usePage<OpenClinicSchedulesPage>();
 const selectedRows = ref<OpenClinicScheduleEnrollmentRow[]>([]);
 
 const clinic = computed(() => page.props.clinic);
-const slots = computed(() => page.props.slots);
 const filters = computed(() => page.props.filters);
-console.log(slots);
-
-console.log('oi',
-    slots.value.map(slot => ({
-        id: slot.id,
-        responsible_names: slot.responsible_names,
-    }))
-);
+const slots = ref<OpenClinicScheduleEnrollmentRow[]>([]);
+const loading = ref(false);
+const pageNumber = ref(1);
+const perPage = ref(10);
+const total = ref(0);
+const totalPages = ref(0);
+type SortField = 'date' | 'start_time' | 'end_time' | 'created_at';
+type SortDir = 'asc' | 'desc';
+const sortField = ref<SortField>('date');
+const sortDir = ref<SortDir>('asc');
 const gridApi = ref<any>(null);
 
 const form = reactive({
@@ -47,19 +51,9 @@ const form = reactive({
     date: '' as string,
 });
 
-watch(
-    filters,
-    (next) => {
-        isUpdatingFromServer.value = true;
-
-        form.date = next?.date ?? '';
-
-        setTimeout(() => {
-            isUpdatingFromServer.value = false;
-        }, 0);
-    },
-    { deep: true, immediate: true },
-);
+watch(filters, (next) => {
+    form.date = next?.date ?? '';
+}, { deep: true, immediate: true });
 
 function onGridReady(params: any) {
     gridApi.value = params.api;
@@ -71,13 +65,44 @@ function onSelectionChanged() {
 }
 
 function applyFilters() {
-    router.get(
-        `/schedule-enrollment/open-clinic/${clinic.value.id}`,
-        {
-            date: form.date || undefined,   
-        },
-        { preserveState: true, replace: true },
-    );
+    pageNumber.value = 1;
+    fetchSlots();
+}
+
+async function fetchSlots() {
+    loading.value = true;
+
+    try {
+        const { data } = await axios.get<{
+            slots: {
+                data: OpenClinicScheduleEnrollmentRow[];
+                current_page: number;
+                last_page: number;
+                per_page: number;
+                total: number;
+            };
+        }>(`/schedule-enrollment/open-clinic/${clinic.value.id}/table`, {
+            params: {
+                page: pageNumber.value,
+                per_page: perPage.value,
+                sort_field: sortField.value,
+                sort_dir: sortDir.value,
+                date: form.date || undefined,
+            },
+        });
+
+        slots.value = data.slots.data;
+        pageNumber.value = data.slots.current_page;
+        perPage.value = data.slots.per_page;
+        total.value = data.slots.total;
+        totalPages.value = data.slots.last_page;
+    } catch {
+        slots.value = [];
+        total.value = 0;
+        totalPages.value = 0;
+    } finally {
+        loading.value = false;
+    }
 }
 
 function isRowSelectable(rowNode: any) {
@@ -87,6 +112,35 @@ function isRowSelectable(rowNode: any) {
     );
 }
 
+function isSlotSelected(slot: OpenClinicScheduleEnrollmentRow): boolean {
+    return selectedRows.value.some((selected) => selected.id === slot.id);
+}
+
+function canSelectSlot(slot: OpenClinicScheduleEnrollmentRow): boolean {
+    if (isSlotSelected(slot)) return true;
+
+    return (
+        slot.allow_student_booking &&
+        !slot.is_enrolled &&
+        !selectedRows.value.some((selected) => selected.date === slot.date)
+    );
+}
+
+function toggleCardSelection(slot: OpenClinicScheduleEnrollmentRow): void {
+    const index = selectedRows.value.findIndex(
+        (selected) => selected.id === slot.id,
+    );
+
+    if (index !== -1) {
+        selectedRows.value.splice(index, 1);
+        return;
+    }
+
+    if (canSelectSlot(slot)) {
+        selectedRows.value.push(slot);
+    }
+}
+
 watch(slots, () => {
     if (gridApi.value) {
         gridApi.value.deselectAll();
@@ -94,19 +148,37 @@ watch(slots, () => {
     selectedRows.value = [];
 });
 
-watch(
-    () => form.date,
-    () => {
-        if (isUpdatingFromServer.value) return;
-        applyFilters();
-    }
-);
+watch(() => form.date, applyFilters);
+
+watch([pageNumber, perPage, sortField, sortDir], () => {
+    if (!loading.value) fetchSlots();
+});
 
 function clearFilters() {
     form.period_id = null;
     form.date = '';
-    applyFilters();
 }
+
+function goToPage(nextPage: number) {
+    if (nextPage >= 1 && nextPage <= totalPages.value) {
+        pageNumber.value = nextPage;
+    }
+}
+
+const fromTo = computed(() => {
+    if (!total.value) return '0';
+    const from = (pageNumber.value - 1) * perPage.value + 1;
+    const to = Math.min(pageNumber.value * perPage.value, total.value);
+    return `${from}-${to} de ${total.value}`;
+});
+
+onMounted(() => {
+    fetchSlots();
+
+    if (refreshTableRef) {
+        refreshTableRef.value = fetchSlots;
+    }
+});
 
 const columnDefs = [
     {
@@ -122,7 +194,7 @@ const columnDefs = [
         showDisabledCheckboxes: false,
 
         width: 50,
-        pinned: 'left',
+        pinned: 'left' as const,
     },
     {
         headerName: 'Data',
@@ -268,7 +340,7 @@ const defaultColDef = {
 
         <div class="overflow-x-auto">
             <div
-                class="ag-theme-alpine relative"
+                class="ag-theme-alpine relative hidden md:block"
                 style="height: 500px; width: 100%"
             >
                 <div
@@ -296,6 +368,91 @@ const defaultColDef = {
                     @selection-changed="onSelectionChanged"
                     @grid-ready="onGridReady"
                 />
+
+                <div
+                    v-if="loading"
+                    class="absolute inset-0 z-10 flex items-center justify-center bg-white/70"
+                >
+                    <span
+                        class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent"
+                    ></span>
+                    Carregando horários
+                </div>
+            </div>
+
+            <div class="space-y-3 md:hidden">
+                <div
+                    v-if="selectedRows.length"
+                    class="flex justify-end"
+                >
+                    <Button
+                        variant="outline"
+                        class="w-full"
+                        @click="emit('enrollMultiple', selectedRows)"
+                    >
+                        <CheckCheck class="h-4 w-4" />
+                        Inscrever ({{ selectedRows.length }})
+                    </Button>
+                </div>
+
+                <OpenClinicScheduleEnrollmentSlotCard
+                    v-for="slot in slots"
+                    :key="slot.id"
+                    :schedule-slot="slot"
+                    :selected="isSlotSelected(slot)"
+                    :selectable="canSelectSlot(slot)"
+                    @select="toggleCardSelection(slot)"
+                    @enroll="emit('enroll', $event)"
+                />
+
+                <div
+                    v-if="!loading && slots.length === 0"
+                    class="rounded-xl border border-gray-200 bg-white p-6 text-center text-sm text-gray-500"
+                >
+                    Nenhum horário encontrado.
+                </div>
+            </div>
+        </div>
+
+        <div
+            v-if="totalPages > 0"
+            class="mt-4 flex flex-wrap items-center justify-between gap-2"
+        >
+            <p class="text-sm text-gray-600">{{ fromTo }}</p>
+
+            <div class="flex items-center gap-1">
+                <button
+                    type="button"
+                    :disabled="pageNumber <= 1"
+                    class="rounded border border-gray-300 bg-white px-3 py-1 text-sm disabled:opacity-50"
+                    @click="goToPage(pageNumber - 1)"
+                >
+                    Anterior
+                </button>
+
+                <button
+                    v-for="currentPage in totalPages"
+                    :key="currentPage"
+                    type="button"
+                    :class="[
+                        'rounded px-3 py-1 text-sm',
+                        currentPage === pageNumber
+                            ? 'bg-sky-600 text-white'
+                            : 'text-gray-600 hover:bg-gray-100',
+                    ]"
+                    @click="goToPage(currentPage)"
+                >
+                    {{ currentPage }}
+                </button>
+
+                <button
+                    type="button"
+                    :disabled="pageNumber >= totalPages"
+                    class="rounded border border-gray-300 bg-white px-3 py-1 text-sm disabled:opacity-50"
+                    @click="goToPage(pageNumber + 1)"
+                >
+                    Próxima
+                </button>
             </div>
         </div>
     </div>

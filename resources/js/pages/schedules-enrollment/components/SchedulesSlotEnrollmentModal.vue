@@ -1,16 +1,19 @@
 <script setup lang="ts">
-import CancelButton from '@/components/buttons/CancelButton.vue';
-import SaveButton from '@/components/buttons/SaveButton.vue';
-import { ScheduleSlotEnrollmentKey } from '@/keys/schedule-enrollment/scheduleSlotEnrollmentKeys';
+import {
+	RefreshTableKey,
+	ScheduleSlotEnrollmentKey,
+} from '@/keys/schedule-enrollment/scheduleSlotEnrollmentKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
-import { router } from '@inertiajs/vue3';
 import axios from 'axios';
 import { inject } from 'vue';
 import { toast } from 'vue3-toastify';
 import { formatDateBr } from '@/src/utils/formatters';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
 
 const enrollmentModalInjected = inject(ScheduleSlotEnrollmentKey);
 const loading = inject(LoadingKey);
+const refreshTableRef = inject(RefreshTableKey);
 
 if (!enrollmentModalInjected) {
     throw new Error(
@@ -39,10 +42,7 @@ async function submit() {
         toast.success('Inscrição realizada com sucesso!');
 
         close();
-
-        router.reload({
-            preserveUrl: true,
-        });
+		refreshTableRef?.value?.();
     } catch (error: any) {
         toast.error(
             error.response?.data?.message ??
@@ -55,61 +55,52 @@ async function submit() {
 </script>
 
 <template>
-    <div
-        v-if="enrollmentModal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    >
-        <div class="w-full max-w-lg rounded-lg bg-white p-6">
-            <h2 class="mb-2 text-lg font-bold">
-                Confirmar inscrição
-            </h2>
+	<div
+		v-if="enrollmentModal.isOpen.value"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+	>
+		<div
+			class="flex w-full max-w-lg flex-col overflow-hidden rounded-lg bg-white shadow"
+		>
+			<FormHeader
+				title="Confirmar inscrição"
+				subtitle="Revise o horário selecionado antes de confirmar."
+			/>
 
-            <p class="mb-4 text-sm text-gray-600">
-                Você está prestes a se inscrever no horário selecionado.
-            </p>
+			<div class="px-6 py-5">
+				<div
+					v-if="enrollmentModal.slot.value"
+					class="rounded-lg border border-gray-200 bg-gray-50 p-4"
+				>
+					<div class="flex flex-col gap-1 text-sm sm:flex-row sm:items-center sm:justify-between sm:gap-4">
+						<span class="font-medium text-gray-800">
+							{{ formatDateBr(enrollmentModal.slot.value.date) }}
+						</span>
 
-            <hr />
+						<span class="text-gray-500">
+							{{ enrollmentModal.slot.value.start_time.slice(0, 5) }}
+							-
+							{{ enrollmentModal.slot.value.end_time.slice(0, 5) }}
+						</span>
+					</div>
+				</div>
 
-            <div
-                v-if="enrollmentModal.slot.value"
-                class="my-4"
-            >
-                <div
-                    class="flex justify-between rounded border border-gray-200 px-3 py-2 text-sm"
-                >
-                    <span>
-                        {{
-                            formatDateBr(
-                                enrollmentModal.slot.value.date
-                            )
-                        }}
-                    </span>
+				<div
+					class="mt-4 rounded-lg border border-amber-200 bg-amber-50 p-4"
+				>
+					<p class="text-sm leading-relaxed text-amber-800">
+						Após a confirmação, você estará vinculado a esse horário.
+					</p>
+				</div>
+			</div>
 
-                    <span class="text-gray-500">
-                        {{
-                            enrollmentModal.slot.value.start_time.slice(0, 5)
-                        }}
-                        -
-                        {{
-                            enrollmentModal.slot.value.end_time.slice(0, 5)
-                        }}
-                    </span>
-                </div>
-            </div>
-
-            <div class="mb-4 rounded bg-yellow-50 p-3 text-sm text-yellow-800">
-                Após a confirmação, você estará vinculado a esse horário.
-            </div>
-
-            <div class="flex justify-end gap-2">
-                <CancelButton @click="close" />
-
-                <SaveButton
-                    label="Confirmar inscrição"
-                    :loading="loading"
-                    @click.stop="submit"
-                />
-            </div>
-        </div>
-    </div>
+			<FormFooter
+				:loading="loading"
+				action="save"
+				action-label="Confirmar inscrição"
+				@cancel="close"
+				@save="submit"
+			/>
+		</div>
+	</div>
 </template>
