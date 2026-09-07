@@ -33,7 +33,7 @@
             class="relative flex w-full flex-col gap-2 sm:ml-auto sm:w-auto sm:flex-row sm:items-center"
         >
             <Button
-                v-if="can('user.personal-page.updateHeaderData')"
+                v-if="can('users.personal-page.updateRole')"
                 variant="outline"
                 size="sm"
                 class="w-full sm:w-auto cursor-pointer"
