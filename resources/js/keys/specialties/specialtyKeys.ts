@@ -22,13 +22,12 @@ export interface SpecialtiesResponse {
     specialties: Ref<Specialty[] | []>;
 }
 
-export interface SpecialtiesGroup {
-    specialties: Ref<Specialty[] | []>;
-}
+export type RefreshTableFn = () => void;
 
 export const SpecialtyCreateKey: InjectionKey<SpecialtyCreateModal> = Symbol("SpecialtyCreateKey");
 export const SpecialtyEditKey: InjectionKey<SpecialtyEditModal> = Symbol("SpecialtyEditKey");
 export const SpecialtyDeleteKey: InjectionKey<SpecialtyDeleteModal> = Symbol("SpecialtyDeleteKey");
 export const SelectedSpecialtyKey: InjectionKey<Ref<SelectedSpecialtyKey>> = Symbol('SelectedSpecialtyKey');
 export const SpecialtiesKey: InjectionKey<Ref<SpecialtiesResponse>> = Symbol('SpecialtiesKey');
-export const SpecialtiesGroupKey: InjectionKey<Ref<SpecialtiesGroup>> = Symbol('SpecialtiesGroupKey');
+export const SpecialtiesGroupKey: InjectionKey<Ref<Specialty[]>> = Symbol('SpecialtiesGroupKey');
+export const RefreshTableKey: InjectionKey<Ref<RefreshTableFn | null>> = Symbol('RefreshTableKey');

@@ -26,9 +26,12 @@ export interface PeriodsGroup {
     periods: Ref<Period[] | []>;
 }
 
+export type RefreshTableFn = () => void;
+
 export const PeriodCreateKey: InjectionKey<PeriodCreateModal> = Symbol("PeriodCreateKey");
 export const PeriodEditKey: InjectionKey<PeriodEditModal> = Symbol("PeriodEditKey");
 export const PeriodDeleteKey: InjectionKey<PeriodDeleteModal> = Symbol("PeriodDeleteKey");
 export const SelectedPeriodKey: InjectionKey<Ref<SelectedPeriodKey>> = Symbol('SelectedPeriodKey');
 export const PeriodsKey: InjectionKey<Ref<PeriodsResponse>> = Symbol('PeriodsKey');
 export const PeriodsGroupKey: InjectionKey<Ref<PeriodsGroup>> = Symbol('PeriodsGroupKey');
+export const RefreshTableKey: InjectionKey<Ref<RefreshTableFn | null>> = Symbol('RefreshTableKey');

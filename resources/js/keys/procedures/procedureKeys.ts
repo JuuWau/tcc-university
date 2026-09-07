@@ -19,6 +19,7 @@ export interface ProcedureDeleteModal {
 export type ProceduresGroup = Procedure[];
 
 export type ProcedureSpecialtyOption = { id: number; name: string };
+export type RefreshTableFn = () => void;
 
 export const ProcedureCreateKey: InjectionKey<ProcedureCreateModal> =
     Symbol('ProcedureCreateKey');
@@ -30,3 +31,5 @@ export const ProceduresGroupKey: InjectionKey<Ref<ProceduresGroup>> =
     Symbol('ProceduresGroupKey');
 export const ProceduresSpecialtiesKey: InjectionKey<ProcedureSpecialtyOption[]> =
     Symbol('ProceduresSpecialtiesKey');
+export const RefreshTableKey: InjectionKey<Ref<RefreshTableFn | null>> =
+    Symbol('RefreshTableKey');
