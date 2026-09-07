@@ -8,6 +8,8 @@ import axios from 'axios';
 import { inject } from 'vue';
 import { toast } from 'vue3-toastify';
 import { formatDateBr } from '@/src/utils/formatters';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
 
 const deleteModal = inject(ScheduleSlotDeleteKey);
 const loading = inject(LoadingKey);
@@ -39,48 +41,73 @@ async function submit() {
 </script>
 
 <template>
-    <div
-        v-if="deleteModal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    >
-        <div class="w-full max-w-md rounded-lg bg-white p-6">
-            <h2 class="text-lg font-bold text-red-600">Excluir agenda</h2>
-            <hr />
+	<div
+		v-if="deleteModal.isOpen.value"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+	>
+		<div
+			class="flex w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow"
+		>
+			<FormHeader
+				title="Excluir agenda"
+				subtitle="Confirme a exclusão do horário selecionado."
+			/>
 
-            <span class="mb-6 text-sm text-gray-600 leading-relaxed">
-                Tem certeza que deseja excluir o horário
-                <strong>
-                    {{
-                        deleteModal.row?.value?.date
-                            ? formatDateBr(deleteModal.row.value.date)
-                            : ''
-                    }}
-                </strong>
+			<div class="px-6 py-5">
+				<p class="text-sm leading-relaxed text-gray-600">
+					Tem certeza que deseja excluir o horário
+					<strong class="font-semibold text-gray-900">
+						{{
+							deleteModal.row?.value?.date
+								? formatDateBr(deleteModal.row.value.date)
+								: ''
+						}}
+					</strong>
+					(
+					<strong class="font-semibold text-gray-900">
+						{{ deleteModal.row?.value?.start_time?.slice(0, 5) }}
+						às
+						{{ deleteModal.row?.value?.end_time?.slice(0, 5) }}
+					</strong>
+					)?
+				</p>
 
-                (
-                <strong>
-                    {{ deleteModal.row?.value?.start_time?.slice(0, 5) }} às
-                    {{ deleteModal.row?.value?.end_time?.slice(0, 5) }}
-                </strong>
-                )?
+				<div class="mt-4 rounded-lg border border-red-200 bg-red-50 p-4">
+					<p class="mb-2 text-sm font-medium text-red-800">
+						Esta ação é irreversível e irá:
+					</p>
 
-                <br />
+					<ul class="space-y-2 text-sm text-red-700">
+						<li class="flex gap-2">
+							<span>•</span>
+							<span>Remover o slot da agenda.</span>
+						</li>
 
-                Esta ação é irreversível e irá:
-            </span>
+						<li class="flex gap-2">
+							<span>•</span>
+							<span>
+								Cancelar todas as inscrições dos alunos.
+							</span>
+						</li>
 
-            <ul class="mb-6 list-disc pl-5 text-sm text-gray-600 space-y-1">
-                <li>Remover o slot de agenda</li>
-                <li>Cancelar todas as inscrições dos alunos</li>
-                <li>Cancelar todos os agendamentos vinculados a esses alunos</li>
-            </ul>
+						<li class="flex gap-2">
+							<span>•</span>
+							<span>
+								Cancelar todos os agendamentos vinculados a esses
+								alunos.
+							</span>
+						</li>
+					</ul>
+				</div>
+			</div>
 
-            <div class="flex justify-end gap-2">
-                <CancelButton @click="close" />
-                <DeleteButton :loading="loading" @click="submit">
-                    Excluir
-                </DeleteButton>
-            </div>
-        </div>
-    </div>
+			<FormFooter
+				:loading="loading"
+				action="delete"
+				action-label="Excluir agenda"
+				@cancel="close"
+				@delete="submit"
+			/>
+		</div>
+	</div>
 </template>

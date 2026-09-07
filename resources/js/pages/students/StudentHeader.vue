@@ -1,34 +1,35 @@
 <template>
     <div
-        class="flex flex-col gap-6 rounded-2xl border border-gray-200 bg-white/80 p-6 shadow-sm backdrop-blur sm:flex-row sm:items-center"
+        class="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white/80 p-4 shadow-sm backdrop-blur sm:flex-row sm:items-center sm:gap-6 sm:p-6"
     >
         <div
-            class="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-indigo-500 text-2xl font-semibold text-white shadow"
+            class="flex h-16 w-16 shrink-0 items-center justify-center self-center rounded-full bg-gradient-to-br from-sky-500 to-indigo-500 text-lg font-semibold text-white shadow sm:h-24 sm:w-24 sm:self-auto sm:text-2xl"
         >
             {{ initials }}
         </div>
-
         <div class="min-w-0 flex-1">
             <h1
-                class="truncate text-2xl font-semibold tracking-tight text-gray-900"
+                class="text-xl font-semibold tracking-tight break-words text-gray-900 sm:text-2xl"
             >
                 {{ student?.person?.name ?? '—' }}
             </h1>
-
             <div
-                class="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm text-gray-500"
+                class="mt-2 flex flex-col gap-1 text-sm text-gray-500 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-1"
             >
                 <span>
-                    <strong class="font-medium text-gray-700">Período:</strong>
+                    <strong class="font-medium text-gray-700">
+                        Período:
+                    </strong>
                     {{ currentPeriodLabel }}
                 </span>
                 <span>
-                    <strong class="font-medium text-gray-700">Registro:</strong>
+                    <strong class="font-medium text-gray-700">
+                        Registro:
+                    </strong>
                     {{ student?.registration ?? '—' }}
                 </span>
             </div>
         </div>
-
         <div
             class="relative flex w-full flex-col gap-2 sm:ml-auto sm:w-auto sm:flex-row sm:items-center"
         >
@@ -36,17 +37,16 @@
                 v-if="can('students.personal-page.updateHeaderData')"
                 variant="outline"
                 size="sm"
-                class="w-full sm:w-auto cursor-pointer"
+                class="w-full cursor-pointer sm:w-auto"
                 @click="openEditAcademicDataModal"
             >
-                <Pencil class="mr-2 h-4 w-4" />
-                Editar dados acadêmicos
+                <Pencil class="mr-2 h-4 w-4" /> Editar dados acadêmicos
             </Button>
-
             <div class="relative w-full sm:w-auto">
                 <button
+                    type="button"
                     @click="toggleContact"
-                    class="flex w-full items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 sm:w-auto sm:justify-center"
+                    class="flex w-full items-center justify-between justify-center gap-2 self-center rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 sm:w-auto sm:justify-center"
                 >
                     <span>Contato</span>
                     <ChevronDown
@@ -54,7 +54,6 @@
                         :class="contactOpen ? 'rotate-180' : ''"
                     />
                 </button>
-
                 <div
                     v-if="contactOpen"
                     class="absolute right-0 z-20 mt-2 w-full overflow-hidden rounded-xl border border-gray-200 bg-white shadow-lg sm:w-48"
@@ -65,18 +64,16 @@
                         target="_blank"
                         class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
-                        <MailPlus class="h-4 w-4" />
-                        Enviar email
+                        <MailPlus class="h-4 w-4" /> Enviar email
                     </a>
-
                     <a
                         v-if="whatsappLink"
                         :href="whatsappLink"
                         target="_blank"
+                        rel="noopener noreferrer"
                         class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
-                        <PhoneCall class="h-4 w-4" />
-                        WhatsApp
+                        <PhoneCall class="h-4 w-4" /> WhatsApp
                     </a>
                 </div>
             </div>
@@ -86,7 +83,10 @@
 
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
-import { type StudentTabContext, StudentTabContextKey, } from '@/keys/students/studentKeys';
+import {
+    type StudentTabContext,
+    StudentTabContextKey,
+} from '@/keys/students/studentKeys';
 import { usePage } from '@inertiajs/vue3';
 import { ChevronDown, MailPlus, Pencil, PhoneCall } from 'lucide-vue-next';
 import { computed, inject, ref } from 'vue';
@@ -131,7 +131,9 @@ function openEditAcademicDataModal() {
 }
 console.log(
     'students.personal-page.updateHeaderData:',
-    page.props.auth.permissions.includes('students.personal-page.updateHeaderData'),
+    page.props.auth.permissions.includes(
+        'students.personal-page.updateHeaderData',
+    ),
 );
 const initials = computed(() => {
     const name = student?.value?.person?.name?.trim();

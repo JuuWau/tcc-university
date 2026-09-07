@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import CreateButton from '@/components/buttons/CreateButton.vue';
+import BaseInput from '@/components/inputs/BaseInput.vue';
 import { useOpenClinics } from '@/composables/schedules/useOpenClinicsManagement';
 import {
     OpenClinicsManagementKey,
@@ -87,14 +88,16 @@ provide(OpenClinicsManagementKey, {
                 </div>
 
                 <div class="relative w-full border-b border-gray-200 pb-4">
-                    <Search class="pointer-events-none absolute left-3 top-1/3 h-4 w-4 -translate-y-1/2 text-gray-400"/>
-
-                    <input
-                        v-model="search"
-                        type="text"
-                        placeholder="Buscar clínica..."
-                        class="w-full rounded-lg border border-gray-300 bg-white py-2.5 pl-9 pr-3 text-sm transition focus:border-sky-500 focus:ring-2 focus:ring-sky-100 focus:outline-none"
-                    />
+                    <div class="pb-4">
+                        <div class="relative">
+                            <BaseInput
+                                v-model="search"
+                                type="text"
+                                placeholder="Buscar usuário..."
+                                :icon="Search"
+                            />
+                        </div>
+            </div>
                 </div>
 
                 <div

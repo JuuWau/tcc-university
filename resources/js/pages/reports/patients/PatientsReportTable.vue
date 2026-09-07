@@ -4,6 +4,7 @@ import { AgGridVue } from 'ag-grid-vue3';
 import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale';
 import { PatientsReportKey } from '@/keys/patients-report/patientsReportKeys';
 import PatientStatusBadge from '../../../components/badges/PatientsReportStatusBadge.vue';
+import PatientsReportCard from './components/PatientsReportCard.vue';
 
 const ctx = inject(PatientsReportKey);
 
@@ -129,14 +130,33 @@ const defaultColDef = {
             </span>
         </div>
 
-        <AgGridVue
-            class="ag-theme-alpine"
-            style="height: 600px"
-            :rowData="ctx.patients.value"
-            :columnDefs="columnDefs"
-            :defaultColDef="defaultColDef"
-            :localeText="AG_GRID_LOCALE_BR"
-        />
+        <div class="hidden md:block">
+            <AgGridVue
+                class="ag-theme-alpine"
+                style="height: 600px"
+                :rowData="ctx.patients.value"
+                :columnDefs="columnDefs"
+                :defaultColDef="defaultColDef"
+                :localeText="AG_GRID_LOCALE_BR"
+            />
+        </div>
+
+        <div class="space-y-3 md:hidden">
+			<template v-if="!ctx.loading.value">
+				<PatientsReportCard
+					v-for="patient in ctx.patients.value"
+					:key="patient.id"
+					:patient="patient"
+				/>
+
+				<div
+					v-if="!ctx.patients.value.length"
+					class="rounded-lg border border-dashed border-gray-300 bg-gray-50 py-10 text-center text-sm text-gray-500"
+				>
+					Nenhum paciente encontrado.
+				</div>
+			</template>
+		</div>
 
         <div
             v-if="ctx.totalPages.value > 0"

@@ -3,18 +3,18 @@ import { Pencil, Trash2 } from 'lucide-vue-next';
 
 const props = defineProps<{
     params: {
-        value: number;
-        onEdit?: (id: number) => void;
-        onDelete?: (id: number) => void;
+        data: { id: number };
+        onEdit?: (item: any) => void;
+        onDelete?: (item: any) => void;
     };
 }>();
 
 function edit() {
-    props.params.onEdit?.(props.params.value);
+    props.params.onEdit?.(props.params.data);
 }
 
 function remove() {
-    props.params.onDelete?.(props.params.value);
+    props.params.onDelete?.(props.params.data);
 }
 </script>
 
@@ -25,6 +25,7 @@ function remove() {
             :size="18"
             @click="edit"
         />
+
         <Trash2
             class="cursor-pointer text-red-500 hover:text-red-700"
             :size="18"

@@ -25,7 +25,10 @@ export interface ClinicDeleteModal {
     clinic: Ref<Clinic | null>;
 }
 
+export type RefreshTableFn = () => void;
+
 export const ClinicsGroupKey: InjectionKey<Ref<Clinic[]>> = Symbol('ClinicsGroupKey');
+export const RefreshTableKey: InjectionKey<Ref<RefreshTableFn | null>> = Symbol('RefreshTableKey');
 export const ClinicCreateKey: InjectionKey<ClinicCreateModal> = Symbol('ClinicCreateKey');
 export const ClinicEditKey: InjectionKey<ClinicEditModal> = Symbol('ClinicEditKey');
 export const ClinicDeactivateKey: InjectionKey<ClinicDeactivateModal> = Symbol('ClinicDeactivateKey');

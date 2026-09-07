@@ -1,18 +1,17 @@
 <script setup lang="ts">
 import ActivationButton from '@/components/buttons/ActivationButton.vue';
 import CancelButton from '@/components/buttons/CancelButton.vue';
-import { ClinicActivateKey, ClinicsGroupKey } from '@/keys/clinics/clinicKeys';
+import { ClinicActivateKey, RefreshTableKey } from '@/keys/clinics/clinicKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
-import type { Clinic } from '@/types/clinic/clinic';
 import axios from 'axios';
 import { inject, type Ref } from 'vue';
 import { toast } from 'vue3-toastify';
 
 const activateModal = inject<any>(ClinicActivateKey);
-const clinics = inject<any>(ClinicsGroupKey);
+const refreshTableRef = inject(RefreshTableKey);
 const loading = inject<Ref<boolean>>(LoadingKey)!;
 
-if (!activateModal || !clinics) {
+if (!activateModal) {
     throw new Error('ClinicActivateModal precisa estar dentro do provider');
 }
 
@@ -27,10 +26,7 @@ async function submit() {
         loading.value = true;
         await axios.patch(`/clinics/${activateModal.clinic.value.id}/activate`);
 
-        const index = clinics.value.findIndex(
-            (clinic: Clinic) => clinic.id === activateModal.clinic.value.id,
-        );
-        if (index !== -1) clinics.value[index].active = true;
+        refreshTableRef?.value?.();
 
         toast.success('Clínica ativada com sucesso');
         close();

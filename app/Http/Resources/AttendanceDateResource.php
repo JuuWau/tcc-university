@@ -2,6 +2,7 @@
 
 namespace App\Http\Resources;
 
+use App\Models\Role;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
@@ -18,7 +19,7 @@ class AttendanceDateResource extends JsonResource
             'id' => $this->id,
             'date' => $this->date,
             'label' => $this->date->format('d/m/Y'),
-            'editable' => auth()->user()->hasRole('admin') || $this->date->isToday(),
+            'editable' => auth()->user()->hasRole(Role::ADMIN) || $this->date->isToday(),
         ];
     }
 }

@@ -1,14 +1,15 @@
 <script setup lang="ts">
-import CancelButton from '@/components/buttons/CancelButton.vue';
-import SaveButton from '@/components/buttons/SaveButton.vue';
-import { UserCreateKey, RefreshTableKey } from '@/keys/users/userKeys';
+import AppMultiselect from '@/components/AppMultiselect.vue';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
+import BaseInput from '@/components/inputs/BaseInput.vue';
 import { LoadingKey } from '@/keys/ui/loadingKey';
+import { RefreshTableKey, UserCreateKey } from '@/keys/users/userKeys';
 import { userSchema } from '@/schemas/user.schema';
 import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
 import { inject, onMounted, reactive, ref } from 'vue';
 import { toast } from 'vue3-toastify';
-import AppMultiselect from '@/components/AppMultiselect.vue';
 
 const createModal = inject(UserCreateKey);
 const refreshTableRef = inject<{ value: (() => void) | null }>(RefreshTableKey);
@@ -18,7 +19,12 @@ const rolesOptions = ref<{ label: string; value: number }[]>([]);
 const page = usePage();
 
 onMounted(() => {
-    const roles = (page.props.roles as Array<{ id: number; name: string; slug: string }>) ?? [];
+    const roles =
+        (page.props.roles as Array<{
+            id: number;
+            name: string;
+            slug: string;
+        }>) ?? [];
     rolesOptions.value = roles.map((r) => ({
         label: r.name,
         value: r.id,
@@ -74,66 +80,56 @@ async function submit() {
 <template>
     <div
         v-if="createModal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
     >
-        <div class="w-full max-w-md rounded-lg bg-white p-6">
-            <h2 class="mb-4 text-lg font-bold">Novo Usuário</h2>
-            <hr />
+        <div
+            class="flex max-h-[90vh] w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow"
+        >
+            <FormHeader
+                title="Novo usuário"
+                subtitle="Preencha os dados para enviar um convite ao usuário."
+            />
 
-            <div class="py-4">
-                <label
-                    for="user-name"
-                    class="mb-2 block text-sm font-medium text-gray-700"
-                >
-                    Nome completo (*)
-                </label>
-                <input
-                    id="user-name"
-                    type="text"
-                    v-model="form.name"
-                    maxlength="255"
-                    class="w-full rounded border px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                    placeholder="Nome do usuário"
-                />
+            <div class="min-h-0 flex-1 overflow-y-auto px-6">
+                <div class="space-y-4 py-4">
+                    <BaseInput
+                        v-model="form.name"
+                        label="Nome completo (*)"
+                        type="text"
+                        maxlength="255"
+                        placeholder="Nome do usuário"
+                    />
+                    
+                    <BaseInput
+                        v-model="form.email"
+                        label="Email (*)"
+                        type="email"
+                        maxlength="255"
+                        placeholder="email@exemplo.com"
+                    />
+
+                    <AppMultiselect
+                        v-model="form.role_id"
+                        :options="rolesOptions"
+                        label="label"
+                        field-label="Perfil (*)"
+                        value-prop="value"
+                        :searchable="true"
+                        :close-on-select="true"
+                        :can-clear="true"
+                        :append-to-body="true"
+                        placeholder="Selecione o perfil"
+                    />
+                </div>
             </div>
 
-            <div class="py-4">
-                <label
-                    for="user-email"
-                    class="mb-2 block text-sm font-medium text-gray-700"
-                >
-                    Email (*)
-                </label>
-                <input
-                    id="user-email"
-                    type="email"
-                    v-model="form.email"
-                    maxlength="255"
-                    class="w-full rounded border px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                    placeholder="email@exemplo.com"
-                />
-            </div>
-
-            <div class="py-4">
-                <label class="mb-2 block text-sm font-medium text-gray-700">
-                    Perfil (*)
-                </label>
-                <AppMultiselect
-                    v-model="form.role_id"
-                    :options="rolesOptions"
-                    label="label"
-                    value-prop="value"
-                    :searchable="true"
-                    :close-on-select="true"
-                    :can-clear="true"
-                    placeholder="Selecione o perfil"
-                />
-            </div>
-
-            <div class="flex justify-end gap-2">
-                <CancelButton @click="close" />
-                <SaveButton :loading="loading" @click.stop="submit" />
-            </div>
+            <FormFooter
+                :loading="loading"
+                action="save"
+                action-label="Enviar convite"
+                @cancel="close"
+                @save="submit"
+            />
         </div>
     </div>
 </template>

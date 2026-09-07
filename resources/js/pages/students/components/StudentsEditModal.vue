@@ -4,6 +4,9 @@ import { ViaCep } from '@/api/viacep';
 import AppMultiselect from '@/components/AppMultiselect.vue';
 import CancelButton from '@/components/buttons/CancelButton.vue';
 import SaveButton from '@/components/buttons/SaveButton.vue';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
+import BaseInput from '@/components/inputs/BaseInput.vue';
 import { StudentTabContextKey } from '@/keys/students/studentKeys';
 import { studentEditSchema } from '@/schemas/studentEdit.schema';
 import type { Student } from '@/types/student/student';
@@ -182,204 +185,155 @@ async function submit() {
 </script>
 
 <template>
-    <div
-        v-if="editModalOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-    >
-        <div
-            class="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-6"
-        >
-            <h2 class="mb-4 text-lg font-bold">Editar dados do aluno</h2>
-            <hr />
+	<div
+		v-if="editModalOpen"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+	>
+		<div
+			class="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow"
+		>
+			<FormHeader
+				title="Editar dados do aluno"
+				subtitle="Atualize os dados pessoais e de contato do aluno."
+			/>
 
-            <form class="space-y-4 pt-4" @submit.prevent="submit">
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Nome completo (*)
-                        </label>
-                        <input
-                            v-model="form.name"
-                            type="text"
-                            maxlength="255"
-                            class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                            placeholder="Nome completo"
-                        />
-                    </div>
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            E-mail (*)
-                        </label>
-                        <input
-                            v-model="form.email"
-                            type="email"
-                            class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                            placeholder="email@exemplo.com"
-                        />
-                    </div>
-                </div>
+			<form
+				class="min-h-0 flex-1 overflow-y-auto px-6"
+				@submit.prevent="submit"
+			>
+				<div class="space-y-4 py-5">
+					<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<BaseInput
+							v-model="form.name"
+							label="Nome completo (*)"
+							type="text"
+							maxlength="255"
+							placeholder="Nome completo"
+						/>
 
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Telefone (*)
-                        </label>
-                        <input
-                            v-model="form.phone"
-                            type="tel"
-                            v-mask="'(##) #####-####'"
-                            placeholder="(99) 99999-9999"
-                            class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                        />
-                    </div>
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            CPF (*)
-                        </label>
-                        <input
-                            v-model="form.cpf"
-                            type="text"
-                            maxlength="14"
-                            v-mask="'###.###.###-##'"
-                            class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                        />
-                    </div>
-                </div>
+						<BaseInput
+							v-model="form.email"
+							label="E-mail (*)"
+							type="email"
+							placeholder="email@exemplo.com"
+						/>
+					</div>
 
-                <div>
-                    <label class="mb-1 block text-sm font-medium text-gray-700">
-                        Data de nascimento (*)
-                    </label>
-                    <input
-                        v-model="form.birth_date"
-                        type="date"
-                        class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                    />
-                </div>
+					<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+						<BaseInput
+							v-model="form.phone"
+							label="Telefone (*)"
+							type="tel"
+							v-mask="'(##) #####-####'"
+							placeholder="(99) 99999-9999"
+						/>
 
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            CEP (*)
-                        </label>
-                        <input
-                            v-model="form.cep"
-                            type="text"
-                            v-mask="'#####-###'"
-                            class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                        />
-                    </div>
-                    <div class="md:col-span-2">
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Endereço (*)
-                        </label>
-                        <input
-                            v-model="form.street"
-                            type="text"
-                            maxlength="100"
-                            class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                        />
-                    </div>
-                </div>
+						<BaseInput
+							v-model="form.cpf"
+							label="CPF (*)"
+							type="text"
+							maxlength="14"
+							v-mask="'###.###.###-##'"
+							placeholder="000.000.000-00"
+						/>
+					</div>
 
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Bairro (*)
-                        </label>
-                        <input
-                            v-model="form.neighborhood"
-                            type="text"
-                            maxlength="50"
-                            class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                        />
-                    </div>
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Número (*)
-                        </label>
-                        <input
-                            v-model="form.number"
-                            type="text"
-                            maxlength="5"
-                            class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                        />
-                    </div>
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Complemento
-                        </label>
-                        <input
-                            v-model="form.complement"
-                            type="text"
-                            maxlength="20"
-                            class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                        />
-                    </div>
-                </div>
+					<BaseInput
+						v-model="form.birth_date"
+						label="Data de nascimento (*)"
+						type="date"
+					/>
 
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Estado (*)
-                        </label>
-                        <AppMultiselect
-                            v-model="form.state"
-                            :options="stateOptions"
-                            label="label"
-                            value-prop="value"
-                            :searchable="true"
-                            :close-on-select="true"
-                            :can-clear="true"
-                            :append-to-body="true"
-                            placeholder="Selecione o estado"
-                        />
-                    </div>
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Cidade (*)
-                        </label>
-                        <AppMultiselect
-                            v-model="form.city"
-                            :options="cityOptions"
-                            label="label"
-                            value-prop="value"
-                            :searchable="true"
-                            :close-on-select="true"
-                            :can-clear="true"
-                            :append-to-body="true"
-                            placeholder="Selecione a cidade"
-                        />
-                    </div>
-                </div>
+					<div class="border-t border-gray-200 pt-4">
+						<h3 class="mb-3 text-sm font-semibold text-gray-700">
+							Endereço
+						</h3>
 
-                <div class="flex justify-end gap-2 pt-4">
-                    <CancelButton @click="close" />
-                    <SaveButton :loading="loading" @click.stop="submit" />
-                </div>
-            </form>
-        </div>
-    </div>
+						<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+							<BaseInput
+								v-model="form.cep"
+								label="CEP (*)"
+								type="text"
+								maxlength="9"
+								v-mask="'#####-###'"
+								placeholder="00000-000"
+							/>
+
+							<div class="md:col-span-2">
+								<BaseInput
+									v-model="form.street"
+									label="Endereço (*)"
+									type="text"
+									maxlength="100"
+									placeholder="Logradouro"
+								/>
+							</div>
+						</div>
+
+						<div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+							<BaseInput
+								v-model="form.neighborhood"
+								label="Bairro (*)"
+								type="text"
+								maxlength="50"
+								placeholder="Bairro"
+							/>
+
+							<BaseInput
+								v-model="form.number"
+								label="Número (*)"
+								type="text"
+								maxlength="5"
+								placeholder="Número"
+							/>
+
+							<BaseInput
+								v-model="form.complement"
+								label="Complemento"
+								type="text"
+								maxlength="20"
+								placeholder="Complemento"
+							/>
+						</div>
+
+						<div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+							<AppMultiselect
+								v-model="form.state"
+								:options="stateOptions"
+								field-label="Estado (*)"
+								label="label"
+								value-prop="value"
+								:searchable="true"
+								:close-on-select="true"
+								:can-clear="true"
+								:append-to-body="true"
+								placeholder="Selecione o estado"
+							/>
+
+							<AppMultiselect
+								v-model="form.city"
+								:options="cityOptions"
+								field-label="Cidade (*)"
+								label="label"
+								value-prop="value"
+								:searchable="true"
+								:close-on-select="true"
+								:can-clear="true"
+								:append-to-body="true"
+								placeholder="Selecione a cidade"
+							/>
+						</div>
+					</div>
+				</div>
+			</form>
+
+			<FormFooter
+				:loading="loading"
+				action="save"
+				action-label="Salvar"
+				@cancel="close"
+				@save="submit"
+			/>
+		</div>
+	</div>
 </template>

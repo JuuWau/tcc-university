@@ -32,7 +32,14 @@ class UpdateProcedureRequest extends FormRequest
                     ->whereNull('deleted_at')
                     ->ignore($procedureId),
             ],
-            'specialty_id' => ['required', 'integer', 'exists:specialties,id'],
+            'specialty_id' => [
+                'required',
+                'integer',
+                Rule::exists('specialties', 'id')
+                    ->where(fn ($query) => $query
+                        ->where('university_id', $userId)
+                        ->whereNull('deleted_at')),
+            ],
         ];
     }
 

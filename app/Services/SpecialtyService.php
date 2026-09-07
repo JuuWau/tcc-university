@@ -3,9 +3,11 @@
 namespace App\Services;
 
 use App\Constants\ActivityModules;
+use App\Data\Specialty\SpecialtyTableFiltersData;
 use App\Models\Specialty;
 use App\Models\ActivityLog;
 use App\Services\ActivityLogService;
+
 class SpecialtyService
 {
         /**
@@ -14,6 +16,27 @@ class SpecialtyService
         public function all(int $universityId)
         {
                 return Specialty::orderBy('name')->where('university_id', $universityId)->get();
+        }
+
+        public function paginate(SpecialtyTableFiltersData $filters)
+        {
+                return Specialty::query()
+                        ->where('university_id', $filters->universityId)
+                        ->when(
+                                $filters->search,
+                                fn($query) => $query->where(
+                                        'name',
+                                        'ilike',
+                                        '%' . $filters->search . '%'
+                                )
+                        )
+                        ->orderBy($filters->sortField, $filters->sortDir)
+                        ->paginate(
+                                $filters->perPage,
+                                ['*'],
+                                'page',
+                                $filters->page
+                        );
         }
 
         public function update(Specialty $specialty, array $data): Specialty
@@ -60,19 +83,19 @@ class SpecialtyService
         {
                 if ($specialty->procedures()->exists()) {
                         throw new \DomainException(
-                        'Não é possível excluir a especialidade pois existem procedimentos vinculados.'
+                                'Não é possível excluir a especialidade pois existem procedimentos vinculados.'
                         );
                 }
 
                 if ($specialty->periods()->exists()) {
                         throw new \DomainException(
-                        'Não é possível excluir a especialidade pois existem períodos vinculados.'
+                                'Não é possível excluir a especialidade pois existem períodos vinculados.'
                         );
                 }
 
                 if ($specialty->clinics()->exists()) {
                         throw new \DomainException(
-                        'Não é possível excluir a especialidade pois existem clínicas vinculadas.'
+                                'Não é possível excluir a especialidade pois existem clínicas vinculadas.'
                         );
                 }
 

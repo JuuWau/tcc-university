@@ -6,6 +6,7 @@ import AppMultiselect from '@/components/AppMultiselect.vue';
 import { useAttendance } from '@/composables/attendance/useAttendance';
 import { Switch } from '@headlessui/vue';
 import { toast } from 'vue3-toastify';
+import { ClipboardCheck } from 'lucide-vue-next';
 
 const attendance = inject(AttendanceKey);
 
@@ -259,9 +260,10 @@ async function saveAttendance() {
             >
                 <Button
                     :disabled="!canEditAttendance"
-                    class="bg-sky-600 hover:bg-sky-700 cursor-pointer text-white font-semibold py-2 px-4 rounded disabled:opacity-50"
+                    class="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-5 py-2.5 font-semibold text-white shadow-sm transition-all hover:bg-sky-700 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50 cursor-pointer"
                     @click="saveAttendance"
                 >
+                    <ClipboardCheck class="h-4 w-4" />
                     Salvar presença
                 </Button>
             </div>

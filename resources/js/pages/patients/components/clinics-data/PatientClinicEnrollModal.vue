@@ -5,6 +5,8 @@ import { toast } from 'vue3-toastify';
 import CancelButton from '@/components/buttons/CancelButton.vue';
 import SaveButton from '@/components/buttons/SaveButton.vue';
 import { PatientClinicEnrollKey, RefreshTableKey } from '@/keys/patients/patientClinicsKeys';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
 
 const enrollModal = inject<any>(PatientClinicEnrollKey);
 const refreshTableRef = inject(RefreshTableKey);
@@ -48,32 +50,27 @@ async function submit() {
 <template>
     <div
         v-if="enrollModal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
     >
-        <div class="w-full max-w-md rounded-lg bg-white p-6">
-            <h2 class="mb-4 text-lg font-bold">
-                Inscrever paciente
-            </h2>
+        <div class="flex w-full max-w-md flex-col overflow-hidden rounded-lg bg-white">
+            <FormHeader 
+                title="Inscrever paciente" 
+                subtitle="Confirme a inscrição do paciente na clínica." 
+            />
 
-            <hr />
-
-            <div class="py-4">
+            <div class="px-6 py-5">
                 <p class="text-sm text-gray-500">
                 Deseja mesmo inscrever
                 <strong>
                         {{ enrollModal.patient.value?.name }}
                 </strong>
-                na clínica?
+                na clínica222?
                 </p>
             </div>
 
-            <div class="flex justify-end gap-2">
-                <CancelButton @click="close" />
-
-                <SaveButton
-                    @click.stop="submit"
-                />
-            </div>
+            <FormFooter
+                @cancel="close"
+                @save="submit" />
         </div>
     </div>
 </template>

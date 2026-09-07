@@ -10,8 +10,13 @@ export interface ScheduleSlotEnrollmentMultipleModal {
     slots: Ref<OpenClinicScheduleEnrollmentRow[]>;
 }
 
+export type RefreshTableFn = () => void;
+
 export const ScheduleSlotEnrollmentKey: InjectionKey<ScheduleSlotEnrollmentModal> =
     Symbol('ScheduleSlotEnrollmentKey');
 
 export const ScheduleSlotEnrollmentMultipleKey: InjectionKey<ScheduleSlotEnrollmentMultipleModal> =
     Symbol('ScheduleSlotEnrollmentMultipleModal');
+
+export const RefreshTableKey: InjectionKey<Ref<RefreshTableFn | null>> =
+    Symbol('ScheduleEnrollmentRefreshTableKey');

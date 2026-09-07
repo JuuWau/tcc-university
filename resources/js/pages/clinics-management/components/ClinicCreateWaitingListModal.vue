@@ -8,6 +8,8 @@ import axios from 'axios';
 import { computed, inject, reactive, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 import { X } from 'lucide-vue-next';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
 
 type PatientOption = {
     label: string;
@@ -141,110 +143,100 @@ async function submit() {
 </script>
 
 <template>
-    <div
-        v-if="modal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    >
-        <div
-            class="w-full max-w-4xl rounded-lg bg-white p-6 shadow-xl"
-        >
-            <div class="mb-4">
-                <h2 class="text-lg font-bold text-gray-900">
-                    Adicionar pacientes à lista de espera
-                </h2>
+	<div
+		v-if="modal.isOpen.value"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+	>
+		<div
+			class="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg bg-white shadow-xl"
+		>
+			<FormHeader
+				title="Adicionar pacientes à lista de espera"
+				subtitle="Selecione os pacientes que deseja incluir na lista."
+			/>
 
-                <p class="text-sm text-gray-500">
-                    Selecione os pacientes que deseja incluir na lista.
-                </p>
-            </div>
-            <hr />
+			<div class="min-h-0 flex-1 overflow-y-auto px-6">
+				<div class="py-5">
+					<div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+						<div>
+							<AppMultiselect
+								v-model="selectedPatient"
+								:options="availablePatients"
+								:loading="loadingPatients"
+								field-label="Buscar pacientes"
+								label="label"
+								value-prop="value"
+								:searchable="true"
+								:can-clear="true"
+								:close-on-select="true"
+								:append-to-body="true"
+								placeholder="Buscar paciente"
+								@select="addPatient"
+							/>
 
-            <div class="grid grid-cols-2 gap-6 py-6">
-                <div>
-                    <label
-                        class="mb-2 block text-sm font-medium text-gray-700"
-                    >
-                        Buscar pacientes
-                    </label>
+							<p
+								v-if="!availablePatients.length"
+								class="mt-2 text-sm text-gray-500"
+							>
+								Nenhum paciente disponível.
+							</p>
+						</div>
 
-                    <AppMultiselect
-                        v-model="selectedPatient"
-                        :options="availablePatients"
-                        :loading="loadingPatients"
-                        :searchable="true"
-                        :can-clear="true"
-                        :close-on-select="true"
-                        label="label"
-                        value-prop="value"
-                        placeholder="Buscar paciente"
-                        @select="addPatient"
-                    />
+						<div>
+							<div class="mb-2 flex items-center justify-between">
+								<label class="block text-sm font-medium text-gray-700">
+									Pacientes adicionados
+								</label>
 
-                    <p
-                        v-if="!availablePatients.length"
-                        class="mt-2 text-sm text-gray-500"
-                    >
-                        Nenhum paciente disponível
-                    </p>
-                </div>
+								<span
+									class="inline-flex min-w-6 items-center justify-center rounded-full bg-sky-100 px-2 py-1 text-xs font-medium text-sky-700"
+								>
+									{{ form.patients.length }}
+								</span>
+							</div>
 
-                <div>
-                    <div class="mb-2 flex items-center justify-between">
-                        <label
-                            class="text-sm font-medium text-gray-700"
-                        >
-                            Pacientes adicionados
-                        </label>
+							<div
+								class="min-h-50 max-h-64 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-3"
+							>
+								<div
+									v-for="patient in form.patients"
+									:key="patient.value"
+									class="mb-2 flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2.5 shadow-sm last:mb-0"
+								>
+									<span
+										class="min-w-0 truncate pr-3 text-sm text-gray-700"
+									>
+										{{ patient.label }}
+									</span>
 
-                        <span
-                            class="rounded-full bg-sky-100 px-2 py-1 text-xs font-medium text-sky-700"
-                        >
-                            {{ form.patients.length }}
-                        </span>
-                    </div>
+									<button
+										type="button"
+										class="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-gray-400 transition hover:bg-red-50 hover:text-red-600"
+										@click="removePatient(patient.value)"
+									>
+										<X class="h-4 w-4" />
+									</button>
+								</div>
 
-                    <div
-                        class="min-h-50 max-h-50 space-y-2 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-3"
-                    >
-                        <div
-                            v-for="patient in form.patients"
-                            :key="patient.value"
-                            class="flex items-center justify-between rounded-md border border-gray-200 bg-white px-3 py-2 shadow-sm"
-                        >
-                            <span class="text-sm text-gray-700">
-                                {{ patient.label }}
-                            </span>
-                            <button
-                                type="button"
-                                class="cursor-pointer text-red-500 hover:text-red-700"
-                                @click="removePatient(patient.value)"
-                            >
+								<div
+									v-if="!form.patients.length"
+									class="flex h-40 items-center justify-center text-center text-sm text-gray-500"
+								>
+									Nenhum paciente selecionado.
+								</div>
+							</div>
+						</div>
+					</div>
+				</div>
+			</div>
 
-                                <X />
-                            </button>
-                        </div>
-
-                        <div
-                            v-if="!form.patients.length"
-                            class="flex h-40 items-center justify-center text-sm text-gray-500"
-                        >
-                            Nenhum paciente selecionado
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="flex justify-end gap-2">
-                <CancelButton
-                    @click="close"
-                />
-                <SaveButton
-                    :loading="loading"
-                    @click="submit"
-                >
-                    Adicionar pacientes
-                </SaveButton>
-            </div>
-        </div>
-    </div>
+			<FormFooter
+				:loading="loading"
+				action="save"
+				action-label="Adicionar pacientes"
+				@cancel="close"
+				@save="submit"
+			/>
+		</div>
+	</div>
 </template>

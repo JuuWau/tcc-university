@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import ActivationButton from '@/components/buttons/ActivationButton.vue';
-import CancelButton from '@/components/buttons/CancelButton.vue';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
 import { PatientActivateKey, RefreshTableKey } from '@/keys/patients/patientKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import axios from 'axios';
@@ -41,36 +41,38 @@ async function confirmActivate() {
 </script>
 
 <template>
-    <div
-        v-if="activateModal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    >
-        <div class="w-full max-w-md rounded-lg bg-white p-6 shadow">
-            <h2 class="mb-4 text-lg font-bold text-gray-800">
-                Ativar paciente
-            </h2>
-            <hr />
+	<div
+		v-if="activateModal.isOpen.value"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+	>
+		<div
+			class="flex w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow"
+		>
+			<FormHeader
+				title="Ativar paciente"
+				subtitle="Confirme a ativação do paciente."
+			/>
 
-            <p class="pt-4 text-sm text-gray-600">
-                Tem certeza que deseja ativar o paciente
-                <strong>{{
-                    activateModal.patient.value?.name ??
-                    activateModal.patient.value?.email
-                }}</strong
-                >?
-            </p>
+			<div class="px-6 py-5">
+				<p class="text-sm text-gray-600">
+					Tem certeza que deseja ativar o paciente
+					<strong class="font-semibold text-gray-900">
+						{{
+							activateModal.patient.value?.name ??
+							activateModal.patient.value?.email
+						}}
+					</strong>
+					?
+				</p>
+			</div>
 
-            <div class="flex justify-end gap-2 pt-6">
-                <CancelButton @click="close" />
-                <ActivationButton
-                    type="button"
-                    :disabled="loading"
-                    class="flex items-center gap-2 rounded bg-green-600 px-4 py-2 text-white hover:bg-green-700 disabled:opacity-60"
-                    @click="confirmActivate"
-                >
-                    {{ loading ? 'Ativando...' : 'Ativar' }}
-                </ActivationButton>
-            </div>
-        </div>
-    </div>
+			<FormFooter
+				:loading="loading"
+				action="activate"
+				action-label="Ativar"
+				@cancel="close"
+				@activate="confirmActivate"
+			/>
+		</div>
+	</div>
 </template>

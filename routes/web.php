@@ -65,6 +65,7 @@ Route::prefix('schedule-enrollment')->group(function () {
     Route::get('open-clinics', [ScheduleEnrollmentController::class, 'openClinicsSchedullesEnrollmentManagement'])->name('schedules.enrollment.openClinics')->middleware('permission:open-schedule-management-student.view');
     Route::get('open-clinics/table', [ScheduleEnrollmentController::class, 'openClinicsSchedullesEnrollmentTable'] )->name('schedules.enrollment.openClinics.table');
     Route::get('open-clinic/{clinic}', [ScheduleEnrollmentController::class, 'clinicOpenSchedulesEnrollment'])->name('schedules.enrollment.openClinic.show')->middleware('permission:open-schedule-management-student.view');
+    Route::get('open-clinic/{clinic}/table', [ScheduleEnrollmentController::class, 'clinicOpenSchedulesEnrollmentTable'])->name('schedules.enrollment.openClinic.table')->middleware('permission:open-schedule-management-student.view');
     Route::post('open-clinics/{clinic}', [ScheduleEnrollmentController::class, 'storeOpenClinicDay'])->name('schedules.enrollment.openClinics.storeDay');
     Route::patch('slots/{slot}', [ScheduleEnrollmentController::class, 'updateSlot'])->name('schedules.enrollment.slots.update')->middleware('permission:open-schedule-management.updateSlot');
     Route::post('multiple-slots', [ScheduleEnrollmentController::class, 'enrollMultipleSlots'])->name('schedules.enrollment.slots.enrollment.multiple')->middleware('permission:open-schedule-management-student.enroll');
@@ -104,6 +105,7 @@ Route::get('/reports/clinics-by-student', function () {
 
 Route::prefix('specialties')->group(function () {
     Route::get('/', [SpecialtiesController::class, 'index'])->name('specialties.index')->middleware('permission:specialties.view');
+    Route::get('/table', [SpecialtiesController::class, 'table'])->name('specialties.table');
     Route::get('/options', [SpecialtiesController::class, 'options'])->name('specialties.options');
     Route::post('/', [SpecialtiesController::class, 'store'])->name('specialties.store')->middleware('permission:specialties.create');
     Route::put('/{specialty}', [SpecialtiesController::class, 'update'])->name('specialties.update')->middleware('permission:specialties.update');
@@ -112,6 +114,7 @@ Route::prefix('specialties')->group(function () {
 
 Route::prefix('periods')->group(function () {
     Route::get('/', [PeriodsController::class, 'index'])->name('periods.index')->middleware('permission:periods.view');
+    Route::get('/table', [PeriodsController::class, 'table'])->name('periods.table');
     Route::post('/', [PeriodsController::class, 'store'])->name('periods.store')->middleware('permission:periods.create');
     Route::put('/{period}', [PeriodsController::class, 'update'])->name('periods.update')->middleware('permission:periods.update');
     Route::delete('/{period}', [PeriodsController::class, 'destroy'])->name('periods.destroy')->middleware('permission:periods.delete');
@@ -129,6 +132,7 @@ Route::prefix('clinics')->group(function () {
 
 Route::prefix('procedures')->group(function () {
     Route::get('/', [ProceduresController::class, 'index'])->name('procedures.index')->middleware('permission:procedures.view');
+    Route::get('/table', [ProceduresController::class, 'table'])->name('procedures.table');
     Route::post('/', [ProceduresController::class, 'store'])->name('procedures.store')->middleware('permission:procedures.create');
     Route::put('/{procedure}', [ProceduresController::class, 'update'])->name('procedures.update')->middleware('permission:procedures.update');
     Route::delete('/{procedure}', [ProceduresController::class, 'destroy'])->name('procedures.destroy')->middleware('permission:procedures.delete');

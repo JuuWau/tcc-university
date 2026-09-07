@@ -9,6 +9,7 @@ import { useAppointments } from '@/composables/appointments-report/useAppointmen
 import { Download } from 'lucide-vue-next';
 import PageHeader from '@/components/PageHeader.vue';
 import Button from '@/components/ui/button/Button.vue';
+import ExportExcelButton from '@/components/buttons/ExportExcelButton.vue';
 
 const appointments = useAppointments();
 
@@ -46,14 +47,9 @@ const hasActiveFilters = computed(() => {
                     description="Consulte, filtre e exporte os agendamentos realizados."
                 >
                     <template #actions>
-                        <Button
-                            type="button"
-                            class="cursor-pointer gap-2 bg-sky-600 text-white hover:bg-sky-700"
-                            @click="appointments.exportExcel()"
-                        >
-                            <Download class="h-4 w-4" />
-                            Exportar Excel
-                        </Button>
+                        <ExportExcelButton 
+                            @click="appointments.exportExcel()" 
+                        />
                     </template>
                 </PageHeader>
             </div>

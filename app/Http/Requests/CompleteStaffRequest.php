@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class CompleteStaffRequest extends FormRequest
 {
@@ -22,6 +23,7 @@ class CompleteStaffRequest extends FormRequest
             'cpf' => [
                 'required',
                 'regex:/^\d{3}\.\d{3}\.\d{3}-\d{2}$/',
+                Rule::unique('people', 'cpf'),
                 function ($attribute, $value, $fail) {
                     if (!$this->isValidCPF($value)) {
                         $fail('CPF inválido');
@@ -48,6 +50,7 @@ class CompleteStaffRequest extends FormRequest
             'phone.min' => 'Telefone inválido',
             'cpf.required' => 'CPF obrigatório',
             'cpf.regex' => 'CPF inválido',
+            'cpf.unique' => 'Este CPF já está cadastrado',
             'birth_date.required' => 'Data de nascimento obrigatória',
             'birth_date.date' => 'Data de nascimento inválida',
             'birth_date.before_or_equal' => 'Data de nascimento não pode ser maior que a data atual',

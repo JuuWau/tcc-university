@@ -1,21 +1,20 @@
 <script setup lang="ts">
-import CancelButton from '@/components/buttons/CancelButton.vue';
-import DeleteButton from '@/components/buttons/DeleteButton.vue';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
 import {
-    SpecialtiesGroupKey,
-    SpecialtyDeleteKey,
+	RefreshTableKey,
+	SpecialtyDeleteKey,
 } from '@/keys/specialties/specialtyKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
-import type { Specialty } from '@/types/specialty';
 import axios from 'axios';
 import { inject } from 'vue';
 import { toast } from 'vue3-toastify';
 
 const deleteModal = inject<any>(SpecialtyDeleteKey);
-const specialties = inject<any>(SpecialtiesGroupKey);
+const refreshTableRef = inject(RefreshTableKey);
 const loading = inject(LoadingKey);
 
-if (!deleteModal || !specialties || !loading) {
+if (!deleteModal || !loading) {
     throw new Error('SpecialtyDeleteModal precisa estar dentro do provider');
 }
 
@@ -31,9 +30,7 @@ async function confirmDelete() {
 
         await axios.delete(`/specialties/${deleteModal.specialty.value.id}`);
 
-        specialties.value = specialties.value.filter(
-            (s: Specialty) => s.id !== deleteModal.specialty.value.id,
-        );
+		refreshTableRef?.value?.();
 
         toast.success('Especialidade removida com sucesso');
         close();
@@ -48,34 +45,41 @@ async function confirmDelete() {
 </script>
 
 <template>
-    <div
-        v-if="deleteModal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    >
-        <div class="w-full max-w-md rounded-lg bg-white p-6">
-            <h2 class="mb-2 text-lg font-bold text-red-600">
-                Excluir Especialidade
-            </h2>
-            <hr />
+	<div
+		v-if="deleteModal.isOpen.value"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+	>
+		<div
+			class="flex w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow"
+		>
+			<FormHeader
+				title="Excluir especialidade"
+				subtitle="Confirme a exclusão da especialidade."
+			/>
 
-            <p class="mb-6 pt-3 text-sm text-gray-600">
-                Tem certeza que deseja excluir
-                <strong>{{ deleteModal.specialty?.name }}</strong
-                >?
-                <br />
-                Esta ação não poderá ser desfeita.
-            </p>
+			<div class="px-6 py-5">
+				<p class="text-sm leading-relaxed text-gray-600">
+					Tem certeza que deseja excluir a especialidade
+					<strong class="font-semibold text-gray-900">
+						{{ deleteModal.specialty.value?.name }}
+					</strong>
+					?
+				</p>
 
-            <div class="flex justify-end gap-2">
-                <CancelButton @click="close" />
-                <DeleteButton
-                    :loading="loading"
-                    class="bg-red-600 hover:bg-red-700"
-                    @click="confirmDelete"
-                >
-                    Excluir
-                </DeleteButton>
-            </div>
-        </div>
-    </div>
+				<div class="mt-4 rounded-lg border border-red-200 bg-red-50 p-4">
+					<p class="text-sm text-red-700">
+						Esta ação não poderá ser desfeita.
+					</p>
+				</div>
+			</div>
+
+			<FormFooter
+				:loading="loading"
+				action="delete"
+				action-label="Excluir"
+				@cancel="close"
+				@delete="confirmDelete"
+			/>
+		</div>
+	</div>
 </template>

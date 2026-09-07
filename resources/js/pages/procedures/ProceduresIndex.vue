@@ -24,8 +24,8 @@ import {
     ProcedureCreateKey,
     ProcedureDeleteKey,
     ProcedureEditKey,
-    ProceduresGroupKey,
     ProceduresSpecialtiesKey,
+    RefreshTableKey,
 } from '@/keys/procedures/procedureKeys';
 import type { ProcedureSpecialtyOption } from '@/keys/procedures/procedureKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
@@ -36,21 +36,12 @@ import ProcedureDeleteModal from '@/pages/procedures/components/ProcedureDeleteM
 import ProcedureEditModal from '@/pages/procedures/components/ProcedureEditModal.vue';
 import type { Procedure } from '@/types/procedure';
 import { usePage } from '@inertiajs/vue3';
-import { provide, ref, watch } from 'vue';
+import { provide, ref } from 'vue';
 
 const page = usePage();
-const proceduresRef = ref<Procedure[]>([...(page.props.procedures as Procedure[] ?? [])]);
 const specialties = (page.props.specialties as ProcedureSpecialtyOption[]) ?? [];
-
-watch(
-    () => page.props.procedures as Procedure[] | undefined,
-    (procedures) => {
-        proceduresRef.value = procedures ?? [];
-    },
-    { immediate: false },
-);
-
 const loading = ref(false);
+const refreshTableRef = ref<(() => void) | null>(null);
 
 const createModal = { isOpen: ref(false) };
 const editModal = {
@@ -62,7 +53,7 @@ const deleteModal = {
     procedure: ref<Procedure | null>(null),
 };
 
-provide(ProceduresGroupKey, proceduresRef);
+provide(RefreshTableKey, refreshTableRef);
 provide(ProceduresSpecialtiesKey, specialties);
 provide(ProcedureEditKey, editModal);
 provide(ProcedureDeleteKey, deleteModal);

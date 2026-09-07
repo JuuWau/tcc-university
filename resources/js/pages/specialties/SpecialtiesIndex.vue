@@ -24,6 +24,7 @@
 
 <script setup lang="ts">
 import {
+    RefreshTableKey,
     SpecialtiesGroupKey,
     SpecialtyCreateKey,
     SpecialtyDeleteKey,
@@ -37,12 +38,14 @@ import SpecialtyDeleteModal from '@/pages/specialties/components/SpecialtyDelete
 import SpecialtyEditModal from '@/pages/specialties/components/SpecialtyEditModal.vue';
 import { Specialty } from '@/types/specialty';
 import { provide, ref } from 'vue';
+
 const { specialties } = defineProps({
     specialties: Array,
 });
 
-const specialtiesRef = ref(specialties);
+const specialtiesRef = ref<Specialty[]>((specialties ?? []) as Specialty[]);
 const loading = ref(false);
+const refreshTableRef = ref<(() => void) | null>(null);
 
 const createModal = { isOpen: ref(false) };
 const editModal = {
@@ -55,6 +58,7 @@ const deleteModal = {
 };
 
 provide(SpecialtiesGroupKey, specialtiesRef);
+provide(RefreshTableKey, refreshTableRef);
 provide(SpecialtyEditKey, editModal);
 provide(SpecialtyDeleteKey, deleteModal);
 provide(SpecialtyCreateKey, createModal);
@@ -73,4 +77,5 @@ function openDeleteModal(specialty: Specialty) {
     deleteModal.specialty.value = specialty;
     deleteModal.isOpen.value = true;
 }
+
 </script>

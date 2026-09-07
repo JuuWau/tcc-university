@@ -20,6 +20,7 @@
 
 <script setup lang="ts">
 import {
+    RefreshTableKey,
     ScheduleSlotEnrollmentKey,
     ScheduleSlotEnrollmentMultipleKey,
 } from '@/keys/schedule-enrollment/scheduleSlotEnrollmentKeys';
@@ -32,6 +33,7 @@ import type { OpenClinicScheduleEnrollmentRow } from '@/types/schedule-enrollmen
 import { provide, ref } from 'vue';
 
 const loading = ref(false);
+const refreshTableRef = ref<(() => void) | null>(null);
 
 const enrollmentModal = {
     isOpen: ref(false),
@@ -45,6 +47,7 @@ const enrollmentMultipleModal = {
 
 provide(ScheduleSlotEnrollmentKey, enrollmentModal);
 provide(ScheduleSlotEnrollmentMultipleKey, enrollmentMultipleModal);
+provide(RefreshTableKey, refreshTableRef);
 provide(LoadingKey, loading);
 
 function onEnrollSlot(row: OpenClinicScheduleEnrollmentRow) {

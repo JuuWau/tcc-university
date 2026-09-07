@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import CancelButton from '@/components/buttons/CancelButton.vue';
-import DeleteButton from '@/components/buttons/DeleteButton.vue';
-import { ProcedureDeleteKey, ProceduresGroupKey } from '@/keys/procedures/procedureKeys';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
+import { ProcedureDeleteKey, RefreshTableKey } from '@/keys/procedures/procedureKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
-import type { Procedure } from '@/types/procedure';
 import axios from 'axios';
 import { inject } from 'vue';
 import { toast } from 'vue3-toastify';
 
 const deleteModal = inject(ProcedureDeleteKey);
-const procedures = inject(ProceduresGroupKey);
+const refreshTableRef = inject(RefreshTableKey);
 const loading = inject(LoadingKey);
 
 if (!deleteModal) {
@@ -21,14 +20,12 @@ function close() {
 }
 
 async function confirmDelete() {
-    if (!deleteModal!.procedure.value || loading?.value || !procedures) return;
+	if (!deleteModal!.procedure.value || loading?.value) return;
 
     try {
         if (loading) loading.value = true;
         await axios.delete(`/procedures/${deleteModal!.procedure.value.id}`);
-        procedures.value = procedures.value.filter(
-            (p: Procedure) => p.id !== deleteModal!.procedure.value?.id,
-        );
+		refreshTableRef?.value?.();
         toast.success('Procedimento removido com sucesso');
         close();
     } catch (error: unknown) {
@@ -41,28 +38,37 @@ async function confirmDelete() {
 </script>
 
 <template>
-    <div
-        v-if="deleteModal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    >
-        <div class="w-full max-w-md rounded-lg bg-white p-6">
-            <h2 class="mb-2 text-lg font-bold text-red-600">Excluir Procedimento</h2>
-            <hr />
-            <p class="mb-6 pt-3 text-sm text-gray-600">
-                Tem certeza que deseja excluir este procedimento?
-                <br />
-                Esta ação não poderá ser desfeita.
-            </p>
-            <div class="flex justify-end gap-2">
-                <CancelButton @click="close" />
-                <DeleteButton
-                    :loading="loading"
-                    class="bg-red-600 hover:bg-red-700"
-                    @click="confirmDelete"
-                >
-                    Excluir
-                </DeleteButton>
-            </div>
-        </div>
-    </div>
+	<div
+		v-if="deleteModal.isOpen.value"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+	>
+		<div
+			class="flex w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow"
+		>
+			<FormHeader
+				title="Excluir procedimento"
+				subtitle="Confirme a exclusão do procedimento."
+			/>
+
+			<div class="px-6 py-5">
+				<p class="text-sm leading-relaxed text-gray-600">
+					Tem certeza que deseja excluir este procedimento?
+				</p>
+
+				<div class="mt-4 rounded-lg border border-red-200 bg-red-50 p-4">
+					<p class="text-sm text-red-700">
+						Esta ação não poderá ser desfeita.
+					</p>
+				</div>
+			</div>
+
+			<FormFooter
+				:loading="loading"
+				action="delete"
+				action-label="Excluir"
+				@cancel="close"
+				@delete="confirmDelete"
+			/>
+		</div>
+	</div>
 </template>

@@ -1,29 +1,34 @@
 <template>
     <div
-        class="flex flex-col gap-6 rounded-2xl border border-gray-200 bg-white/80 p-6 shadow-sm backdrop-blur sm:flex-row sm:items-center"
+        class="flex flex-col gap-4 rounded-2xl border border-gray-200 bg-white/80 p-4 shadow-sm backdrop-blur sm:flex-row sm:items-center sm:gap-6 sm:p-6"
     >
         <div
-            class="flex h-24 w-24 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-indigo-500 text-2xl font-semibold text-white shadow"
+            class="flex h-16 w-16 shrink-0 self-center items-center justify-center rounded-full bg-gradient-to-br from-sky-500 to-indigo-500 text-lg font-semibold text-white shadow sm:h-24 sm:w-24 sm:self-auto sm:text-2xl"
         >
             {{ initials }}
         </div>
 
         <div class="min-w-0 flex-1">
             <h1
-                class="truncate text-2xl font-semibold tracking-tight text-gray-900"
+                class="break-words text-xl font-semibold tracking-tight text-gray-900 sm:text-2xl"
             >
                 {{ user?.person?.name ?? user?.email ?? '—' }}
             </h1>
 
             <div
-                class="mt-2 flex flex-wrap gap-x-6 gap-y-1 text-sm text-gray-500"
+                class="mt-2 flex flex-col gap-1 text-sm text-gray-500 sm:flex-row sm:flex-wrap sm:items-center sm:gap-x-6 sm:gap-y-1"
             >
                 <span>
-                    <strong class="font-medium text-gray-700">Perfil:</strong>
+                    <strong class="font-medium text-gray-700">
+                        Perfil:
+                    </strong>
                     {{ user?.roles?.[0]?.name ?? '—' }}
                 </span>
-                <span>
-                    <strong class="font-medium text-gray-700">E-mail:</strong>
+
+                <span class="break-words">
+                    <strong class="font-medium text-gray-700">
+                        E-mail:
+                    </strong>
                     {{ user?.email ?? '—' }}
                 </span>
             </div>
@@ -33,10 +38,10 @@
             class="relative flex w-full flex-col gap-2 sm:ml-auto sm:w-auto sm:flex-row sm:items-center"
         >
             <Button
-                v-if="can('user.personal-page.updateHeaderData')"
+                v-if="can('users.personal-page.updateRole')"
                 variant="outline"
                 size="sm"
-                class="w-full sm:w-auto cursor-pointer"
+                class="w-full cursor-pointer sm:w-auto"
                 @click="openEditRoleModal"
             >
                 <Pencil class="mr-2 h-4 w-4" />
@@ -45,10 +50,12 @@
 
             <div class="relative w-full sm:w-auto">
                 <button
+                    type="button"
                     @click="toggleContact"
-                    class="flex w-full items-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 sm:w-auto sm:justify-center"
+                    class="flex w-full self-center items-center justify-center justify-between gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 sm:w-auto sm:justify-center"
                 >
                     <span>Contato</span>
+
                     <ChevronDown
                         class="h-4 w-4 transition"
                         :class="contactOpen ? 'rotate-180' : ''"
@@ -73,6 +80,7 @@
                         v-if="whatsappLink"
                         :href="whatsappLink"
                         target="_blank"
+                        rel="noopener noreferrer"
                         class="flex items-center gap-2 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
                     >
                         <PhoneCall class="h-4 w-4" />

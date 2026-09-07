@@ -1,16 +1,16 @@
 <script setup lang="ts">
-import CancelButton from '@/components/buttons/CancelButton.vue';
-import SaveButton from '@/components/buttons/SaveButton.vue';
-import { ScheduleSlotEnrollmentMultipleKey } from '@/keys/schedule-enrollment/scheduleSlotEnrollmentKeys';
+import { RefreshTableKey, ScheduleSlotEnrollmentMultipleKey } from '@/keys/schedule-enrollment/scheduleSlotEnrollmentKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
-import { router } from '@inertiajs/vue3';
 import axios from 'axios';
 import { inject } from 'vue';
 import { toast } from 'vue3-toastify';
 import { formatDateBr } from '@/src/utils/formatters';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
 
 const enrollmentMultipleModalInjected = inject(ScheduleSlotEnrollmentMultipleKey);
 const loading = inject(LoadingKey);
+const refreshTableRef = inject(RefreshTableKey);
 
 if (!enrollmentMultipleModalInjected) {
     throw new Error(
@@ -39,10 +39,7 @@ async function submit() {
 
         toast.success('Inscrição realizada com sucesso!');
         close();
-
-        router.reload({
-            preserveUrl: true,
-        });
+		refreshTableRef?.value?.();
     } catch (error: any) {
         toast.error(error.response?.data?.message ?? 'Erro ao se inscrever');
     } finally {
@@ -52,57 +49,76 @@ async function submit() {
 </script>
 
 <template>
-    <div
-        v-if="enrollmentMultipleModal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    >
-        <div class="w-full max-w-lg rounded-lg bg-white p-6">
-            <h2 class="mb-2 text-lg font-bold">
-                Confirmar inscrição
-            </h2>
+	<div
+		v-if="enrollmentMultipleModal.isOpen.value"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+	>
+		<div
+			class="flex max-h-[90vh] w-full max-w-lg flex-col overflow-hidden rounded-lg bg-white shadow"
+		>
+			<FormHeader
+				title="Confirmar inscrição"
+				subtitle="Revise os horários selecionados antes de confirmar a inscrição."
+			/>
 
-            <p class="mb-4 text-sm text-gray-600">
-                Você está prestes a se inscrever nos horários selecionados.
-            </p>
+			<div class="min-h-0 flex-1 overflow-y-auto px-6">
+				<div class="space-y-5 py-5">
+					<div
+						class="rounded-lg border border-gray-200 bg-gray-50 p-4"
+					>
+						<p class="text-sm font-medium text-gray-800">
+							Total de dias
+						</p>
 
-            <hr />
+						<p class="mt-1 text-2xl font-semibold text-sky-600">
+							{{ enrollmentMultipleModal.slots.value.length }}
+						</p>
+					</div>
 
-            <div class="my-4 space-y-3">
-                <div class="text-sm text-gray-700">
-                    <strong>Total de dias:</strong>
-                    {{ enrollmentMultipleModal.slots.value.length }}
-                </div>
+					<div>
+						<p class="mb-2 text-sm font-medium text-gray-700">
+							Horários selecionados
+						</p>
 
-                <div
-                    class="max-h-40 overflow-y-auto rounded border border-gray-200"
-                >
-                    <div
-                        v-for="slot in enrollmentMultipleModal.slots.value"
-                        :key="slot.id"
-                        class="flex justify-between border-b px-3 py-2 text-sm last:border-none"
-                    >
-                        <span>
-                            {{ formatDateBr(slot.date) }}
-                        </span>
-                        <span class="text-gray-500">
-                            {{ slot.start_time.slice(0,5) }} - {{ slot.end_time.slice(0,5) }}
-                        </span>
-                    </div>
-                </div>
-            </div>
+						<div
+							class="max-h-56 overflow-y-auto rounded-lg border border-gray-200"
+						>
+							<div
+								v-for="slot in enrollmentMultipleModal.slots.value"
+								:key="slot.id"
+								class="flex items-center justify-between gap-4 border-b border-gray-100 px-3 py-2.5 text-sm last:border-b-0"
+							>
+								<span class="font-medium text-gray-700">
+									{{ formatDateBr(slot.date) }}
+								</span>
 
-            <div class="mb-4 rounded bg-yellow-50 p-3 text-sm text-yellow-800">
-                Após a confirmação, você estará vinculado a esses horários.
-            </div>
+								<span class="shrink-0 text-gray-500">
+									{{ slot.start_time.slice(0, 5) }}
+									-
+									{{ slot.end_time.slice(0, 5) }}
+								</span>
+							</div>
+						</div>
+					</div>
 
-            <div class="flex justify-end gap-2">
-                <CancelButton @click="close" />
-                <SaveButton
-                    label="Confirmar inscrição"
-                    :loading="loading"
-                    @click.stop="submit"
-                />
-            </div>
-        </div>
-    </div>
+					<div
+						class="rounded-lg border border-amber-200 bg-amber-50 p-4"
+					>
+						<p class="text-sm leading-relaxed text-amber-800">
+							Após a confirmação, você estará vinculado a todos os
+							horários selecionados.
+						</p>
+					</div>
+				</div>
+			</div>
+
+			<FormFooter
+				:loading="loading"
+				action="save"
+				action-label="Confirmar inscrição"
+				@cancel="close"
+				@save="submit"
+			/>
+		</div>
+	</div>
 </template>

@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import AppMultiselect from '@/components/AppMultiselect.vue';
-import CancelButton from '@/components/buttons/CancelButton.vue';
-import SaveButton from '@/components/buttons/SaveButton.vue';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
+import BaseInput from '@/components/inputs/BaseInput.vue';
 import { StudentTabContextKey } from '@/keys/students/studentKeys';
 import { studentAcademicDataEditSchema } from '@/schemas/studentAcademicDataEdit.shema';
 import type { Student } from '@/types/student/student';
@@ -107,58 +108,53 @@ async function submit() {
 </script>
 
 <template>
-    <div
-        v-if="academicDataEditModalOpen"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-    >
-        <div
-            class="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-lg bg-white p-6"
-        >
-            <h2 class="mb-4 text-lg font-bold">
-                Editar dados acadêmicos do aluno
-            </h2>
-            <hr />
+	<div
+		v-if="academicDataEditModalOpen"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+	>
+		<div
+			class="flex w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow"
+		>
+			<FormHeader
+				title="Editar dados acadêmicos do aluno"
+				subtitle="Atualize as informações acadêmicas do aluno."
+			/>
 
-            <form class="space-y-4 pt-4" @submit.prevent="submit">
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Registro Acadêmico (*)
-                        </label>
-                        <input
-                            v-model="form.registration"
-                            type="text"
-                            maxlength="255"
-                            class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                            placeholder="Registro Acadêmico"
-                        />
-                    </div>
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Período (*)
-                        </label>
-                        <AppMultiselect
-                            v-model="form.period"
-                            :options="periodsOptions"
-                            label="label"
-                            value-prop="value"
-                            :close-on-select="false"
-                            :can-clear="true"
-                            :append-to-body="true"
-                            placeholder="Selecione o período"
-                        />
-                    </div>
-                </div>
+			<form
+				class="min-h-0 flex-1 px-6"
+				@submit.prevent="submit"
+			>
+				<div class="space-y-4 py-5">
+					<BaseInput
+						v-model="form.registration"
+						label="Registro acadêmico (*)"
+						type="text"
+						maxlength="255"
+						placeholder="Registro acadêmico"
+					/>
 
-                <div class="flex justify-end gap-2 pt-4">
-                    <CancelButton @click="close" />
-                    <SaveButton :loading="loading" @click.stop="submit" />
-                </div>
-            </form>
-        </div>
-    </div>
+					<AppMultiselect
+						v-model="form.period"
+						:options="periodsOptions"
+						field-label="Período (*)"
+						label="label"
+						value-prop="value"
+						:searchable="true"
+						:close-on-select="true"
+						:can-clear="true"
+						:append-to-body="true"
+						placeholder="Selecione o período"
+					/>
+				</div>
+			</form>
+
+			<FormFooter
+				:loading="loading"
+				action="save"
+				action-label="Salvar"
+				@cancel="close"
+				@save="submit"
+			/>
+		</div>
+	</div>
 </template>

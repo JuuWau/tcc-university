@@ -6,6 +6,8 @@ use App\Data\SchedulesEnrollment\OpenClinicsSchedulesEnrollmentFiltersData;
 use App\Http\Requests\EnrollMultipleSlotsRequest;
 use App\Http\Requests\EnrollSlotRequest;
 use App\Http\Requests\OpenClinicsSchedulesEnrollmentRequest;
+use App\Http\Requests\TableOpenClinicSchedulesRequest;
+use App\Data\ScheduleSlot\OpenClinicSchedulesTableFiltersData;
 use App\Http\Requests\RemoveStudentFromSlotRequest;
 use App\Http\Requests\SlotStudentsRequest;
 use App\Http\Requests\StoreStudentsToScheduleEnrollmentRequest;
@@ -115,7 +117,7 @@ class ScheduleEnrollmentController extends Controller
             ],
 
             'periods' => $payload['periods'] ?? [],
-            'slots' => $payload['slots'] ?? [],
+            'slots' => [],
 
             'responsible' => $this->userService->getResponsible($universityId),
 
@@ -124,6 +126,27 @@ class ScheduleEnrollmentController extends Controller
                 'date' => $date,
             ],
         ]);
+    }
+
+    public function clinicOpenSchedulesEnrollmentTable(
+        TableOpenClinicSchedulesRequest $request,
+        Clinic $clinic
+    ) {
+        $universityId = $request->user()?->university_id;
+
+        if (! $universityId || $clinic->university_id !== $universityId) {
+            abort(404);
+        }
+
+        $filters = OpenClinicSchedulesTableFiltersData::fromRequest(
+            $request,
+            $clinic->id,
+            $request->user()?->student?->id,
+        );
+
+        $payload = $this->scheduleSlotService->paginate($filters);
+
+        return response()->json($payload);
     }
 
     public function slotStudents(SlotStudentsRequest $request, ScheduleSlot $slot)
