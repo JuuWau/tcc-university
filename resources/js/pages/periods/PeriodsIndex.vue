@@ -23,12 +23,7 @@
 </template>
 
 <script setup lang="ts">
-import {
-    PeriodCreateKey,
-    PeriodDeleteKey,
-    PeriodEditKey,
-    PeriodsGroupKey,
-} from '@/keys/periods/periodKeys';
+import { PeriodCreateKey, PeriodDeleteKey, PeriodEditKey, RefreshTableKey } from '@/keys/periods/periodKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import AppLayout from '@/layouts/AppLayout.vue';
 import PeriodsTable from '@/pages/periods/PeriodsTable.vue';
@@ -37,12 +32,8 @@ import PeriodDeleteModal from '@/pages/periods/components/PeriodDeleteModal.vue'
 import PeriodEditModal from '@/pages/periods/components/PeriodEditModal.vue';
 import { Period } from '@/types/period';
 import { provide, ref } from 'vue';
-const { periods } = defineProps({
-    periods: Array,
-});
-
-const periodsRef = ref(periods);
 const loading = ref(false);
+const refreshTableRef = ref<(() => void) | null>(null);
 
 const createModal = { isOpen: ref(false) };
 const editModal = {
@@ -54,7 +45,7 @@ const deleteModal = {
     period: ref<Period | null>(null),
 };
 
-provide(PeriodsGroupKey, periodsRef);
+provide(RefreshTableKey, refreshTableRef);
 provide(PeriodEditKey, editModal);
 provide(PeriodDeleteKey, deleteModal);
 provide(PeriodCreateKey, createModal);
