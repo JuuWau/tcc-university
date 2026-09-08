@@ -10,19 +10,10 @@ import {
     SidebarMenuButton,
     SidebarMenuItem,
 } from '@/components/ui/sidebar';
-import { initialPage } from '@/routes';
-import patients from '@/routes/patients';
-import periods from '@/routes/periods';
-import procedures from '@/routes/procedures';
-import { index } from '@/routes/specialties';
-import students from '@/routes/students';
-import users from '@/routes/users';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import { BarChart, Building2, Calendar, ClipboardList, GraduationCap, LayoutGrid, ListPlus, Stethoscope, User, Users, Timer, CalendarPlus, CalendarCog, CalendarCheck, Hospital, LogIn, Notebook, FileUser, BookUser, UsersRound } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
-import schedules from '@/routes/schedules';
-import clinics from '@/routes/clinics';
 import { computed } from 'vue';
 
 const page = usePage();
@@ -38,7 +29,7 @@ const can = (permission: string) => {
 const mainNavItems: NavItem[] = [
     {
         title: 'Bem-vindo',
-        href: initialPage().url,
+        href: '/initialPage',
         icon: LayoutGrid,
     },
     {
@@ -47,28 +38,28 @@ const mainNavItems: NavItem[] = [
         children: [
             {
                 title: 'Especialidades',
-                href: index(),
+                href: '/specialties',
                 icon: Stethoscope,
                 permission: 'specialties.view',
             },
             {
                 title: 'Períodos',
-                href: periods.index(),
+                href: '/periods',
                 icon: Timer,
                 permission: 'periods.view',
             },
             {
                 title: 'Clínicas',
-                href: clinics.index(),
+                href: '/clinics',
                 icon: Building2,
                 permission: 'clinics.view',
             },
             {
                 title: 'Procedimentos',
-                href: procedures.index(),
+                href: '/procedures',
                 icon: ClipboardList,
                 permission: 'procedures.view',
-            },
+            }
         ],
     },
     {
@@ -77,19 +68,19 @@ const mainNavItems: NavItem[] = [
         children: [
             {
                 title: 'Estudantes',
-                href: students.index(),
+                href: '/students',
                 icon: GraduationCap,
                 permission: 'students.view',
             },
             {
                 title: 'Pacientes',
-                href: patients.index(),
+                href: '/patients',
                 icon: User,
                 permission: 'patients.view',
             },
             {
                 title: 'Usuários',
-                href: users.index(),
+                href: '/users',
                 icon: Users,
                 permission: 'users.view',
             },
@@ -101,9 +92,9 @@ const mainNavItems: NavItem[] = [
         children: [
             {
                 title: 'Abrir dias',
-                href: schedules.openSchedule(),
+                href: '/schedules/open-schedule',
                 icon: CalendarPlus,
-                permission: 'open-schedule.open'
+                permission: 'open-schedule.open',
             },
             {
                 title: 'Agenda das clínicas',
