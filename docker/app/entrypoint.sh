@@ -2,6 +2,7 @@
 
 set -e
 
+export APP_NAME="${APP_NAME:-Acadent}"
 export APP_ENV=production
 export APP_DEBUG=false
 
@@ -14,11 +15,13 @@ wait_for_postgres() {
     while [ $attempt -le $max_attempts ]; do
         echo "Tentativa $attempt de $max_attempts..."
 
-        if php -r "new PDO(
-            'pgsql:host=${DB_HOST};port=${DB_PORT};dbname=${DB_DATABASE}',
-            '${DB_USERNAME}',
-            '${DB_PASSWORD}'
-        );" 2>/dev/null; then
+        if php -r "
+            new PDO(
+                'pgsql:host=${DB_HOST};port=${DB_PORT};dbname=${DB_DATABASE}',
+                '${DB_USERNAME}',
+                '${DB_PASSWORD}'
+            );
+        " 2>/dev/null; then
             echo "✅ PostgreSQL está disponível!"
             return 0
         fi
