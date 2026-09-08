@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 export DB_HOST="${DB_HOST}"
 export DB_PORT="${DB_PORT}"
 export DB_DATABASE="${DB_DATABASE}"
@@ -36,10 +38,6 @@ wait_for_postgres() {
 }
 
 wait_for_postgres
-
-if [ $? -ne 0 ]; then
-    exit 1
-fi
 
 echo "Executando migrações..."
 
