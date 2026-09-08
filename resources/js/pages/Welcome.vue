@@ -12,7 +12,7 @@ import {
 </script>
 
 <template>
-    <Head title="Acadent" />
+    <Head title="Bem-vindo" />
 
     <div class="min-h-screen bg-slate-50 text-slate-800">
         <header
@@ -128,7 +128,6 @@ import {
                     </div>
                 </div>
 
-                <!-- PAINEL VISUAL -->
                 <div class="relative hidden lg:block">
                     <div
                         class="relative mx-auto max-w-lg rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl shadow-slate-300/40"
