@@ -49,4 +49,16 @@ class Clinic extends Model
     {
         return $this->belongsToMany(Specialty::class, 'clinic_specialty')->withTimestamps();;
     }
+
+    public function scheduleEnrollments()
+    {
+        return $this->hasManyThrough(
+            ScheduleEnrollment::class,
+            ScheduleSlot::class,
+            'clinic_id',
+            'schedule_slot_id',
+            'id',
+            'id'
+        );
+    }
 }
