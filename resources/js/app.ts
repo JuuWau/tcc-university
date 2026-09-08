@@ -14,7 +14,7 @@ import AppMultiselect from '@/components/AppMultiselect.vue'
 import { i18n } from '@/i18n';
 import axios from 'axios';
 
-const appName = import.meta.env.VITE_APP_NAME || 'Laravel';
+const appName = import.meta.env.VITE_APP_NAME || 'Acadent';
 
 import { AllCommunityModule, ModuleRegistry } from 'ag-grid-community';
 
