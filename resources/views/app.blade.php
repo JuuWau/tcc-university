@@ -38,6 +38,29 @@
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=instrument-sans:400,500,600" rel="stylesheet" />
 
+    <meta property="og:title" content="Acadent">
+    <meta
+        property="og:description"
+        content="Sistema de gestão para clínicas odontológicas."
+    >
+    <meta
+        property="og:image"
+        content="https://www.acadent.com.br/images/favicon.png"
+    >
+    <meta property="og:url" content="https://www.acadent.com.br">
+    <meta property="og:type" content="website">
+
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="Acadent">
+    <meta
+        name="twitter:description"
+        content="Sistema de gestão para clínicas odontológicas."
+    >
+    <meta
+        name="twitter:image"
+        content="https://www.acadent.com.br/images/favicon.png"
+    >
+
     @vite(['resources/js/app.ts', "resources/js/pages/{$page['component']}.vue"])
     @inertiaHead
 </head>
