@@ -60,6 +60,8 @@ COPY package*.json ./
 
 RUN npm install
 
+RUN php artisan wayfinder:generate
+
 RUN npm run build
 
 EXPOSE 8001
