@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import CancelButton from '@/components/buttons/CancelButton.vue';
 import SaveButton from '@/components/buttons/SaveButton.vue';
-import { ProcedureCreateKey, ProceduresGroupKey, ProceduresSpecialtiesKey } from '@/keys/procedures/procedureKeys';
+import { ProcedureCreateKey, ProceduresSpecialtiesKey, RefreshTableKey } from '@/keys/procedures/procedureKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import { procedureSchema } from '@/schemas/procedure.schema';
 import axios from 'axios';
@@ -9,9 +9,12 @@ import type { ProcedureSpecialtyOption } from '@/keys/procedures/procedureKeys';
 import { computed, inject, reactive } from 'vue';
 import { toast } from 'vue3-toastify';
 import AppMultiselect from '@/components/AppMultiselect.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
+import BaseInput from '@/components/inputs/BaseInput.vue';
+import FormFooter from '@/components/form/FormFooter.vue';
 
 const createModal = inject(ProcedureCreateKey);
-const procedures = inject(ProceduresGroupKey);
+const refreshTableRef = inject(RefreshTableKey);
 const loading = inject(LoadingKey);
 const specialtiesFromProvider = inject(ProceduresSpecialtiesKey, [] as ProcedureSpecialtyOption[]);
 const specialtiesOptions = computed(() =>
@@ -47,13 +50,11 @@ async function submit() {
 
     try {
         if (loading) loading.value = true;
-        const res = await axios.post('/procedures', {
+		await axios.post('/procedures', {
             name: form.name,
             specialty_id: form.specialty_id,
         });
-        if (procedures?.value) {
-            procedures.value.unshift(res.data.procedure);
-        }
+		refreshTableRef?.value?.();
         toast.success('Procedimento criado com sucesso');
         close();
     } catch (error: any) {
@@ -65,49 +66,51 @@ async function submit() {
 </script>
 
 <template>
-    <div
-        v-if="createModal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    >
-        <div class="w-full max-w-md rounded-lg bg-white p-6">
-            <h2 class="mb-4 text-lg font-bold">Novo Procedimento</h2>
-            <hr />
-            <div class="space-y-4 py-4">
-                <div>
-                    <label
-                        for="procedure_name"
-                        class="mb-2 block text-sm font-medium text-gray-700"
-                    >
-                        Nome (*)
-                    </label>
-                    <input
-                        id="procedure_name"
-                        v-model="form.name"
-                        type="text"
-                        maxlength="255"
-                        class="w-full rounded border px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                        placeholder="Ex: Anamnese"
-                    />
-                </div>
-                <div>
-                    <label class="mb-2 block text-sm font-medium text-gray-700">
-                        Especialidade (*)
-                    </label>
-                    <AppMultiselect
-                        v-model="form.specialty_id"
-                        :options="specialtiesOptions"
-                        label="label"
-                        value-prop="value"
-                        :searchable="true"
-                        :close-on-select="true"
-                        placeholder="Selecione a especialidade"
-                    />
-                </div>
-            </div>
-            <div class="flex justify-end gap-2">
-                <CancelButton @click="close" />
-                <SaveButton :loading="loading" @click.stop="submit" />
-            </div>
-        </div>
-    </div>
+	<div
+		v-if="createModal.isOpen.value"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+	>
+		<div
+			class="flex w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow"
+		>
+			<FormHeader
+				title="Novo procedimento"
+				subtitle="Cadastre o procedimento e associe uma especialidade."
+			/>
+
+			<div class="min-h-0 flex-1 px-6">
+				<div class="space-y-4 py-5">
+					<BaseInput
+						id="procedure_name"
+						v-model="form.name"
+						label="Nome (*)"
+						type="text"
+						maxlength="255"
+						placeholder="Ex: Anamnese"
+					/>
+
+					<AppMultiselect
+						v-model="form.specialty_id"
+						:options="specialtiesOptions"
+						field-label="Especialidade (*)"
+						label="label"
+						value-prop="value"
+						:searchable="true"
+						:close-on-select="true"
+						:can-clear="true"
+						:append-to-body="true"
+						placeholder="Selecione a especialidade"
+					/>
+				</div>
+			</div>
+
+			<FormFooter
+				:loading="loading"
+				action="save"
+				action-label="Salvar"
+				@cancel="close"
+				@save="submit"
+			/>
+		</div>
+	</div>
 </template>

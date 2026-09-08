@@ -1,21 +1,17 @@
 <script setup lang="ts">
-import CancelButton from '@/components/buttons/CancelButton.vue';
-import DeactivateButton from '@/components/buttons/DeactivateButton.vue';
-import {
-    ClinicDeactivateKey,
-    ClinicsGroupKey,
-} from '@/keys/clinics/clinicKeys';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
+import { ClinicDeactivateKey, RefreshTableKey } from '@/keys/clinics/clinicKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
-import type { Clinic } from '@/types/clinic/clinic';
 import axios from 'axios';
 import { inject, type Ref } from 'vue';
 import { toast } from 'vue3-toastify';
 
 const deactivateModal = inject<any>(ClinicDeactivateKey);
-const clinics = inject<any>(ClinicsGroupKey);
+const refreshTableRef = inject(RefreshTableKey);
 const loading = inject<Ref<boolean>>(LoadingKey)!;
 
-if (!deactivateModal || !clinics) {
+if (!deactivateModal) {
     throw new Error('ClinicDeactivateModal precisa estar dentro do provider');
 }
 
@@ -35,10 +31,7 @@ async function submit() {
             },
         );
 
-        const index = clinics.value.findIndex(
-            (clinic: Clinic) => clinic.id === deactivateModal.clinic.value.id,
-        );
-        if (index !== -1) clinics.value[index].active = false;
+		refreshTableRef?.value?.();
 
         toast.success('Clínica inativada com sucesso');
         close();
@@ -53,31 +46,34 @@ async function submit() {
 </script>
 
 <template>
-    <div
-        v-if="deactivateModal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    >
-        <div class="w-full max-w-md rounded-lg bg-white p-6">
-            <h2 class="mb-2 text-lg font-bold text-amber-600">
-                Inativar Clínica
-            </h2>
-            <hr />
+	<div
+		v-if="deactivateModal.isOpen.value"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+	>
+		<div
+			class="flex w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow"
+		>
+			<FormHeader
+				title="Inativar clínica"
+				subtitle="Confirme a inativação da clínica."
+			/>
 
-            <p class="mb-6 pt-3 text-sm text-gray-600">
-                Ao inativar esta clínica, os registros subsequentes relacionados
-                em agenda e inscrições serão inativados.
-            </p>
+			<div class="px-6 py-5">
+				<div class="rounded-lg border border-amber-200 bg-amber-50 p-4">
+					<p class="text-sm leading-relaxed text-amber-800">
+						Ao inativar esta clínica, as agendas e inscrições
+						relacionadas também serão inativadas.
+					</p>
+				</div>
+			</div>
 
-            <div class="flex justify-end gap-2">
-                <CancelButton @click="close" />
-                <DeactivateButton
-                    :loading="loading"
-                    class="bg-amber-600 hover:bg-amber-700"
-                    @click="submit"
-                >
-                    Inativar
-                </DeactivateButton>
-            </div>
-        </div>
-    </div>
+			<FormFooter
+				:loading="loading"
+				action="deactivate"
+				action-label="Inativar"
+				@cancel="close"
+				@deactivate="submit"
+			/>
+		</div>
+	</div>
 </template>

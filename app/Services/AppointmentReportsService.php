@@ -144,7 +144,7 @@ class AppointmentReportsService
 
                         'responsibles' => User::query()
                                 ->where('university_id', $universityId)
-                                ->whereHas('role', function ($query) {
+                                ->whereHas('roles', function ($query) {
                                         $query->where('slug', '!=', 'student');
                                 })
                                 ->with('person:id,user_id,name')

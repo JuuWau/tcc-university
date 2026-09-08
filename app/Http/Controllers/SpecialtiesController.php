@@ -2,13 +2,17 @@
 
 namespace App\Http\Controllers;
 
+use App\Data\Specialty\SpecialtyTableFiltersData;
 use App\Http\Requests\StoreSpecialtyRequest;
+use App\Http\Requests\TableSpecialtyRequest;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use App\Services\SpecialtyService;
 use App\Http\Requests\UpdateSpecialtyRequest;
+use App\Http\Resources\SpecialtyResource;
 use App\Models\Specialty;
 use Illuminate\Http\JsonResponse;
+use Throwable;
 
 class SpecialtiesController extends Controller
 {
@@ -21,11 +25,16 @@ class SpecialtiesController extends Controller
 
     public function index()
     {
-        $universityId = request()->user()?->university_id;
+        return Inertia::render('specialties/SpecialtiesIndex');
+    }
 
-        return Inertia::render('specialties/SpecialtiesIndex', [
-            'specialties' => $this->specialtyService->all($universityId),
-        ]);
+    public function table(TableSpecialtyRequest $request)
+    {
+        $specialties = $this->specialtyService->paginate(
+            SpecialtyTableFiltersData::fromRequest($request)
+        );
+
+        return SpecialtyResource::collection($specialties);
     }
 
     public function update(UpdateSpecialtyRequest $request, Specialty $specialty): JsonResponse 

@@ -2,12 +2,11 @@
 import { City, IbgeService, Uf } from '@/api/ibge';
 import { ViaCep } from '@/api/viacep';
 import AppMultiselect from '@/components/AppMultiselect.vue';
-import {
-    cpfSchema,
-    staffCompleteSchema,
-} from '@/schemas/accessComplete.schema';
+import BaseInput from '@/components/inputs/BaseInput.vue';
+import { cpfSchema, staffCompleteSchema } from '@/schemas/accessComplete.schema';
 import { router, usePage } from '@inertiajs/vue3';
 import axios from 'axios';
+import { CircleAlert } from 'lucide-vue-next';
 import { computed, onMounted, reactive, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 
@@ -157,275 +156,244 @@ async function submit() {
 </script>
 
 <template>
-    <div class="flex min-h-screen items-center justify-center bg-gray-100 px-4">
-        <div class="w-full max-w-3xl rounded-lg bg-white p-6 shadow">
-            <div class="mb-6 text-center">
-                <h1 class="text-xl font-bold text-gray-800">
+    <div
+        class="flex min-h-screen items-center justify-center bg-gray-100 px-4 py-8"
+    >
+        <div
+            class="flex max-h-[90vh] w-full max-w-3xl flex-col overflow-hidden rounded-xl bg-white shadow"
+        >
+            <div
+                class="shrink-0 border-b border-gray-200 bg-white px-6 py-5 text-center"
+            >
+                <h1 class="text-xl font-bold text-gray-900">
                     Complete seu cadastro
                 </h1>
                 <p class="mt-1 text-sm text-gray-500">
                     Preencha seus dados e defina sua senha para acessar a
-                    plataforma
+                    plataforma.
                 </p>
             </div>
-
-            <form class="space-y-4">
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Nome (*)
-                        </label>
-                        <input
+            <form
+                class="min-h-0 flex-1 overflow-y-auto px-6"
+                @submit.prevent="submit"
+            >
+                <div class="space-y-5 py-5">
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <BaseInput
                             v-model="form.name"
+                            label="Nome (*)"
                             type="text"
                             maxlength="255"
-                            class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                             placeholder="Seu nome completo"
                         />
-                    </div>
-
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Email (*)
-                        </label>
-                        <input
-                            type="email"
+                        <BaseInput
                             v-model="form.email"
+                            label="Email (*)"
+                            type="email"
                             disabled
-                            class="w-full cursor-not-allowed rounded border bg-gray-100 px-3 py-2 text-sm text-gray-600"
+                            placeholder="email@exemplo.com"
                         />
                     </div>
-                </div>
-
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Telefone (*)
-                        </label>
-                        <input
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <BaseInput
                             v-model="form.phone"
-                            v-mask="'(##) #####-####'"
+                            label="Telefone (*)"
                             type="tel"
+                            v-mask="'(##) #####-####'"
                             placeholder="(99) 99999-9999"
-                            class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                         />
-                    </div>
-
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            CPF (*)
-                        </label>
-                        <input
-                            type="text"
+                        <BaseInput
                             v-model="form.cpf"
+                            label="CPF (*)"
+                            type="text"
                             maxlength="14"
-                            @blur="validateCpf"
                             v-mask="'###.###.###-##'"
-                            class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+                            placeholder="000.000.000-00"
+                            @blur="validateCpf"
                         />
                     </div>
-                </div>
-
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Data de Nascimento (*)
-                        </label>
-                        <input
-                            v-model="form.birth_date"
-                            type="date"
-                            maxlength="15"
-                            class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                        />
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <div class="md:col-span-1">
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            CEP (*)
-                        </label>
-                        <input
-                            v-model="form.cep"
-                            v-mask="'#####-###'"
-                            type="text"
-                            class="w-full rounded border px-3 py-2 text-sm"
-                        />
-                    </div>
-
-                    <div class="md:col-span-2">
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Endereço (*)
-                        </label>
-                        <input
-                            v-model="form.street"
-                            type="text"
-                            maxlength="100"
-                            class="w-full rounded border px-3 py-2 text-sm"
-                        />
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Bairro (*)
-                        </label>
-                        <input
-                            v-model="form.neighborhood"
-                            type="text"
-                            maxlength="100"
-                            class="w-full rounded border px-3 py-2 text-sm"
-                        />
-                    </div>
-
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Número (*)
-                        </label>
-                        <input
-                            v-model="form.number"
-                            type="text"
-                            maxlength="10"
-                            class="w-full rounded border px-3 py-2 text-sm"
-                        />
-                    </div>
-
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Complemento
-                        </label>
-                        <input
-                            v-model="form.complement"
-                            type="text"
-                            maxlength="20"
-                            class="w-full rounded border px-3 py-2 text-sm"
-                        />
-                    </div>
-                </div>
-
-                <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Estado (*)
-                        </label>
-                        <AppMultiselect
-                            v-model="form.state"
-                            :options="stateOptions"
-                            label="label"
-                            value-prop="value"
-                            :searchable="true"
-                            :close-on-select="true"
-                            :can-clear="true"
-                            placeholder="Selecione o estado"
-                        />
-                    </div>
-
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Cidade (*)
-                        </label>
-                        <AppMultiselect
-                            v-model="form.city"
-                            :options="cityOptions"
-                            label="label"
-                            value-prop="value"
-                            :searchable="true"
-                            :close-on-select="true"
-                            :can-clear="true"
-                            placeholder="Selecione a cidade"
-                        />
-                    </div>
-                </div>
-
-                <div>
-                    <label class="mb-1 block text-sm font-medium text-gray-700">
-                        Senha (*)
-                    </label>
-
-                    <input
-                        v-model="form.password"
-                        type="password"
-                        maxlength="50"
-                        class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                        placeholder="Digite sua senha"
+                    <BaseInput
+                        v-model="form.birth_date"
+                        label="Data de nascimento (*)"
+                        type="date"
                     />
-
-                    <ul class="mt-2 space-y-1 text-xs text-gray-600">
-                        <li :class="rules.length ? 'text-green-600' : ''">
-                            • Mínimo de 8 caracteres
-                        </li>
-                        <li :class="rules.uppercase ? 'text-green-600' : ''">
-                            • Pelo menos 1 letra maiúscula
-                        </li>
-                        <li :class="rules.number ? 'text-green-600' : ''">
-                            • Pelo menos 1 número
-                        </li>
-                        <li :class="rules.special ? 'text-green-600' : ''">
-                            • Pelo menos 1 caractere especial
-                        </li>
-                    </ul>
-                </div>
-
-                <div>
-                    <label class="mb-1 block text-sm font-medium text-gray-700">
-                        Confirmar senha (*)
-                    </label>
-
-                    <input
+                    <div class="border-t border-gray-200 pt-5">
+                        <h2 class="mb-4 text-sm font-semibold text-gray-800">
+                            Endereço
+                        </h2>
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <BaseInput
+                                v-model="form.cep"
+                                label="CEP (*)"
+                                type="text"
+                                maxlength="9"
+                                v-mask="'#####-###'"
+                                placeholder="00000-000"
+                            />
+                            <div class="md:col-span-2">
+                                <BaseInput
+                                    v-model="form.street"
+                                    label="Endereço (*)"
+                                    type="text"
+                                    maxlength="100"
+                                    placeholder="Logradouro"
+                                />
+                            </div>
+                        </div>
+                        <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <BaseInput
+                                v-model="form.neighborhood"
+                                label="Bairro (*)"
+                                type="text"
+                                maxlength="100"
+                                placeholder="Bairro"
+                            />
+                            <BaseInput
+                                v-model="form.number"
+                                label="Número (*)"
+                                type="text"
+                                maxlength="10"
+                                placeholder="Número"
+                            />
+                            <BaseInput
+                                v-model="form.complement"
+                                label="Complemento"
+                                type="text"
+                                maxlength="20"
+                                placeholder="Complemento"
+                            />
+                        </div>
+                        <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <AppMultiselect
+                                v-model="form.state"
+                                :options="stateOptions"
+                                field-label="Estado (*)"
+                                label="label"
+                                value-prop="value"
+                                :searchable="true"
+                                :close-on-select="true"
+                                :can-clear="true"
+                                :append-to-body="true"
+                                placeholder="Selecione o estado"
+                            />
+                            <AppMultiselect
+                                v-model="form.city"
+                                :options="cityOptions"
+                                field-label="Cidade (*)"
+                                label="label"
+                                value-prop="value"
+                                :searchable="true"
+                                :close-on-select="true"
+                                :can-clear="true"
+                                :append-to-body="true"
+                                placeholder="Selecione a cidade"
+                            />
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-200 pt-5">
+                        <h2 class="mb-4 text-sm font-semibold text-gray-800">
+                            Senha de acesso
+                        </h2>
+                        <BaseInput
+                            v-model="form.password"
+                            label="Senha (*)"
+                            type="password"
+                            maxlength="50"
+                            placeholder="Digite sua senha"
+                        />
+                        <div
+                            class="mt-3 rounded-lg border border-gray-200 bg-gray-50 p-3"
+                        >
+                            <p
+                                class="mb-2 flex items-center gap-2 text-xs font-medium text-gray-700"
+                            >
+                                <CircleAlert class="h-4 w-4" /> A senha deve
+                                conter:
+                            </p>
+                            <ul class="space-y-1 text-xs">
+                                <li
+                                    class="flex items-center gap-2"
+                                    :class="
+                                        rules.length
+                                            ? 'text-green-600'
+                                            : 'text-gray-500'
+                                    "
+                                >
+                                    <Check class="h-3.5 w-3.5" /> Mínimo de 8
+                                    caracteres
+                                </li>
+                                <li
+                                    class="flex items-center gap-2"
+                                    :class="
+                                        rules.uppercase
+                                            ? 'text-green-600'
+                                            : 'text-gray-500'
+                                    "
+                                >
+                                    <Check class="h-3.5 w-3.5" /> Pelo menos 1
+                                    letra maiúscula
+                                </li>
+                                <li
+                                    class="flex items-center gap-2"
+                                    :class="
+                                        rules.number
+                                            ? 'text-green-600'
+                                            : 'text-gray-500'
+                                    "
+                                >
+                                    <Check class="h-3.5 w-3.5" /> Pelo menos 1
+                                    número
+                                </li>
+                                <li
+                                    class="flex items-center gap-2"
+                                    :class="
+                                        rules.special
+                                            ? 'text-green-600'
+                                            : 'text-gray-500'
+                                    "
+                                >
+                                    <Check class="h-3.5 w-3.5" /> Pelo menos 1
+                                    caractere especial
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                    <BaseInput
                         v-model="passwordConfirmation"
+                        label="Confirmar senha (*)"
                         type="password"
                         maxlength="50"
-                        class="w-full rounded border px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
                         placeholder="Confirme sua senha"
                     />
-
                     <p
                         v-if="
                             passwordConfirmation &&
                             form.password !== passwordConfirmation
                         "
-                        class="mt-1 text-xs text-red-600"
+                        class="text-xs text-red-600"
                     >
-                        As senhas não coincidem
+                        As senhas não coincidem.
                     </p>
                 </div>
-
+            </form>
+            <div
+                class="flex shrink-0 justify-end border-t border-gray-200 bg-white px-6 py-4"
+            >
                 <button
                     type="button"
-                    @click="submit"
                     :disabled="loading"
-                    class="mt-4 w-full rounded bg-sky-600 px-4 py-2 text-sm font-semibold text-white transition hover:bg-sky-700 disabled:opacity-50"
+                    class="inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-lg bg-sky-600 px-5 text-sm font-medium text-white shadow-sm transition hover:bg-sky-700 focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 focus:outline-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+                    @click="submit"
                 >
-                    {{ loading ? 'Enviando...' : 'Concluir cadastro' }}
+                    <LoadingSpinner v-if="loading" class="h-4 w-4" />
+                    <span>
+                        {{ loading ? 'Enviando...' : 'Concluir cadastro' }}
+                    </span>
                 </button>
-            </form>
-
-            <div class="mt-6 text-center text-xs text-gray-400">
+            </div>
+            <div
+                class="shrink-0 border-t border-gray-100 bg-gray-50 px-6 py-3 text-center text-xs text-gray-400"
+            >
                 © {{ new Date().getFullYear() }} Sua Universidade
             </div>
         </div>

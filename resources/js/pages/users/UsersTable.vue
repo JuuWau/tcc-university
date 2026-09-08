@@ -6,8 +6,11 @@ import { RefreshTableKey } from '@/keys/users/userKeys';
 import type { UserWithInvite } from '@/types/user/user';
 import { AgGridVue } from 'ag-grid-vue3';
 import axios from 'axios';
-import { computed, inject, onMounted, ref, watch } from 'vue';
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale';
+import UserCard from './components/UserCard.vue';
+import { Search } from 'lucide-vue-next';
+import BaseInput from '@/components/inputs/BaseInput.vue';
 
 const emit = defineEmits(['create', 'resend', 'view', 'deactivate', 'activate', 'delete']);
 
@@ -39,6 +42,18 @@ const statusLabel: Record<StatusFilter, string> = {
 
 const search = ref('');
 
+const hasHorizontalScroll = ref(false);
+
+const statusContainer = ref<HTMLElement | null>(null);
+
+const checkHorizontalScroll = () => {
+    if (!statusContainer.value) return;
+
+    hasHorizontalScroll.value =
+        statusContainer.value.scrollWidth >
+        statusContainer.value.clientWidth;
+};
+
 watch(search, () => {
     clearTimeout(searchTimeout);
 
@@ -46,6 +61,17 @@ watch(search, () => {
         page.value = 1;
         fetchUsers();
     }, 400);
+});
+
+onMounted(() => {
+    nextTick(() => {
+        checkHorizontalScroll();
+        window.addEventListener('resize', checkHorizontalScroll);
+    });
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener('resize', checkHorizontalScroll);
 });
 
 const fromTo = computed(() => {
@@ -215,14 +241,20 @@ function onAction(payload: { action: string; user: UserWithInvite }) {
         </div>
         <div class="mb-4 gap-3">
             <div class="pb-4">
-                <input
-                    v-model="search"
-                    type="text"
-                    placeholder="Buscar paciente..."
-                    class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                />
+                <div class="relative">
+                    <BaseInput
+                        v-model="search"
+                        type="text"
+                        placeholder="Buscar usuário..."
+                        :icon="Search"
+                    />
+                </div>
             </div>
-            <div class="mb-4 inline-flex rounded-full bg-gray-100 p-1">
+            <div class="relative">
+                <div
+                    ref="statusContainer"
+                    class="flex w-full overflow-x-auto rounded-full bg-gray-100 p-1 pr-8 scrollbar-none sm:inline-flex sm:w-auto sm:pr-1"
+                >
                     <button
                         v-for="s in [
                             'all',
@@ -231,8 +263,9 @@ function onAction(payload: { action: string; user: UserWithInvite }) {
                             'inactive',
                         ] as StatusFilter[]"
                         :key="s"
+                        type="button"
                         @click="filterByStatus(s)"
-                        class="relative rounded-full px-4 py-1.5 text-sm font-medium transition-all cursor-pointer"
+                        class="relative shrink-0 cursor-pointer rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap transition-all"
                         :class="
                             activeStatus === s
                                 ? 'bg-white text-gray-900 shadow'
@@ -242,24 +275,22 @@ function onAction(payload: { action: string; user: UserWithInvite }) {
                         {{ statusLabel[s] }}
                     </button>
                 </div>
+
+                <div
+                    v-if="hasHorizontalScroll"
+                    class="pointer-events-none absolute top-0 right-0 flex h-full items-center bg-gradient-to-l from-white via-white/80 to-transparent pl-5 sm:hidden"
+                >
+                    <span class="pr-2 text-lg text-gray-400">
+                        →
+                    </span>
+                </div>
+            </div>
         </div>
         <div class="overflow-x-auto">
             <div
-                class="ag-theme-alpine relative"
+                class="ag-theme-alpine relative hidden md:block"
                 style="height: 500px; width: 100%"
             >
-
-                <div
-                    v-if="loading"
-                    class="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-sm"
-                >
-                    <div class="flex items-center gap-2 text-sm text-gray-600">
-                        <span
-                            class="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent"
-                        ></span>
-                        Carregando usuários
-                    </div>
-                </div>
                 <AgGridVue
                     class="ag-theme-alpine h-full"
                     :rowData="rowData"
@@ -269,6 +300,32 @@ function onAction(payload: { action: string; user: UserWithInvite }) {
                     :components="{ UserTableActionsButtons }"
                     @grid-ready="onGridReady"
                     :localeText="AG_GRID_LOCALE_BR"
+                />
+
+                <div
+                    v-if="loading"
+                    class="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-sm"
+                >
+                    <div class="flex items-center gap-2 text-sm text-gray-600">
+                        <span
+                            class="h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent"
+                        ></span>
+
+                        Carregando usuários
+                    </div>
+                </div>
+            </div>
+
+            <div class="space-y-3 md:hidden">
+                <UserCard
+                    v-for="user in rowData"
+                    :key="user.id"
+                    :user="user"
+                    :on-resend="(user) => emit('resend', user)"
+                    :on-view="(user) => emit('view', user)"
+                    :on-deactivate="(user) => emit('deactivate', user)"
+                    :on-activate="(user) => emit('activate', user)"
+                    :on-delete="(user) => emit('delete', user)"
                 />
             </div>
         </div>

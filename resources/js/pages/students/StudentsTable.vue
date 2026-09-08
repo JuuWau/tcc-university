@@ -6,9 +6,12 @@ import { RefreshTableKey } from '@/keys/students/studentKeys';
 import { Student } from '@/types/student/student';
 import { AgGridVue } from 'ag-grid-vue3';
 import axios from 'axios';
-import { computed, inject, onMounted, ref, watch } from 'vue';
+import { computed, inject, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale';
 import { usePage } from '@inertiajs/vue3';
+import StudentCard from './components/StudentCard.vue';
+import { Search } from 'lucide-vue-next';
+import BaseInput from '@/components/inputs/BaseInput.vue';
 
 const emit = defineEmits([
     'create',
@@ -43,6 +46,17 @@ const sortField = ref<SortField>('created_at');
 const sortDir = ref<SortDir>('desc');
 const activeStatus = ref<StatusFilter>('all');
 
+const statusContainer = ref<HTMLElement | null>(null);
+const hasHorizontalScroll = ref(false);
+
+function checkHorizontalScroll() {
+    if (!statusContainer.value) return;
+
+    hasHorizontalScroll.value =
+        statusContainer.value.scrollWidth >
+        statusContainer.value.clientWidth;
+}
+
 const statusLabel: Record<StatusFilter, string> = {
     all: 'Todos',
     pending: 'Pendente',
@@ -67,6 +81,24 @@ watch(search, () => {
         page.value = 1;
         fetchStudents();
     }, 400);
+});
+
+onMounted(() => {
+    fetchStudents();
+
+    if (refreshTableRef) {
+        refreshTableRef.value = refetch;
+    }
+
+    nextTick(() => {
+        checkHorizontalScroll();
+    });
+
+    window.addEventListener('resize', checkHorizontalScroll);
+});
+
+onBeforeUnmount(() => {
+    window.removeEventListener('resize', checkHorizontalScroll);
 });
 
 function onGridReady(params: any) {
@@ -240,35 +272,52 @@ function onAction(payload: { action: string; student: Student }) {
         </div>
         <div class="mb-4 gap-3">
             <div class="pb-4">
-                <input
-                    v-model="search"
-                    type="text"
-                    placeholder="Buscar paciente..."
-                    class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                />
+                <div class="relative">
+                    <BaseInput
+                        v-model="search"
+                        type="text"
+                        placeholder="Pesquisar por nome ou RA..."
+                        :icon="Search"
+                    />
+                </div>
             </div>
-            <div class="mb-4 inline-flex rounded-full bg-gray-100 p-1">
-                <button
-                    v-for="s in [
-                        'all',
-                        'pending',
-                        'active',
-                        'inactive',
-                    ] as StatusFilter[]"
-                    :key="s"
-                    @click="filterByStatus(s)"
-                    class="relative rounded-full px-4 py-1.5 text-sm font-medium transition-all"
-                    :class="
-                        activeStatus === s
-                            ? 'bg-white text-gray-900 shadow'
-                            : 'text-gray-500 hover:text-gray-900'
-                    "
+            <div class="relative mb-4">
+                <div
+                    ref="statusContainer"
+                    class="flex w-full overflow-x-auto rounded-full bg-gray-100 p-1 pr-8 scrollbar-none sm:inline-flex sm:w-auto sm:pr-1"
                 >
-                    {{ statusLabel[s] }}
-                </button>
+                    <button
+                        v-for="s in [
+                            'all',
+                            'pending',
+                            'active',
+                            'inactive',
+                        ] as StatusFilter[]"
+                        :key="s"
+                        @click="filterByStatus(s)"
+                        class="relative shrink-0 rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap transition-all"
+                        :class="
+                            activeStatus === s
+                                ? 'bg-white text-gray-900 shadow'
+                                : 'text-gray-500 hover:text-gray-900'
+                        "
+                    >
+                        {{ statusLabel[s] }}
+                    </button>
+                </div>
+
+                <div
+                    v-if="hasHorizontalScroll"
+                    class="pointer-events-none absolute top-0 right-0 flex h-full items-center bg-gradient-to-l from-white via-white/80 to-transparent pl-5 sm:hidden"
+                >
+                    <span class="pr-2 text-lg text-gray-400">
+                        →
+                    </span>
+                </div>
             </div>
+
             <div
-                class="ag-theme-alpine relative"
+                class="ag-theme-alpine relative hidden md:block"
                 style="height: 500px; width: 100%"
             >
                 <div
@@ -293,7 +342,24 @@ function onAction(payload: { action: string; student: Student }) {
                     :localeText="AG_GRID_LOCALE_BR"
                 />
             </div>
-        </div>
+
+                <div class="space-y-3 md:hidden">
+                    <StudentCard
+                        v-for="student in rowData"
+                        :key="student.id"
+                        :student="student"
+                        :is-allowed-to-activate="can('students.activate')"
+                        :is-allowed-to-deactivate="can('students.deactivate')"
+                        :is-allowed-to-delete="can('students.update')"
+                        :is-allowed-to-invite="can('students.delete')"
+                        @edit="emit('edit', $event)"
+                        @deactivate="emit('deactivate', $event)"
+                        @activate="emit('activate', $event)"
+                        @resend="emit('resend', $event)"
+                        @delete="emit('delete', $event)"
+                    />
+                </div>
+            </div>
         <div
             v-if="totalPages > 0"
             class="mt-4 flex flex-wrap items-center justify-between gap-2"

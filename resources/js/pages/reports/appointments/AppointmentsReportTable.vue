@@ -4,6 +4,7 @@ import { AgGridVue } from 'ag-grid-vue3';
 import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale';
 import { AppointmentsKey } from '@/keys/appointments-report/appointmentsKeys';
 import AppointmentStatusBadge from './components/AppointmentReportStatusBadge.vue';
+import AppointmentReportCard from './components/AppointmentReportCard.vue';
 
 const ctx = inject(AppointmentsKey);
 
@@ -149,14 +150,40 @@ const defaultColDef = {
             </span>
         </div>
 
-        <AgGridVue
-            class="ag-theme-alpine"
-            style="height: 600px"
-            :rowData="ctx.appointments.value"
-            :columnDefs="columnDefs"
-            :defaultColDef="defaultColDef"
-            :localeText="AG_GRID_LOCALE_BR"
-        />
+        <div class="relative mt-4 hidden md:block">
+            <AgGridVue
+                class="ag-theme-alpine"
+                style="height: 600px"
+                :rowData="ctx.appointments.value"
+                :columnDefs="columnDefs"
+                :defaultColDef="defaultColDef"
+                :localeText="AG_GRID_LOCALE_BR"
+            />
+        </div>
+        
+        <div class="mt-4 space-y-3 md:hidden">
+            <div
+                v-if="ctx.loading.value"
+                class="flex h-40 items-center justify-center text-sm text-gray-500"
+            >
+                Carregando agendamentos...
+            </div>
+
+            <template v-else>
+                <AppointmentReportCard
+                    v-for="appointment in ctx.appointments.value"
+                    :key="appointment.id"
+                    :appointment="appointment"
+                />
+
+                <div
+                    v-if="!ctx.appointments.value.length"
+                    class="rounded-lg border border-gray-200 bg-white py-10 text-center text-sm text-gray-500"
+                >
+                    Nenhum agendamento encontrado.
+                </div>
+            </template>
+        </div>
     
 
         <div

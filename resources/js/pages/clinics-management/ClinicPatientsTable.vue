@@ -2,17 +2,24 @@
 import { computed, inject } from 'vue';
 import { AgGridVue } from 'ag-grid-vue3';
 import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale';
-
 import { ClinicManagementShowKey, RefreshTableKey } from '@/keys/clinics-management/clinicManagementShowKeys';
 import StatusBadgeClinicManagement from '@/components/badges/StatusBadgeClinicManagement.vue';
 import { PatientForTab } from '@/types/patient/patient';
 import ClinicPatientActionsButtons from '@/components/buttons/ClinicPatientActionsButtons.vue';
+import { usePage } from '@inertiajs/vue3';
+import ClinicPatientCard from './components/ClinicPatientCard.vue';
 
 const ctx = inject(ClinicManagementShowKey);
 
 const emit = defineEmits([
     'enroll',
 ]);
+
+const pageData = usePage();
+
+const can = (permission: string) => {
+    return pageData.props.auth.permissions.includes(permission);
+};
 
 const columnDefs = computed(() => {
     const isWaiting = ctx.activeStatus.value === 'waiting';
@@ -73,6 +80,8 @@ const columnDefs = computed(() => {
                     emit('enroll', patient),
                 onRemove: (patient: PatientForTab) =>
                     emit('remove', patient),
+                isAllowedToEnroll: can('clinics-management.addPatientToWaitingList'),
+                isAllowedToRemove: can('clinics-management.removeEnrollmentClinic'),
             },
         },
     ];
@@ -98,7 +107,7 @@ const defaultColDef = {
 </script>
 
 <template>
-    <div class="relative mt-4">
+    <div class="relative mt-4 hidden md:block">
         <div
             v-if="ctx?.loading.value"
             class="absolute inset-0 z-10 flex items-center justify-center bg-white/70 backdrop-blur-sm"
@@ -116,6 +125,34 @@ const defaultColDef = {
             :defaultColDef="defaultColDef"
             :localeText="AG_GRID_LOCALE_BR"
         />
+    </div>
+    <div class="mt-4 space-y-3 md:hidden">
+        <div
+            v-if="ctx?.loading.value"
+            class="flex h-40 items-center justify-center text-sm text-gray-500"
+        >
+            Carregando pacientes...
+        </div>
+
+        <template v-else>
+            <ClinicPatientCard
+                v-for="patient in ctx?.patients.value ?? []"
+                :key="patient.id"
+                :patient="patient"
+                :active-status="ctx.activeStatus.value"
+                :is-allowed-to-enroll="can('clinics-management.addPatientToWaitingList')"
+                :is-allowed-to-remove="can('clinics-management.removeEnrollmentClinic')"
+                @enroll="emit('enroll', $event)"
+                @remove="emit('remove', $event)"
+            />
+
+            <div
+                v-if="!ctx?.patients.value?.length"
+                class="rounded-lg border border-gray-200 bg-white py-10 text-center text-sm text-gray-500"
+            >
+                Nenhum paciente encontrado.
+            </div>
+        </template>
     </div>
     <div
         v-if="ctx.totalPages.value > 0"

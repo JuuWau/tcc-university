@@ -10,6 +10,7 @@ import PatientsReportTable from './PatientsReportTable.vue';
 import { PatientsReportKey } from '@/keys/patients-report/patientsReportKeys';
 import { usePatientsReport } from '@/composables/patients-report/usePatientsReport';
 import type { PatientReportFilters, } from '@/types/patients-report/patientsReport';
+import ExportExcelButton from '@/components/buttons/ExportExcelButton.vue';
 
 const props = defineProps<{
     filters: PatientReportFilters;
@@ -33,14 +34,9 @@ const showFilters = ref(false);
                     description="Consulte, filtre e exporte os pacientes cadastrados."
                 >
                     <template #actions>
-                        <Button
-                            type="button"
-                            class="cursor-pointer gap-2 bg-sky-600 text-white hover:bg-sky-700"
-                            @click="patients.exportExcel()"
-                        >
-                            <Download class="h-4 w-4" />
-                            Exportar Excel
-                        </Button>
+                        <ExportExcelButton 
+                            @click="patients.exportExcel()" 
+                        />
                     </template>
                 </PageHeader>
             </div>

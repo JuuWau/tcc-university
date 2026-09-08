@@ -31,15 +31,13 @@ class UserInviteMail extends Mailable
 
         $isStudent = $this->invite->user->hasRole(Role::STUDENT);
 
-        $view = $isStudent
-            ? 'emails.student-invite'
-            : 'emails.staff-invite';
-
         return new Content(
-            view: $view,
+            view: 'emails.invite',
+            text: 'emails.invite-text',
             with: [
                 'invite' => $this->invite,
                 'url' => url('/invite/' . $this->invite->token),
+                'isStaff' => ! $isStudent,
             ]
         );
     }

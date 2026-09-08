@@ -1,11 +1,15 @@
 <script setup lang="ts">
-import { computed, inject, type Ref } from 'vue';
+import axios from 'axios';
+import { computed, inject, onMounted, ref, watch } from 'vue';
 import ActionsButtons from '@/components/buttons/ActionsButtons.vue';
 import CreateButton from '@/components/buttons/CreateButton.vue';
-import { ProceduresGroupKey } from '@/keys/procedures/procedureKeys';
+import { RefreshTableKey } from '@/keys/procedures/procedureKeys';
 import type { Procedure } from '@/types/procedure';
 import { AgGridVue } from 'ag-grid-vue3';
 import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale';
+import BaseInput from '@/components/inputs/BaseInput.vue';
+import { Search } from 'lucide-vue-next';
+import ProcedureCard from './components/ProcedureCard.vue';
 
 const emit = defineEmits<{
     (e: 'edit', procedure: Procedure): void;
@@ -13,17 +17,71 @@ const emit = defineEmits<{
     (e: 'create'): void;
 }>();
 
-const proceduresRef = inject<Ref<Procedure[]>>(ProceduresGroupKey);
-const rowData = computed(() => proceduresRef?.value ?? []);
+type SortField = 'name' | 'created_at';
+type SortDir = 'asc' | 'desc';
 
-function openEditModal(id: number) {
-    const procedure = proceduresRef?.value?.find((p: Procedure) => p.id === id);
-    if (procedure) emit('edit', procedure);
+const refreshTableRef = inject(RefreshTableKey);
+const rowData = ref<Procedure[]>([]);
+const loading = ref(false);
+const page = ref(1);
+const perPage = ref(15);
+const total = ref(0);
+const totalPages = ref(0);
+const sortField = ref<SortField>('name');
+const sortDir = ref<SortDir>('asc');
+const search = ref('');
+let searchTimeout: number;
+
+const fromTo = computed(() => {
+    const from = (page.value - 1) * perPage.value + 1;
+    const to = Math.min(page.value * perPage.value, total.value);
+    return total.value ? `${from}-${to} de ${total.value}` : '0';
+});
+
+async function fetchProcedures() {
+    loading.value = true;
+    try {
+        const { data } = await axios.get<{
+            data: Procedure[];
+            meta: { last_page: number; total: number };
+        }>('/procedures/table', {
+            params: {
+                page: page.value,
+                per_page: perPage.value,
+                sort_field: sortField.value,
+                sort_dir: sortDir.value,
+                search: search.value,
+            },
+        });
+        rowData.value = data.data;
+        total.value = data.meta.total;
+        totalPages.value = data.meta.last_page;
+    } catch {
+        rowData.value = [];
+        total.value = 0;
+        totalPages.value = 0;
+    } finally {
+        loading.value = false;
+    }
 }
 
-function openDeleteModal(id: number) {
-    const procedure = proceduresRef?.value?.find((p: Procedure) => p.id === id);
-    if (procedure) emit('delete', procedure);
+watch(search, () => {
+    clearTimeout(searchTimeout);
+    searchTimeout = window.setTimeout(() => {
+        page.value = 1;
+        fetchProcedures();
+    }, 400);
+});
+
+watch([page, perPage, sortField, sortDir], fetchProcedures);
+
+onMounted(() => {
+    fetchProcedures();
+    if (refreshTableRef) refreshTableRef.value = fetchProcedures;
+});
+
+function goToPage(newPage: number) {
+    if (newPage >= 1 && newPage <= totalPages.value) page.value = newPage;
 }
 
 const columnDefs = [
@@ -49,8 +107,8 @@ const columnDefs = [
         flex: 1,
         cellRenderer: ActionsButtons,
         cellRendererParams: {
-            onEdit: (id: number) => openEditModal(id),
-            onDelete: (id: number) => openDeleteModal(id),
+            onEdit: (procedure: Procedure) => emit('edit', procedure),
+            onDelete: (procedure: Procedure) => emit('delete', procedure),
         },
     },
 ];
@@ -81,9 +139,19 @@ const defaultColDef = {
                 @click="$emit('create')"
             />
         </div>
+
+        <div class="mb-4">
+            <BaseInput
+                v-model="search"
+                type="text"
+                placeholder="Pesquisar procedimento..."
+                :icon="Search"
+            />
+        </div>
+
         <div class="overflow-x-auto">
             <div
-                class="ag-theme-alpine relative rounded-xl border border-gray-200"
+                class="ag-theme-alpine relative hidden rounded-xl border border-gray-200 md:block"
                 style="height: 520px; width: 100%"
             >
                 <AgGridVue
@@ -91,11 +159,49 @@ const defaultColDef = {
                     :row-data="rowData"
                     :column-defs="columnDefs"
                     :default-col-def="defaultColDef"
-                    :pagination="true"
-                    :pagination-page-size="10"
-                    :pagination-page-size-selector="[10, 20, 50, 100]"
                     :locale-text="AG_GRID_LOCALE_BR"
                 />
+
+                <div v-if="loading" class="absolute inset-0 z-10 flex items-center justify-center bg-white/70">
+                    <span class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent"></span>
+                    Carregando procedimentos
+                </div>
+            </div>
+
+            <div class="space-y-3 md:hidden">
+                <div v-if="loading" class="flex items-center justify-center py-10 text-sm text-gray-600">
+                    <span class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent"></span>
+                    Carregando procedimentos
+                </div>
+
+                <ProcedureCard
+                    v-for="procedure in rowData"
+                    :key="procedure.id"
+                    :procedure="procedure"
+                    @edit="emit('edit', $event)"
+                    @delete="emit('delete', $event)"
+                />
+
+                <div v-if="!loading && rowData.length === 0" class="rounded-xl border border-gray-200 bg-white p-6 text-center text-sm text-gray-500">
+                    Nenhum procedimento encontrado.
+                </div>
+            </div>
+        </div>
+
+        <div v-if="totalPages > 0" class="mt-4 flex flex-wrap items-center justify-between gap-2">
+            <p class="text-sm text-gray-600">{{ fromTo }}</p>
+            <div class="flex items-center gap-1">
+                <button type="button" :disabled="page <= 1" class="rounded border border-gray-300 bg-white px-3 py-1 text-sm disabled:opacity-50" @click="goToPage(page - 1)">Anterior</button>
+                <button
+                    v-for="currentPage in totalPages"
+                    :key="currentPage"
+                    type="button"
+                    :class="['rounded px-3 py-1 text-sm', currentPage === page ? 'bg-sky-600 text-white' : 'text-gray-600 hover:bg-gray-100']"
+                    @click="goToPage(currentPage)"
+                >
+                    {{ currentPage }}
+                </button>
+                <button type="button" :disabled="page >= totalPages" class="rounded border border-gray-300 bg-white px-3 py-1 text-sm disabled:opacity-50" @click="goToPage(page + 1)">Próxima</button>
             </div>
         </div>
     </div>

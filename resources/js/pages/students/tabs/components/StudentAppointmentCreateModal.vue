@@ -1,8 +1,8 @@
-```vue
 <script setup lang="ts">
 import AppMultiselect from '@/components/AppMultiselect.vue';
-import CancelButton from '@/components/buttons/CancelButton.vue';
-import SaveButton from '@/components/buttons/SaveButton.vue';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
+import BaseInput from '@/components/inputs/BaseInput.vue';
 import { AppointmentCreateModalKey } from '@/keys/appointment/useAppointmentKeys';
 import {
     StudentScheduleContextKey,
@@ -154,155 +154,110 @@ async function save() {
 </script>
 
 <template>
-    <div
-        v-if="modal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-    >
-        <div class="w-full max-w-2xl rounded-lg bg-white p-6">
-            <div class="mb-4 flex items-center justify-between">
-                <h2 class="text-lg font-bold">
-                    Novo Agendamento
-                </h2>
-            </div>
+	<div
+		v-if="modal.isOpen.value"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+	>
+		<div
+			class="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow"
+		>
+			<FormHeader
+				title="Novo agendamento"
+				subtitle="Preencha os dados para criar um novo agendamento."
+			/>
 
-            <hr />
+			<div class="min-h-0 flex-1 overflow-y-auto px-6">
+				<div class="space-y-5 py-5">
+					<AppMultiselect
+						v-model="form.patient_id"
+						:options="modal.patientOptions.value"
+						field-label="Paciente (*)"
+						label="label"
+						track-by="value"
+						value-prop="value"
+						:searchable="true"
+						:close-on-select="true"
+						:can-clear="false"
+						:append-to-body="true"
+						placeholder="Selecione o paciente"
+					/>
 
-            <div class="space-y-4 pt-4">
-                <div>
-                    <label
-                        class="mb-1 block text-sm font-medium text-gray-700"
-                    >
-                        Paciente (*)
-                    </label>
+					<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
+						<BaseInput
+							v-model="form.date"
+							label="Data (*)"
+							type="date"
+							:min="todayDateKey"
+						/>
 
-                    <AppMultiselect
-                        v-model="form.patient_id"
-                        :options="modal.patientOptions.value"
-                        label="label"
-                        track-by="value"
-                        value-prop="value"
-                        :searchable="true"
-                        :close-on-select="true"
-                        :can-clear="false"
-                        placeholder="Selecione o paciente"
-                    />
-                </div>
+						<BaseInput
+							v-model="form.start_time"
+							label="Início (*)"
+							type="text"
+							v-mask="'##:##'"
+							placeholder="HH:mm"
+						/>
 
-                <div class="grid grid-cols-3 gap-4">
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Data (*)
-                        </label>
+						<BaseInput
+							v-model="form.end_time"
+							label="Fim (*)"
+							type="text"
+							v-mask="'##:##'"
+							placeholder="HH:mm"
+						/>
+					</div>
 
-                        <input
-                            v-model="form.date"
-                            type="date"
-                            :min="todayDateKey"
-                            class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                        />
-                    </div>
+					<AppMultiselect
+						v-if="schedule.allowProcedureBooking.value"
+						v-model="form.procedure_id"
+						:options="modal.procedureOptions.value"
+						field-label="Procedimento"
+						label="label"
+						track-by="value"
+						value-prop="value"
+						:searchable="true"
+						:can-clear="true"
+						:close-on-select="true"
+						:append-to-body="true"
+						placeholder="Selecione o procedimento"
+					/>
 
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Início (*)
-                        </label>
+					<AppMultiselect
+						v-model="form.status"
+						:options="statusOptions"
+						field-label="Status (*)"
+						label="label"
+						value-prop="value"
+						:searchable="true"
+						:close-on-select="true"
+						:can-clear="false"
+						:append-to-body="true"
+						placeholder="Selecione o status"
+					/>
 
-                        <input
-                            v-model="form.start_time"
-                            type="text"
-                            placeholder="HH:mm"
-                            v-mask="'##:##'"
-                            class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                        />
-                    </div>
+					<div>
+						<label
+							class="mb-1 block text-sm font-medium text-gray-700"
+						>
+							Observações
+						</label>
 
-                    <div>
-                        <label
-                            class="mb-1 block text-sm font-medium text-gray-700"
-                        >
-                            Fim (*)
-                        </label>
+						<textarea
+							v-model="form.notes"
+							rows="4"
+							class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm transition placeholder:text-gray-400 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
+							placeholder="Digite alguma observação sobre o agendamento"
+						/>
+					</div>
+				</div>
+			</div>
 
-                        <input
-                            v-model="form.end_time"
-                            type="text"
-                            placeholder="HH:mm"
-                            v-mask="'##:##'"
-                            class="w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                        />
-                    </div>
-                </div>
-
-                <div
-                    v-if="schedule.allowProcedureBooking.value"
-                >
-                    <label
-                        class="mb-1 block text-sm font-medium text-gray-700"
-                    >
-                        Procedimento
-                    </label>
-
-                    <AppMultiselect
-                        v-model="form.procedure_id"
-                        :options="modal.procedureOptions.value"
-                        label="label"
-                        track-by="value"
-                        value-prop="value"
-                        :searchable="true"
-                        :can-clear="true"
-                        :close-on-select="true"
-                        placeholder="Selecione o procedimento"
-                    />
-                </div>
-
-                <div>
-                    <label
-                        class="mb-1 block text-sm font-medium text-gray-700"
-                    >
-                        Status (*)
-                    </label>
-
-                    <AppMultiselect
-                        v-model="form.status"
-                        :options="statusOptions"
-                        label="label"
-                        value-prop="value"
-                        :searchable="true"
-                        :close-on-select="true"
-                        :can-clear="false"
-                        :append-to-body="true"
-                        placeholder="Selecione o status"
-                    />
-                </div>
-
-                <div>
-                    <label
-                        class="mb-1 block text-sm font-medium text-gray-700"
-                    >
-                        Observações
-                    </label>
-
-                    <textarea
-                        v-model="form.notes"
-                        rows="4"
-                        class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                    />
-                </div>
-            </div>
-
-            <div class="flex justify-end gap-2 pt-4">
-                <CancelButton @click="close" />
-
-                <SaveButton
-                    :loading="loading"
-                    @click.stop="save"
-                />
-            </div>
-        </div>
-    </div>
+			<FormFooter
+				action="save"
+				action-label="Agendar"
+				@cancel="close"
+				@save="save"
+			/>
+		</div>
+	</div>
 </template>
-```

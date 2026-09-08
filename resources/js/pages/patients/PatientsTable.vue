@@ -14,6 +14,9 @@ import { computed, inject, onMounted, ref, watch } from 'vue';
 import ImportExcelButton from '@/components/buttons/ImportExcelButton.vue';
 import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale';
 import { usePage } from '@inertiajs/vue3';
+import PatientCard from './components/PatientCard.vue';
+import { Search } from 'lucide-vue-next';
+import BaseInput from '@/components/inputs/BaseInput.vue';
 
 const emit = defineEmits([
     'create',
@@ -287,34 +290,58 @@ const defaultColDef = {
         </div>
         <div class="mb-4 gap-3">
             <div class="pb-4">
-                <input
-                    v-model="search"
-                    type="text"
-                    placeholder="Buscar paciente..."
-                    class="w-full rounded border border-gray-200 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                />
+                <div class="relative">
+                    <BaseInput
+                        v-model="search"
+                        type="text"
+                        placeholder="Pesquisar por nome ou código..."
+                        :icon="Search"
+                    />
+                </div>
             </div>
-            <div class="mb-4 flex flex-wrap gap-1 rounded-full bg-gray-100 p-1">
-                <button
-                    v-for="s in statusFilterOptions"
-                    :key="s"
-                    @click="filterByStatus(s)"
-                    class="rounded-full px-3 py-1.5 text-sm font-medium transition-all cursor-pointer"
-                    :class="
-                        activeStatus === s
-                            ? 'bg-white text-gray-900 shadow'
-                            : 'text-gray-500 hover:text-gray-900'
-                    "
+            <div class="relative">
+                <div
+                    class="flex w-full overflow-x-auto rounded-full bg-gray-100 p-1 pr-7 scrollbar-none sm:inline-flex sm:w-auto sm:pr-1"
                 >
-                    {{ statusLabel[s] }}
-                </button>
+                    <button
+                        v-for="s in statusFilterOptions"
+                        :key="s"
+                        type="button"
+                        @click="filterByStatus(s)"
+                        class="relative shrink-0 cursor-pointer rounded-full px-4 py-2 text-sm font-medium whitespace-nowrap transition-all"
+                        :class="
+                            activeStatus === s
+                                ? 'bg-white text-gray-900 shadow'
+                                : 'text-gray-500 hover:text-gray-900'
+                        "
+                    >
+                        {{ statusLabel[s] }}
+                    </button>
+                </div>
+
+                <div
+                    class="pointer-events-none absolute inset-y-0 right-0 flex items-center bg-gradient-to-l from-gray-100 via-gray-100/80 to-transparent pl-4 sm:hidden"
+                >
+                    <span class="pr-2 text-base text-gray-400">
+                        →
+                    </span>
+                </div>
             </div>
         </div>
         <div class="overflow-x-auto">
             <div
-                class="ag-theme-alpine relative"
+                class="ag-theme-alpine relative hidden md:block"
                 style="height: 500px; width: 100%"
             >
+                <AgGridVue
+                    class="ag-theme-alpine h-full"
+                    :rowData="rowData"
+                    :columnDefs="columnDefs"
+                    :defaultColDef="defaultColDef"
+                    :components="{ PatientTableActionsButtons }"
+                    @grid-ready="onGridReady"
+                    :localeText="AG_GRID_LOCALE_BR"
+                />
 
                 <div
                     v-if="loading"
@@ -327,14 +354,30 @@ const defaultColDef = {
                         Carregando pacientes
                     </div>
                 </div>
-                <AgGridVue
-                    class="ag-theme-alpine h-full"
-                    :rowData="rowData"
-                    :columnDefs="columnDefs"
-                    :defaultColDef="defaultColDef"
-                    :components="{ PatientTableActionsButtons }"
-                    @grid-ready="onGridReady"
-                    :localeText="AG_GRID_LOCALE_BR"
+            </div>
+
+            <div class="space-y-3 md:hidden">
+                <div
+                    v-if="loading"
+                    class="flex items-center justify-center py-10 text-sm text-gray-600"
+                >
+                    <span
+                        class="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-gray-300 border-t-transparent"
+                    ></span>
+                    Carregando pacientes
+                </div>
+
+                <PatientCard
+                    v-for="patient in rowData"
+                    :key="patient.id"
+                    :patient="patient"
+                    :can-update="can('patients.update')"
+                    :can-delete="can('patients.delete')"
+                    :can-deactivate="can('patients.deactivate')"
+                    @view="emit('view', $event)"
+                    @deactivate="emit('deactivate', $event)"
+                    @activate="emit('activate', $event)"
+                    @delete="emit('delete', $event)"
                 />
             </div>
         </div>

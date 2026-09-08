@@ -13,6 +13,8 @@ import { LoadingKey } from '@/keys/ui/loadingKey';
 import axios from 'axios';
 import { inject, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
 
 type ClinicOption = {
     label: string;
@@ -107,61 +109,39 @@ async function submit() {
 </script>
 
 <template>
-    <div
-        v-if="modal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    >
-        <div
-            class="w-full max-w-lg rounded-lg bg-white p-6 shadow-xl"
-        >
-            <div class="mb-4">
-                <h2
-                    class="text-lg font-bold text-gray-900"
-                >
-                    Inscrever paciente
-                </h2>
+	<div
+		v-if="modal.isOpen.value"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+	>
+		<div
+			class="flex w-full max-w-lg flex-col overflow-hidden rounded-lg bg-white shadow-xl"
+		>
+			<FormHeader
+				title="Inscrever paciente"
+				subtitle="Selecione a clínica para inscrição."
+			/>
 
-                <p
-                    class="text-sm text-gray-500"
-                >
-                    Selecione a clínica para inscrição.
-                </p>
-            </div>
+			<div class="px-6 py-5">
+				<AppMultiselect
+					v-model="selectedClinic"
+					:options="clinicOptions"
+					field-label="Clínica"
+					label="label"
+					value-prop="value"
+					:loading="loadingClinics"
+					:searchable="true"
+					:can-clear="true"
+					:close-on-select="true"
+					:append-to-body="true"
+					placeholder="Selecione uma clínica"
+				/>
+			</div>
 
-            <hr />
-
-            <div class="py-6">
-                <label
-                    class="mb-2 block text-sm font-medium text-gray-700"
-                >
-                    Clínica
-                </label>
-
-                <AppMultiselect
-                    v-model="selectedClinic"
-                    :options="clinicOptions"
-                    :loading="loadingClinics"
-                    :searchable="true"
-                    :can-clear="true"
-                    :close-on-select="true"
-                    label="label"
-                    value-prop="value"
-                    placeholder="Selecione uma clínica"
-                />
-            </div>
-
-            <div class="flex justify-end gap-2">
-                <CancelButton
-                    @click="close"
-                />
-
-                <SaveButton
-                    :loading="loading"
-                    @click="submit"
-                >
-                    Inscrever
-                </SaveButton>
-            </div>
-        </div>
-    </div>
+			<FormFooter
+				:loading="loading"
+				@cancel="close"
+				@save="submit"
+			/>
+		</div>
+	</div>
 </template>

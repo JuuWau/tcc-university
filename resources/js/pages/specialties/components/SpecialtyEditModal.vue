@@ -1,16 +1,17 @@
 <script setup lang="ts">
-import CancelButton from '@/components/buttons/CancelButton.vue';
-import SaveButton from '@/components/buttons/SaveButton.vue';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
+import BaseInput from '@/components/inputs/BaseInput.vue';
 import {
-    SpecialtiesGroupKey,
+    RefreshTableKey,
     SpecialtyEditKey,
 } from '@/keys/specialties/specialtyKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import { specialtySchema } from '@/schemas/specialty.schema';
-import type { Specialty } from '@/types/specialty';
 import axios from 'axios';
 import { inject, reactive, watch } from 'vue';
 import { toast } from 'vue3-toastify';
+
 const editModal = inject<any>(SpecialtyEditKey);
 
 if (!editModal) {
@@ -22,9 +23,12 @@ const form = reactive({
     name: '',
 });
 
-const loading = inject(LoadingKey);
+const loading = inject(LoadingKey)!;
+const refreshTableRef = inject(RefreshTableKey);
 
-const specialties = inject<any>(SpecialtiesGroupKey);
+if (!loading) {
+    throw new Error('SpecialtyEditModal precisa estar dentro do provider de loading');
+}
 
 watch(
     () => editModal.isOpen.value,
@@ -45,7 +49,6 @@ function close() {
 }
 
 async function submit() {
-    console.log('aqui2');
     if (!form.id || loading.value) return;
 
     const result = specialtySchema.safeParse({
@@ -54,7 +57,6 @@ async function submit() {
 
     if (!result.success) {
         toast.error(result.error.issues[0].message);
-        console.log('aqui');
         return;
     }
 
@@ -65,14 +67,7 @@ async function submit() {
             name: form.name,
         });
 
-        const index = specialties.value.findIndex(
-            (s: Specialty) => s.id === form.id,
-        );
-
-        if (index !== -1) {
-            specialties.value[index].name = form.name;
-        }
-
+        refreshTableRef?.value?.();
         toast.success('Especialidade atualizada com sucesso');
         close();
     } catch (error: any) {
@@ -86,34 +81,36 @@ async function submit() {
 </script>
 
 <template>
-    <div
-        v-if="editModal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    >
-        <div class="w-full max-w-md rounded-lg bg-white p-6">
-            <h2 class="mb-4 text-lg font-bold">Editar Especialidade</h2>
-            <hr />
+	<div
+		v-if="editModal.isOpen.value"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+	>
+		<div
+			class="flex w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow"
+		>
+			<FormHeader
+				title="Editar especialidade"
+				subtitle="Atualize o nome da especialidade."
+			/>
 
-            <div class="py-4">
-                <label
-                    for="specialty-name"
-                    class="mb-2 block text-sm font-medium text-gray-700"
-                >
-                    Nome da especialidade (*)
-                </label>
+			<div class="px-6">
+				<div class="py-5">
+					<BaseInput
+						v-model="form.name"
+						label="Nome da especialidade (*)"
+						type="text"
+						placeholder="Nome da especialidade"
+					/>
+				</div>
+			</div>
 
-                <input
-                    v-model="form.name"
-                    type="text"
-                    class="mb-4 w-full rounded border px-3 py-2"
-                    placeholder="Nome da especialidade"
-                />
-            </div>
-
-            <div class="flex justify-end gap-2">
-                <CancelButton @click="close" />
-                <SaveButton :loading="loading" @click="submit" />
-            </div>
-        </div>
-    </div>
+			<FormFooter
+				:loading="loading"
+				action="save"
+				action-label="Salvar"
+				@cancel="close"
+				@save="submit"
+			/>
+		</div>
+	</div>
 </template>

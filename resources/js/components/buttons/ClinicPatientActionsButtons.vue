@@ -3,8 +3,8 @@ import { FilePlus, Trash2 } from 'lucide-vue-next';
 
 const props = defineProps<{
     params: {
-        canEnroll: boolean;
-        canRemove: boolean;
+        isAllowedToEnroll: boolean;
+        isAllowedToRemove: boolean;
         data: any;
         action: 'enroll' | 'remove';
         onEnroll?: (patient: any) => void;
@@ -25,7 +25,7 @@ function executeAction() {
 
 <template>
     <FilePlus
-        v-if="params.action === 'enroll' && params.canEnroll"
+        v-if="params.action === 'enroll' && params.isAllowedToEnroll"
         class="cursor-pointer text-green-600 hover:text-green-800"
         :size="18"
         title="Inscrever"
@@ -33,7 +33,7 @@ function executeAction() {
     />
 
     <Trash2
-        v-if="params.action === 'remove' && params.canRemove"
+        v-if="params.action === 'remove' && params.isAllowedToRemove"
         class="cursor-pointer text-red-600 hover:text-red-800"
         :size="18"
         title="Remover inscrição"

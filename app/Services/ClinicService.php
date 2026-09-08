@@ -3,15 +3,48 @@
 namespace App\Services;
 
 use App\Constants\ActivityModules;
+use App\Data\Clinics\ClinicTableFiltersData;
 use App\Models\Clinic;
 use App\Models\ClinicSpecialty;
 use App\Models\ScheduleEnrollment;
 use App\Models\ScheduleSlot;
 use App\Models\Specialty;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ClinicService
 {
+    public function paginate(ClinicTableFiltersData $filters): LengthAwarePaginator
+    {
+        $query = Clinic::query()
+            ->with('specialties')
+            ->where('university_id', $filters->universityId)
+            ->whereNull('clinics.deleted_at')
+            ->when($filters->status === 'active', fn($q) => $q->where('active', true))
+            ->when($filters->status === 'inactive', fn($q) => $q->where('active', false))
+            ->when($filters->search, function ($query) use ($filters) {
+                $query->where(function ($q) use ($filters) {
+                    $search = $filters->search;
+
+                    $q->where('name', 'like', "%{$search}%")
+                        ->orWhereHas(
+                            'specialties',
+                            fn($specialties) =>
+                            $specialties->where('name', 'like', "%{$search}%")
+                        );
+                });
+            })
+            ->orderBy($filters->sortField, $filters->sortDir)
+            ->orderBy('id', $filters->sortDir);
+
+        return $query->paginate(
+            $filters->perPage,
+            ['*'],
+            'page',
+            $filters->page
+        );
+    }
+
     public function all(int $universityId)
     {
         return Clinic::query()

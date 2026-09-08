@@ -1,18 +1,19 @@
 <script setup lang="ts">
 import CancelButton from '@/components/buttons/CancelButton.vue';
 import DeleteButton from '@/components/buttons/DeleteButton.vue';
-import { ClinicDeleteKey, ClinicsGroupKey } from '@/keys/clinics/clinicKeys';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
+import { ClinicDeleteKey, RefreshTableKey } from '@/keys/clinics/clinicKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
-import type { Clinic } from '@/types/clinic/clinic';
 import axios from 'axios';
 import { inject } from 'vue';
 import { toast } from 'vue3-toastify';
 
 const deleteModal = inject<any>(ClinicDeleteKey);
-const clinics = inject<any>(ClinicsGroupKey);
+const refreshTableRef = inject(RefreshTableKey);
 const loading = inject(LoadingKey);
 
-if (!deleteModal || !clinics || !loading) {
+if (!deleteModal || !loading) {
     throw new Error('ClinicDeleteModal precisa estar dentro do provider');
 }
 
@@ -26,9 +27,7 @@ async function submit() {
     try {
         loading.value = true;
         await axios.delete(`/clinics/${deleteModal.clinic.value.id}`);
-        clinics.value = clinics.value.filter(
-            (clinic: Clinic) => clinic.id !== deleteModal.clinic.value.id,
-        );
+		refreshTableRef?.value?.();
         toast.success('Clínica removida com sucesso');
         close();
     } catch (error: any) {
@@ -40,28 +39,42 @@ async function submit() {
 </script>
 
 <template>
-    <div
-        v-if="deleteModal.isOpen.value"
-        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50"
-    >
-        <div class="w-full max-w-md rounded-lg bg-white p-6">
-            <h2 class="mb-2 text-lg font-bold text-red-600">Excluir Clínica</h2>
-            <hr />
+	<div
+		v-if="deleteModal.isOpen.value"
+		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+	>
+		<div
+			class="flex w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow"
+		>
+			<FormHeader
+				title="Excluir clínica"
+				subtitle="Confirme a exclusão da clínica."
+			/>
 
-            <p class="mb-6 pt-3 text-sm text-gray-600">
-                Tem certeza que deseja excluir
-                <strong>{{ deleteModal.clinic?.name }}</strong
-                >?
-                <br />
-                Esta ação será bloqueada se existir histórico de agendas realizadas.
-            </p>
+			<div class="px-6 py-5">
+				<p class="text-sm leading-relaxed text-gray-600">
+					Tem certeza que deseja excluir
+					<strong class="font-semibold text-gray-900">
+						{{ deleteModal.clinic?.name }}
+					</strong>
+					?
+				</p>
 
-            <div class="flex justify-end gap-2">
-                <CancelButton @click="close" />
-                <DeleteButton :loading="loading" @click="submit">
-                    Excluir
-                </DeleteButton>
-            </div>
-        </div>
-    </div>
+				<div class="mt-4 rounded-lg border border-red-200 bg-red-50 p-4">
+					<p class="text-sm leading-relaxed text-red-700">
+						A exclusão será bloqueada caso exista histórico de agendas
+						realizadas para esta clínica.
+					</p>
+				</div>
+			</div>
+
+			<FormFooter
+				:loading="loading"
+				action="delete"
+				action-label="Excluir"
+				@cancel="close"
+				@delete="submit"
+			/>
+		</div>
+	</div>
 </template>

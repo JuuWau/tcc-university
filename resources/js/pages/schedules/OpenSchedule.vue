@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import AppMultiselect from '@/components/AppMultiselect.vue';
+import BaseInput from '@/components/inputs/BaseInput.vue';
 import { Button } from '@/components/ui/button';
 import { OpenScheduleKey } from '@/keys/schedules/openScheduleKeys';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { openScheduleSchema } from '@/schemas/openSchedule.schema';
-import { Switch } from '@headlessui/vue'
+import { formatDateBr } from '@/src/utils/formatters';
 import type {
     OpenScheduleErrorResponse,
     OpenScheduleOption,
@@ -11,12 +13,12 @@ import type {
     OpenScheduleResponse,
     OpenScheduleSlot,
 } from '@/types/schedule/openSchedule';
+import { Switch } from '@headlessui/vue';
 import { usePage } from '@inertiajs/vue3';
-import axios, { all } from 'axios';
-import { computed, provide, reactive, ref, watch } from 'vue';
+import axios from 'axios';
+import { CalendarPlus, X } from 'lucide-vue-next';
+import { computed, provide, reactive, ref } from 'vue';
 import { toast } from 'vue3-toastify';
-import { formatDateBr } from '@/src/utils/formatters';
-import AppMultiselect from '@/components/AppMultiselect.vue';
 
 type SelectOption = { label: string; value: number };
 type CalendarDay = {
@@ -93,11 +95,12 @@ const periodLabel = computed(
         periodOptions.find((option) => option.value === form.period_id)
             ?.label ?? '—',
 );
-const responsibleLabel = computed(() =>
-    responsibleOptions
-        .filter(option => form.responsible_ids.includes(option.value))
-        .map(option => option.label)
-        .join(', ') || '—'
+const responsibleLabel = computed(
+    () =>
+        responsibleOptions
+            .filter((option) => form.responsible_ids.includes(option.value))
+            .map((option) => option.label)
+            .join(', ') || '—',
 );
 const sortedDays = computed(() =>
     [...form.days].sort((a, b) => a.localeCompare(b)),
@@ -375,198 +378,219 @@ async function submit() {
 
 <template>
     <AppLayout>
-        <div class="mx-auto my-10 w-full max-w-6xl px-4">
-            <div class="rounded-lg bg-white p-6 shadow-sm">
-                <div class="mb-6 border-b border-gray-200 pb-4">
+        <div class="mx-auto my-8 w-full max-w-7xl px-4 sm:px-6 lg:px-8">
+            <div class="rounded-xl bg-white shadow-sm">
+                <div class="border-b border-gray-200 px-6 py-5">
                     <h1
                         class="text-xl font-semibold tracking-tight text-gray-900"
                     >
                         Abrir agenda
                     </h1>
-                    <p class="text-sm text-gray-500">
-                        Selecione múltiplos dias, período, clínica e horário
-                        para abrir agendas.
+                    <p class="mt-1 text-sm text-gray-500">
+                        Selecione os dias, período, clínica e horário para abrir
+                        as agendas.
                     </p>
                 </div>
-
-                <div class="grid grid-cols-1 gap-6 lg:grid-cols-3">
-                    <section class="space-y-6 lg:col-span-2">
-                        <div class="mb-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <div>
-                                <label
-                                    class="mb-2 block text-sm font-medium text-gray-700"
-                                >
-                                    Clínica (*)
-                                </label>
-                                <AppMultiselect
-                                    v-model="form.clinic_id"
-                                    :options="clinicOptions"
-                                    label="label"
-                                    value-prop="value"
-                                    :searchable="true"
-                                    :close-on-select="true"
-                                    :can-clear="true"
-                                    :append-to-body="true"
-                                    placeholder="Selecione a clínica"
-                                />
-                            </div>
-                            <div>
-                                <label
-                                    class="mb-2 block text-sm font-medium text-gray-700"
-                                >
-                                    Cadeiras livres
-                                </label>
-                                <input
-                                    v-model="form.available_slots"
-                                    type="number"
-                                    min="0"
-                                    step="1"
-                                    placeholder="Ex: 6"
-                                    class="w-full rounded border border-gray-300 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                                />
-                            </div>
-                            <div class="md:col-span-2 flex items-center justify-between gap-4 rounded-md border border-gray-200 px-3 py-3">
-                                <div>
-                                    <p class="text-sm font-medium text-gray-700">
+                <div class="grid grid-cols-1 gap-6 p-6 lg:grid-cols-3">
+                    <section
+                        class="order-1 space-y-6 lg:col-span-2 lg:row-span-2"
+                    >
+                        <div
+                            class="grid grid-cols-1 items-end gap-4 md:grid-cols-2"
+                        >
+                            <AppMultiselect
+                                v-model="form.clinic_id"
+                                :options="clinicOptions"
+                                field-label="Clínica (*)"
+                                label="label"
+                                value-prop="value"
+                                :searchable="true"
+                                :close-on-select="true"
+                                :can-clear="true"
+                                :append-to-body="true"
+                                placeholder="Selecione a clínica"
+                            />
+                            <BaseInput
+                                v-model="form.available_slots"
+                                label="Cadeiras livres"
+                                type="number"
+                                min="0"
+                                step="1"
+                                placeholder="Ex: 6"
+                            />
+                        </div>
+                        <div class="space-y-3">
+                            <div
+                                class="flex items-start justify-between gap-4 rounded-lg border border-gray-200 bg-white p-4"
+                            >
+                                <div class="min-w-0">
+                                    <p
+                                        class="text-sm font-medium text-gray-800"
+                                    >
                                         Permitir inscrição de alunos
                                     </p>
-                                    <p class="text-xs text-gray-500">
-                                        Se desativado, os alunos não poderão se inscrever nesses horários, deverá ser gerenciada manualmente a ocupação das vagas pela equipe da clínica.
+                                    <p
+                                        class="mt-1 text-xs leading-relaxed text-gray-500"
+                                    >
+                                        Se desativado, a ocupação das vagas
+                                        deverá ser gerenciada manualmente pela
+                                        equipe da clínica.
                                     </p>
                                 </div>
-
                                 <Switch
                                     v-model="form.allow_student_booking"
                                     :class="[
-                                        form.allow_student_booking ? 'bg-sky-600' : 'bg-gray-300',
-                                        'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition cursor-pointer'
+                                        form.allow_student_booking
+                                            ? 'bg-sky-600'
+                                            : 'bg-gray-300',
+                                        'relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors',
                                     ]"
                                 >
                                     <span
                                         :class="[
-                                            form.allow_student_booking ? 'translate-x-6' : 'translate-x-1',
-                                            'inline-block h-4 w-4 transform rounded-full bg-white transition'
+                                            form.allow_student_booking
+                                                ? 'translate-x-6'
+                                                : 'translate-x-1',
+                                            'inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform',
                                         ]"
                                     />
                                 </Switch>
                             </div>
-
-                            <div class="md:col-span-2 flex items-center justify-between gap-4 rounded-md border border-gray-200 px-3 py-3">
-                                <div>
-                                    <p class="text-sm font-medium text-gray-700">
-                                        Ativar incrição de alunos do período automaticamente para os horarios selecionados
+                            <div
+                                class="flex items-start justify-between gap-4 rounded-lg border border-gray-200 bg-white p-4"
+                            >
+                                <div class="min-w-0">
+                                    <p
+                                        class="text-sm font-medium text-gray-800"
+                                    >
+                                        Inscrever automaticamente os alunos do
+                                        período
                                     </p>
-                                    <p class="text-xs text-gray-500">
-                                        Se ativo, os alunos do período selecionado serão inscritos automaticamente em todos os horários que abrirem para a clínica nessa página, sem necessidade de inscrição manual, se for necessário edição ou cancelamento de inscrição desses alunos, isso deverá ser feito manualmente pela equipe da clínica.
+                                    <p
+                                        class="mt-1 text-xs leading-relaxed text-gray-500"
+                                    >
+                                        Os alunos do período selecionado serão
+                                        inscritos automaticamente nos horários
+                                        abertos para a clínica.
                                     </p>
                                 </div>
-
                                 <Switch
                                     v-model="form.allow_student_enrollment"
                                     :class="[
-                                        form.allow_student_enrollment ? 'bg-sky-600' : 'bg-gray-300',
-                                        'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition cursor-pointer'
+                                        form.allow_student_enrollment
+                                            ? 'bg-sky-600'
+                                            : 'bg-gray-300',
+                                        'relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors',
                                     ]"
                                 >
                                     <span
                                         :class="[
-                                            form.allow_student_enrollment ? 'translate-x-6' : 'translate-x-1',
-                                            'inline-block h-4 w-4 transform rounded-full bg-white transition'
+                                            form.allow_student_enrollment
+                                                ? 'translate-x-6'
+                                                : 'translate-x-1',
+                                            'inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform',
                                         ]"
                                     />
                                 </Switch>
                             </div>
-
-                            <div class="md:col-span-2 flex items-center justify-between gap-4 rounded-md border border-gray-200 px-3 py-3">
-                                <div>
-                                    <p class="text-sm font-medium text-gray-700">
+                            <div
+                                class="flex items-start justify-between gap-4 rounded-lg border border-gray-200 bg-white p-4"
+                            >
+                                <div class="min-w-0">
+                                    <p
+                                        class="text-sm font-medium text-gray-800"
+                                    >
                                         Permitir registro de procedimento
                                     </p>
-                                    <p class="text-xs text-gray-500">
-                                        Se desativado, os alunos não poderão cadastrar procedimentos no agendamento do paciente.
+                                    <p
+                                        class="mt-1 text-xs leading-relaxed text-gray-500"
+                                    >
+                                        Permite que os alunos registrem
+                                        procedimentos no agendamento do
+                                        paciente.
                                     </p>
                                 </div>
-
                                 <Switch
                                     v-model="form.allow_procedure_booking"
                                     :class="[
-                                        form.allow_procedure_booking ? 'bg-sky-600' : 'bg-gray-300',
-                                        'relative inline-flex h-6 w-11 shrink-0 items-center rounded-full transition cursor-pointer'
+                                        form.allow_procedure_booking
+                                            ? 'bg-sky-600'
+                                            : 'bg-gray-300',
+                                        'relative inline-flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full transition-colors',
                                     ]"
                                 >
                                     <span
                                         :class="[
-                                            form.allow_procedure_booking ? 'translate-x-6' : 'translate-x-1',
-                                            'inline-block h-4 w-4 transform rounded-full bg-white transition'
+                                            form.allow_procedure_booking
+                                                ? 'translate-x-6'
+                                                : 'translate-x-1',
+                                            'inline-block h-4 w-4 transform rounded-full bg-white shadow-sm transition-transform',
                                         ]"
                                     />
                                 </Switch>
                             </div>
                         </div>
-
-                        <div class="rounded-lg border border-gray-200 p-4">
+                        <div class="rounded-xl border border-gray-200 p-4">
                             <div
-                                class="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-3"
+                                class="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-4"
                             >
                                 <div class="flex items-center gap-2">
                                     <Button
                                         variant="outline"
-                                        class="h-8 px-2"
+                                        class="h-8 w-8 cursor-pointer p-0"
                                         @click="goToPreviousMonth"
                                     >
                                         &lt;
                                     </Button>
                                     <h2
-                                        class="min-w-44 text-center font-semibold text-gray-800 capitalize"
+                                        class="min-w-44 text-center text-sm font-semibold text-gray-800 capitalize"
                                     >
                                         {{ monthLabel }}
                                     </h2>
                                     <Button
                                         variant="outline"
-                                        class="h-8 px-2"
+                                        class="h-8 w-8 cursor-pointer p-0"
                                         @click="goToNextMonth"
                                     >
                                         &gt;
                                     </Button>
                                 </div>
-                                <div class="flex items-center gap-2">
+                                <div class="flex items-center gap-3">
                                     <Button
                                         variant="outline"
-                                        class="h-8 px-3 text-xs"
+                                        class="h-8 cursor-pointer px-3 text-xs"
                                         @click="goToCurrentMonth"
                                     >
                                         Hoje
                                     </Button>
-                                    <span class="text-sm text-gray-500">
+                                    <span class="text-xs text-gray-500">
                                         Selecione múltiplos dias
                                     </span>
                                 </div>
                             </div>
-
                             <div class="mb-4 flex flex-wrap gap-2">
                                 <Button
                                     variant="outline"
-                                    class="h-8 px-3 text-xs"
+                                    class="h-8 cursor-pointer px-3 text-xs"
                                     @click="selectWeekDaysCurrentMonth"
                                 >
-                                    Seg-Sex (mês atual)
+                                    Seg-Sex
                                 </Button>
                                 <Button
                                     variant="outline"
-                                    class="h-8 px-3 text-xs"
+                                    class="h-8 cursor-pointer px-3 text-xs"
                                     @click="addDaysByWeekDay(6)"
                                 >
                                     Todos os sábados
                                 </Button>
                                 <Button
                                     variant="outline"
-                                    class="h-8 px-3 text-xs"
+                                    class="h-8 cursor-pointer px-3 text-xs"
                                     @click="clearCurrentMonthSelection"
                                 >
-                                    Limpar mês atual
+                                    Limpar mês
                                 </Button>
                             </div>
-
                             <div class="mb-2 grid grid-cols-7 gap-2">
                                 <div
                                     v-for="weekDay in weekDays"
@@ -576,211 +600,201 @@ async function submit() {
                                     {{ weekDay }}
                                 </div>
                             </div>
-
                             <div class="grid grid-cols-7 gap-2">
                                 <button
                                     v-for="day in calendarDays"
                                     :key="day.key"
                                     type="button"
                                     :disabled="day.isFiller || day.isPast"
-                                    class="flex h-10 items-center justify-center rounded-md border text-sm transition cursor-pointer"
+                                    class="flex h-10 items-center justify-center rounded-lg border text-sm transition"
                                     :class="[
                                         day.isFiller
                                             ? 'border-transparent bg-transparent'
                                             : day.isPast
-                                            ? 'cursor-not-allowed border-gray-100 bg-gray-100 text-gray-400'
-                                            : day.isSelected
-                                                ? 'border-sky-600 bg-sky-600 font-semibold text-white cursor-pointer'
-                                                : 'border-gray-200 bg-white text-gray-700 hover:border-sky-400  hover:text-sky-700',
+                                              ? 'cursor-not-allowed border-gray-100 bg-gray-100 text-gray-400'
+                                              : day.isSelected
+                                                ? 'cursor-pointer border-sky-600 bg-sky-600 font-semibold text-white shadow-sm'
+                                                : 'cursor-pointer border-gray-200 bg-white text-gray-700 hover:border-sky-400 hover:bg-sky-50 hover:text-sky-700',
                                     ]"
                                     @click="toggleDay(day)"
                                 >
-                                    <span v-if="!day.isFiller">{{
-                                        day.label
-                                    }}</span>
+                                    <span v-if="!day.isFiller">
+                                        {{ day.label }}
+                                    </span>
                                 </button>
                             </div>
                         </div>
-
-                        <div class="mt-6 grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <div>
-                                <label
-                                    class="mb-2 block text-sm font-medium text-gray-700"
-                                >
-                                    Período (*)
-                                </label>
-                                <AppMultiselect
-                                    v-model="form.period_id"
-                                    :options="periodOptions"
-                                    label="label"
-                                    value-prop="value"
-                                    :searchable="true"
-                                    :close-on-select="true"
-                                    :can-clear="true"
-                                    :append-to-body="true"
-                                    placeholder="Selecione o período"
-                                />
-                            </div>
-
-                            <div>
-                                <label
-                                    class="mb-2 block text-sm font-medium text-gray-700"
-                                >
-                                    Responsáveis
-                                </label>
-                                <AppMultiselect
-                                    v-model="form.responsible_ids"
-                                    :options="responsibleOptions"
-                                    label="label"
-                                    value-prop="value"
-                                    :searchable="true"
-                                    :multiple="true"
-                                    mode="tags"
-                                    :close-on-select="true"
-                                    :can-clear="true"
-                                    :append-to-body="true"
-                                    placeholder="Selecione o responsável"
-                                />
-                            </div>
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <AppMultiselect
+                                v-model="form.period_id"
+                                :options="periodOptions"
+                                field-label="Período (*)"
+                                label="label"
+                                value-prop="value"
+                                :searchable="true"
+                                :close-on-select="true"
+                                :can-clear="true"
+                                :append-to-body="true"
+                                placeholder="Selecione o período"
+                            />
+                            <AppMultiselect
+                                v-model="form.responsible_ids"
+                                :options="responsibleOptions"
+                                field-label="Responsáveis"
+                                label="label"
+                                value-prop="value"
+                                mode="tags"
+                                :searchable="true"
+                                :close-on-select="true"
+                                :can-clear="true"
+                                :append-to-body="true"
+                                placeholder="Selecione os responsáveis"
+                            />
                         </div>
-
-                        <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-                            <div>
-                                <label
-                                    class="mb-2 block text-sm font-medium text-gray-700"
-                                >
-                                    Horário de início (*)
-                                </label>
-                                <input
-                                    v-model="form.start_time"
-                                    type="text"
-                                    placeholder="HH:mm"
-                                    v-mask="'##:##'"
-                                    class="w-full rounded border border-gray-300 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                                />
-                            </div>
-                            <div>
-                                <label
-                                    class="mb-2 block text-sm font-medium text-gray-700"
-                                >
-                                    Horário de fim (*)
-                                </label>
-                                <input
-                                    v-model="form.end_time"
-                                    type="text"
-                                    placeholder="HH:mm"
-                                    v-mask="'##:##'"
-                                    class="w-full rounded border border-gray-300 px-3 py-2 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-                                />
-                            </div>
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <BaseInput
+                                v-model="form.start_time"
+                                label="Horário de início (*)"
+                                type="text"
+                                v-mask="'##:##'"
+                                placeholder="HH:mm"
+                            />
+                            <BaseInput
+                                v-model="form.end_time"
+                                label="Horário de fim (*)"
+                                type="text"
+                                v-mask="'##:##'"
+                                placeholder="HH:mm"
+                            />
                         </div>
-
                         <div
                             v-if="conflictPreview"
-                            class="rounded border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800"
+                            class="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800"
                         >
                             Conflito detectado: a clínica
                             <strong>{{ conflictPreview.clinic_name }}</strong>
                             já possui agenda aberta no dia
-                            <strong>{{
-                                formatDateBr(conflictPreview.date)
-                            }}</strong>
+                            <strong>
+                                {{ formatDateBr(conflictPreview.date) }}
+                            </strong>
                             entre
                             <strong>
-                                {{
-                                    `${conflictPreview.start_time} às ${conflictPreview.end_time}`
-                                }} </strong
+                                {{ conflictPreview.start_time }} às
+                                {{ conflictPreview.end_time }} </strong
                             >.
                         </div>
-
-                        <div class="mt-2 flex flex-wrap gap-2">
-                            <Button variant="outline" class="cursor-pointer" @click="clearSelection">
-                                Limpar seleção
-                            </Button>
-                            <Button
-                                class="flex items-center justify-center gap-2 bg-sky-600 cursor-pointer text-white"
-                                :disabled="!isFormReady || loading"
-                                @click="submit"
-                            >
-                                {{
-                                    loading ? 'Salvando...' : 'Cadastrar agenda'
-                                }}
-                            </Button>
-                        </div>
                     </section>
-
                     <aside
-                        class="space-y-4 rounded-lg border border-gray-200 bg-gray-50 p-4"
+                        class="order-2 h-fit rounded-xl border border-gray-200 bg-gray-50 p-5 lg:col-start-3 lg:row-start-1"
                     >
-                        <h3 class="mb-3 text-base font-semibold text-gray-900">
-                            Resumo da abertura
-                        </h3>
-
-                        <div class="space-y-2 text-sm text-gray-700">
-                            <p>
-                                <span class="font-medium">Clínica:</span>
-                                {{ clinicLabel }}
-                            </p>
-                            <p>
-                                <span class="font-medium"
-                                    >Cadeiras livres:</span
-                                >
-                                {{
-                                    normalizedAvailableChairs !== null
-                                        ? normalizedAvailableChairs
-                                        : '—'
-                                }}
-                            </p>
-                            <p>
-                                <span class="font-medium"
-                                    >Dias selecionados:</span
-                                >
-                                {{ sortedDays.length }}
-                            </p>
-                            <p>
-                                <span class="font-medium">Período:</span>
-                                {{ periodLabel }}
-                            </p>
-                            <p>
-                                <span class="font-medium">Responsáveis:</span>
-                                {{ responsibleLabel }}
-                            </p>
-                            <p>
-                                <span class="font-medium">Horário:</span>
-                                {{
-                                    form.start_time && form.end_time
-                                        ? `${form.start_time} às ${form.end_time}`
-                                        : '—'
-                                }}
+                        <div class="border-b border-gray-200 pb-4">
+                            <h3 class="text-base font-semibold text-gray-900">
+                                Resumo da abertura
+                            </h3>
+                            <p class="mt-1 text-xs text-gray-500">
+                                Confira os dados antes de cadastrar.
                             </p>
                         </div>
-
-                        <div class="mt-4 border-t border-gray-200 pt-3">
+                        <div class="space-y-3 py-4 text-sm">
+                            <div>
+                                <p class="text-xs text-gray-500">Clínica</p>
+                                <p class="font-medium text-gray-800">
+                                    {{ clinicLabel }}
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">
+                                    Cadeiras livres
+                                </p>
+                                <p class="font-medium text-gray-800">
+                                    {{
+                                        normalizedAvailableChairs !== null
+                                            ? normalizedAvailableChairs
+                                            : '—'
+                                    }}
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">
+                                    Dias selecionados
+                                </p>
+                                <p class="font-medium text-gray-800">
+                                    {{ sortedDays.length }}
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">Período</p>
+                                <p class="font-medium text-gray-800">
+                                    {{ periodLabel }}
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">
+                                    Responsáveis
+                                </p>
+                                <p class="font-medium text-gray-800">
+                                    {{ responsibleLabel }}
+                                </p>
+                            </div>
+                            <div>
+                                <p class="text-xs text-gray-500">Horário</p>
+                                <p class="font-medium text-gray-800">
+                                    {{
+                                        form.start_time && form.end_time
+                                            ? `${form.start_time} às ${form.end_time}`
+                                            : '—'
+                                    }}
+                                </p>
+                            </div>
+                        </div>
+                        <div class="border-t border-gray-200 pt-4">
                             <p class="mb-2 text-sm font-medium text-gray-800">
                                 Dias escolhidos
                             </p>
-
                             <p
                                 v-if="!sortedDays.length"
                                 class="text-sm text-gray-500 italic"
                             >
                                 Nenhum dia selecionado ainda.
                             </p>
-
                             <ul
                                 v-else
-                                class="max-h-56 space-y-1 overflow-auto text-sm"
+                                class="max-h-56 space-y-1 overflow-y-auto"
                             >
                                 <li
                                     v-for="day in sortedDays"
                                     :key="day"
-                                    class="rounded bg-white px-2 py-1 text-gray-700"
+                                    class="rounded-md border border-gray-100 bg-white px-3 py-2 text-sm text-gray-700"
                                 >
                                     {{ formatDateBr(day) }}
                                 </li>
                             </ul>
                         </div>
                     </aside>
+                    <div
+                        class="order-3 flex flex-wrap justify-end gap-2 lg:col-span-2 lg:col-start-1 lg:row-start-3"
+                    >
+                        <Button
+                            variant="outline"
+                            class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border-gray-200 bg-white px-4 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 hover:text-gray-900 active:scale-[0.98]"
+                            @click="clearSelection"
+                        >
+                            <X class="h-4 w-4" /> Limpar seleção
+                        </Button>
+                        <Button
+                            class="inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-lg bg-sky-600 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-sky-700 focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 focus:outline-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
+                            :disabled="!isFormReady || loading"
+                            @click="submit"
+                        >
+                            <LoadingSpinner v-if="loading" class="h-4 w-4" />
+                            <CalendarPlus v-else class="h-4 w-4" />
+                            <span>
+                                {{
+                                    loading ? 'Salvando...' : 'Cadastrar agenda'
+                                }}
+                            </span>
+                        </Button>
+                    </div>
                 </div>
             </div>
         </div>

@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\Constants\ActivityModules;
 use App\Models\Appointment;
+use App\Models\Role;
 use App\Models\ScheduleEnrollment;
 use App\Models\User;
 use Illuminate\Support\Facades\DB;
@@ -114,7 +115,7 @@ class AppointmentConfirmationService
 
         public function getAvailablePeriods(User $user, ?int $universityId)
         {
-                if ($user->hasPermissionTo('appointments-confirmation-student.view')) {
+                if ($user->hasRole(Role::STUDENT)) {
                         return $user->student
                                 ?->periods()
                                 ->when(
@@ -138,13 +139,36 @@ class AppointmentConfirmationService
                                 ])
                                 ?? collect();
                 }
+
+                return $this->getAppointmentsQuery($user)
+                        ->with('slot.period')
+                        ->get()
+                        ->pluck('slot.period')
+                        ->filter()
+                        ->filter(function ($period) use ($universityId) {
+                                return !$universityId
+                                        || $period->university_id === $universityId;
+                        })
+                        ->unique('id')
+                        ->sortByDesc('calendar_year')
+                        ->sortByDesc('semester')
+                        ->values()
+                        ->map(fn($period) => [
+                                'id' => $period->id,
+                                'label' => sprintf(
+                                        '%dº ano - %dº semestre - %d',
+                                        $period->academic_year,
+                                        $period->semester,
+                                        $period->calendar_year,
+                                ),
+                        ]);
         }
 
         private function getAppointmentsQuery(User $user): Builder
         {
                 $query = Appointment::query();
 
-                if ($user->can('appointments-confirmation-student.view')) {
+                if ($user->hasRole(Role::STUDENT)) {
                         $query->whereHas(
                                 'student',
                                 fn(Builder $query) => $query->where(

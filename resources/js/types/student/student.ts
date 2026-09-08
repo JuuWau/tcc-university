@@ -27,6 +27,10 @@ export interface Student {
     user: {
         id: number;
         email: string;
+        invite: {
+            used_at: string | null;
+            expires_at: string | null;
+        } | null;
     };
 
     periods: Period[];

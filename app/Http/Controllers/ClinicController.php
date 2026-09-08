@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Http\Requests\DeactivateClinicRequest;
 use App\Http\Requests\StoreClinicRequest;
 use App\Http\Requests\UpdateClinicRequest;
+use App\Http\Requests\TableClinicRequest;
+use App\Data\Clinics\ClinicTableFiltersData;
+use App\Http\Resources\ClinicTableResource;
 use App\Models\Clinic;
 use App\Services\ClinicService;
 use Illuminate\Http\JsonResponse;
@@ -21,19 +24,17 @@ class ClinicController extends Controller
         $universityId = request()->user()?->university_id;
 
         return Inertia::render('clinics/ClinicsIndex', [
-            'clinics' => $universityId
-                ? $this->clinicService->all($universityId)
-                : [],
+            'clinics' => [],
         ]);
     }
 
-    public function table(): JsonResponse
+    public function table(TableClinicRequest $request)
     {
-        $universityId = request()->user()?->university_id;
+        $clinics = $this->clinicService->paginate(
+            ClinicTableFiltersData::fromRequest($request)
+        );
 
-        return response()->json([
-            'data' => $universityId ? $this->clinicService->all($universityId) : [],
-        ]);
+        return ClinicTableResource::collection($clinics);
     }
 
     public function store(StoreClinicRequest $request): JsonResponse

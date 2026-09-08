@@ -4,13 +4,38 @@ namespace App\Services;
 
 use App\Constants\ActivityLogPrefixes;
 use App\Constants\ActivityModules;
+use App\Data\Procedures\ProcedureTableFiltersData;
 use App\Models\Clinic;
 use App\Models\Procedure;
 use App\Models\Specialty;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 
 class ProcedureService
 {
+    public function paginate(ProcedureTableFiltersData $filters): LengthAwarePaginator
+    {
+        return Procedure::query()
+            ->with('specialty:id,name')
+            ->where('university_id', $filters->universityId)
+            ->whereNull('procedures.deleted_at')
+            ->when($filters->search, function ($query) use ($filters) {
+                $search = $filters->search;
+
+                $query->where(function ($q) use ($search) {
+                    $q->where('procedures.name', 'like', "%{$search}%")
+                        ->orWhereHas(
+                            'specialty',
+                            fn($specialty) =>
+                            $specialty->where('name', 'like', "%{$search}%")
+                        );
+                });
+            })
+            ->orderBy($filters->sortField, $filters->sortDir)
+            ->orderBy('id', $filters->sortDir)
+            ->paginate($filters->perPage, ['*'], 'page', $filters->page);
+    }
+
     public function all(?int $universityId, ?int $clinicId = null)
     {
         return Procedure::query()

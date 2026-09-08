@@ -6,9 +6,10 @@ export interface OpenClinicScheduleEnrollmentRow {
     end_time: string;
     available_slots: number;
     period_id: number;
-    responsible_id: number;
+    responsible_id?: number;
     period_label: string;
-    responsible_name: string;
+    responsible_name?: string;
+    responsible_names: string[];
     allow_student_booking: boolean;
     is_enrolled: boolean;
 }

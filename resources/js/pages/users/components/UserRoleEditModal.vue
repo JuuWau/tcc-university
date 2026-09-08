@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import AppMultiselect from '@/components/AppMultiselect.vue';
-import CancelButton from '@/components/buttons/CancelButton.vue';
-import SaveButton from '@/components/buttons/SaveButton.vue';
+import FormFooter from '@/components/form/FormFooter.vue';
+import FormHeader from '@/components/form/FormHeader.vue';
 import { UserTabContextKey } from '@/keys/users/userKeys';
 import { userRoleEditSchema } from '@/schemas/user.schema';
 import type { UserForTab } from '@/types/user/user';
@@ -36,7 +36,7 @@ watch(
     () => editRoleModalOpen.value,
     (isOpen) => {
         if (isOpen && user.value) {
-            form.role_id = user.value.role?.id ?? null;
+            form.role_id = user.value.roles?.[0]?.id ?? null;
         }
     },
 );
@@ -82,33 +82,35 @@ async function submit() {
         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
     >
         <div
-            class="max-h-[90vh] w-full max-w-md overflow-y-auto rounded-lg bg-white p-6"
+            class="flex w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow"
         >
-            <h2 class="mb-4 text-lg font-bold">Editar perfil do colaborador</h2>
-            <hr />
-
-            <form class="space-y-4 pt-4" @submit.prevent="submit">
-                <div>
-                    <label class="mb-1 block text-sm font-medium text-gray-700">
-                        Perfil (*)
-                    </label>
-                    <AppMultiselect
-                        v-model="form.role_id"
-                        :options="roleOptions"
-                        label="label"
-                        value-prop="value"
-                        :searchable="true"
-                        :close-on-select="true"
-                        :can-clear="false"
-                        placeholder="Selecione o perfil"
-                    />
-                </div>
-
-                <div class="flex justify-end gap-2 pt-4">
-                    <CancelButton @click="close" />
-                    <SaveButton :loading="loading" @click.stop="submit" />
-                </div>
+            <FormHeader
+                title="Editar perfil do colaborador"
+                subtitle="Selecione o novo perfil de acesso do colaborador."
+            />
+            
+            <form class="min-h-0 flex-1 px-6 py-4" @submit.prevent="submit">
+                <AppMultiselect
+                    v-model="form.role_id"
+                    :options="roleOptions"
+                    field-label="Perfil (*)"
+                    label="label"
+                    value-prop="value"
+                    :append-to-body="true"
+                    :searchable="true"
+                    :close-on-select="true"
+                    :can-clear="false"
+                    placeholder="Selecione o perfil"
+                />
             </form>
+            
+            <FormFooter
+                :loading="loading"
+                action="save"
+                action-label="Salvar"
+                @cancel="close"
+                @save="submit"
+            />
         </div>
     </div>
 </template>
