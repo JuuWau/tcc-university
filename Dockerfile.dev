@@ -60,6 +60,8 @@ COPY package*.json ./
 
 RUN npm install
 
+RUN npm run build
+
 EXPOSE 8001
 
 ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
