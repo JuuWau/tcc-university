@@ -2,8 +2,8 @@
 
 set -e
 
-export APP_ENV=production
-export APP_DEBUG=false
+export APP_ENV=local
+export APP_DEBUG=true
 
 wait_for_postgres() {
     echo "Aguardando PostgreSQL em ${DB_HOST}:${DB_PORT}..."
@@ -38,6 +38,7 @@ wait_for_postgres
 
 echo "================================="
 echo "Configuração do banco:"
+echo "DB_CONNECTION=${DB_CONNECTION}"
 echo "DB_HOST=${DB_HOST}"
 echo "DB_PORT=${DB_PORT}"
 echo "DB_DATABASE=${DB_DATABASE}"
@@ -51,6 +52,7 @@ php artisan optimize:clear
 echo "Verificando banco..."
 
 php artisan tinker --execute="
+echo 'Connection: ' . DB::connection()->getName() . PHP_EOL;
 echo 'Database: ' . DB::connection()->getDatabaseName() . PHP_EOL;
 echo 'Users: ' . \App\Models\User::count() . PHP_EOL;
 "

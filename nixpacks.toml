@@ -9,8 +9,9 @@ NIXPACKS_NODE_VERSION = "22"
 cmds = [
     "composer install --no-dev --no-interaction --prefer-dist --optimize-autoloader",
     "npm ci",
+    "php artisan wayfinder:generate",
     "npm run build"
 ]
 
 [start]
-cmd = "php artisan serve --host=0.0.0.0 --port=${PORT:-8000}"
+cmd = "php artisan migrate --force && php artisan serve --host=0.0.0.0 --port=${PORT:-8000}"

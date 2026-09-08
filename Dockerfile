@@ -41,7 +41,7 @@ WORKDIR /var/www/html
 
 COPY --chown=www-data:www-data . /var/www/html
 
-COPY docker/app/entrypoint.dev.sh /usr/local/bin/entrypoint.sh
+COPY docker/app/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 RUN chmod +x /usr/local/bin/entrypoint.sh
 

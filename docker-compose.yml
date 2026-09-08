@@ -4,7 +4,7 @@ services:
   app:
     build:
       context: .
-      dockerfile: docker/app/Dockerfile.dev
+      dockerfile: Dockerfile.dev
     container_name: laravel_app_dev
     restart: unless-stopped
     ports:
@@ -23,7 +23,6 @@ services:
       - ./docker:/var/www/html/docker:cached
       - .:/var/www/html:cached
       - /var/www/html/node_modules
-      - /var/www/html/vendor
     depends_on:
       - db
     networks:

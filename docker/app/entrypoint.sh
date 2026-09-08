@@ -1,5 +1,10 @@
 #!/bin/bash
 
+set -e
+
+export APP_ENV=production
+export APP_DEBUG=false
+
 wait_for_postgres() {
     echo "Aguardando PostgreSQL em ${DB_HOST}:${DB_PORT}..."
 
@@ -9,14 +14,18 @@ wait_for_postgres() {
     while [ $attempt -le $max_attempts ]; do
         echo "Tentativa $attempt de $max_attempts..."
 
-        if php -r "new PDO('pgsql:host=${DB_HOST};port=${DB_PORT};dbname=${DB_DATABASE}', '${DB_USERNAME}', '${DB_PASSWORD}');" 2>/dev/null; then
+        if php -r "new PDO(
+            'pgsql:host=${DB_HOST};port=${DB_PORT};dbname=${DB_DATABASE}',
+            '${DB_USERNAME}',
+            '${DB_PASSWORD}'
+        );" 2>/dev/null; then
             echo "✅ PostgreSQL está disponível!"
             return 0
         fi
 
         echo "⏳ PostgreSQL ainda não está pronto. Aguardando..."
-        sleep 2
 
+        sleep 2
         attempt=$((attempt + 1))
     done
 
@@ -27,38 +36,26 @@ wait_for_postgres() {
 
 wait_for_postgres
 
-if [ $? -ne 0 ]; then
-    exit 1
-fi
+echo "================================="
+echo "Configuração do banco:"
+echo "DB_CONNECTION=${DB_CONNECTION}"
+echo "DB_HOST=${DB_HOST}"
+echo "DB_PORT=${DB_PORT}"
+echo "DB_DATABASE=${DB_DATABASE}"
+echo "DB_USERNAME=${DB_USERNAME}"
+echo "================================="
 
-if [ ! -f .env ]; then
-    echo "Criando arquivo .env..."
+echo "Limpando cache do Laravel..."
 
-    cat > .env << 'EOF'
-APP_ENV=local
-APP_DEBUG=true
-APP_URL=http://localhost:8001
+php artisan optimize:clear
 
-DB_CONNECTION=pgsql
-DB_HOST=${DB_HOST}
-DB_PORT=${DB_PORT}
-DB_DATABASE=${DB_DATABASE}
-DB_USERNAME=${DB_USERNAME}
-DB_PASSWORD=${DB_PASSWORD}
-EOF
-fi
+echo "Verificando banco..."
 
-sed -i "s/DB_HOST=.*/DB_HOST=${DB_HOST}/" .env
-sed -i "s/DB_PORT=.*/DB_PORT=${DB_PORT}/" .env
-sed -i "s/DB_DATABASE=.*/DB_DATABASE=${DB_DATABASE}/" .env
-sed -i "s/DB_USERNAME=.*/DB_USERNAME=${DB_USERNAME}/" .env
-sed -i "s/DB_PASSWORD=.*/DB_PASSWORD=${DB_PASSWORD}/" .env
-
-if ! grep -q "APP_KEY=" .env || [ -z "$(grep APP_KEY= .env | cut -d= -f2)" ]; then
-    echo "Gerando application key..."
-
-    php artisan key:generate --no-interaction
-fi
+php artisan tinker --execute="
+echo 'Connection: ' . DB::connection()->getName() . PHP_EOL;
+echo 'Database: ' . DB::connection()->getDatabaseName() . PHP_EOL;
+echo 'Users: ' . \App\Models\User::count() . PHP_EOL;
+"
 
 echo "Executando migrações..."
 
@@ -66,4 +63,6 @@ php artisan migrate --force
 
 echo "Iniciando servidor Laravel..."
 
-php artisan serve --host=0.0.0.0 --port=8001
+php artisan serve \
+    --host=0.0.0.0 \
+    --port="${PORT:-8001}"
