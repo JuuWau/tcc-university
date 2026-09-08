@@ -14,7 +14,7 @@ services:
       - APP_DEBUG=true
       - APP_URL=http://localhost:8001
       - DB_CONNECTION=pgsql
-      - DB_HOST=db 
+      - DB_HOST=db
       - DB_PORT=5432
       - DB_DATABASE=laravel_dev
       - DB_USERNAME=laravel
@@ -37,7 +37,7 @@ services:
       POSTGRES_USER: laravel
       POSTGRES_PASSWORD: secret
     ports:
-      - "5432:5432"
+      - "5433:5432"
     volumes:
       - db_data_dev:/var/lib/postgresql/data
     networks:

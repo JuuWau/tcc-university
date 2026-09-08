@@ -13,6 +13,7 @@ use App\Http\Controllers\ScheduleEnrollmentController;
 use App\Http\Controllers\AppointmentConfirmationController;
 use App\Http\Controllers\AppointmentReportsController;
 use App\Http\Controllers\ClinicManagementController;
+use App\Http\Controllers\ClinicReportController;
 use App\Http\Controllers\PatientsReportController;
 use App\Http\Controllers\ScheduleSlotController;
 use App\Http\Controllers\Settings\ProfileController;
@@ -104,6 +105,13 @@ Route::prefix('reports/patients')->middleware(['auth', 'verified'])->group(funct
     Route::get('/data', [PatientsReportController::class, 'data'])->name('reports.patients.data');
     Route::get('/export', [PatientsReportController::class, 'exportExcel'])->name('reports.patients.export');
 })->middleware('permission:patients-reports.view');
+
+Route::prefix('reports/clinics')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('/', [ClinicReportController::class, 'index'])->name('reports.clinics.index');
+    Route::get('/data', [ClinicReportController::class, 'data'])->name('reports.clinics.data');
+    Route::get('/export', [ClinicReportController::class, 'exportExcel'])->name('reports.clinics.export');
+})->middleware('permission:clinics-reports.view');
+
 
 Route::get('/reports/clinics-by-student', function () {
     return Inertia::render('reports/ClinicsByStudentReportMock');
