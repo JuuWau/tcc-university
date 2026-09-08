@@ -25,6 +25,12 @@ use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
 use Laravel\Fortify\Features;
 
+Route::get('/forgot-password', function () {
+    return Inertia::render('auth/ForgotPassword', [
+        'status' => session('status'),
+    ]);
+})->name('password.request');
+
 Route::get('/', function () {
     return Inertia::render('Welcome', [
         'canRegister' => Features::enabled(Features::registration()),

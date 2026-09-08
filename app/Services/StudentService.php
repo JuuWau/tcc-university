@@ -316,7 +316,10 @@ class StudentService
 
                         $student->periods()->attach(
                                 $data['period'],
-                                ['started_at' => now()]
+                                [
+                                        'started_at' => now(),
+                                        'is_current' => true,
+                                ]
                         );
 
                         $changes = [];

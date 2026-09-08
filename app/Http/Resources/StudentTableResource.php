@@ -23,6 +23,14 @@ class StudentTableResource extends JsonResource
                 'phone' => $this->person?->phone,
             ],
             'email' => $this->user?->email,
+            'user' => [
+                'id' => $this->user?->id,
+                'email' => $this->user?->email,
+                'invite' => $this->user?->invite ? [
+                    'used_at' => $this->user->invite->used_at,
+                    'expires_at' => $this->user->invite->expires_at,
+                ] : null,
+            ],
             'deleted_at' => $this->deleted_at,
             'periods' => $this->whenLoaded('periods', function () {
                 return $this->periods->map(fn($period) => [

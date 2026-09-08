@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import InputError from '@/components/InputError.vue';
+import BaseInput from '@/components/inputs/BaseInput.vue';
 import TextLink from '@/components/TextLink.vue';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
@@ -11,6 +12,7 @@ import { register } from '@/routes';
 import { store } from '@/routes/login';
 import { request } from '@/routes/password';
 import { Form, Head } from '@inertiajs/vue3';
+import { LogIn } from 'lucide-vue-next';
 
 defineProps<{
     status?: string;
@@ -56,7 +58,7 @@ defineProps<{
                 >
                     <div class="grid gap-2">
                         <Label for="email">Email</Label>
-                        <Input
+                        <BaseInput
                             id="email"
                             type="email"
                             name="email"
@@ -72,7 +74,7 @@ defineProps<{
                     <div class="grid gap-2">
                         <Label for="password">Senha</Label>
 
-                        <Input
+                        <BaseInput
                             id="password"
                             type="password"
                             name="password"
@@ -85,7 +87,7 @@ defineProps<{
                         <div class="flex justify-end">
                             <TextLink
                                 v-if="canResetPassword"
-                                :href="request()"
+                                href="/forgot-password"
                                 class="text-xs text-primary hover:underline"
                             >
                                 Esqueci minha senha
@@ -97,10 +99,16 @@ defineProps<{
 
                     <Button
                         type="submit"
-                        class="mt-2 h-11 w-full rounded-lg bg-sky-600 text-base font-semibold transition-all hover:scale-[1.02] hover:bg-sky-700"
+                        class="mt-2 h-11 w-full cursor-pointer rounded-lg bg-sky-600 text-base font-semibold transition-all hover:scale-[1.02] hover:bg-sky-700"
                         :disabled="processing"
                     >
                         <Spinner v-if="processing" class="mr-2" />
+
+                        <LogIn
+                            v-else
+                            class="mr-2 h-4 w-4"
+                        />
+
                         Entrar
                     </Button>
                 </Form>

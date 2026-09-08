@@ -9,6 +9,7 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
 use Spatie\Permission\Traits\HasRoles;
+use App\Notifications\ResetPasswordNotification;
 
 class User extends Authenticatable
 {
@@ -85,5 +86,10 @@ class User extends Authenticatable
     public function actionLogs()
     {
         return $this->hasMany(ActivityLog::class);
+    }
+
+    public function sendPasswordResetNotification($token): void
+    {
+        $this->notify(new ResetPasswordNotification($token));
     }
 }
