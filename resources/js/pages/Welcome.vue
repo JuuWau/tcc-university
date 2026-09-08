@@ -1,64 +1,89 @@
 <script setup lang="ts">
-import { initialPage, login, register } from '@/routes';
+import { initialPage, login } from '@/routes';
 import { Head, Link } from '@inertiajs/vue3';
+import {
+    CalendarDays,
+    ClipboardList,
+    GraduationCap,
+    LogIn,
+    ShieldCheck,
+    Users,
+} from 'lucide-vue-next';
 </script>
 
 <template>
     <Head title="Acadent" />
 
-    <div class="min-h-screen bg-gray-50 text-gray-800">
-        <header class="bg-gray-50 shadow-xl">
+    <div class="min-h-screen bg-slate-50 text-slate-800">
+        <header
+            class="sticky top-0 z-50 border-b border-slate-200/70 bg-white/90 backdrop-blur"
+        >
             <div
-                class="mx-auto flex max-w-7xl items-center justify-between px-8 py-6"
+                class="mx-auto flex max-w-7xl items-center justify-between px-6 py-4 lg:px-8"
             >
-                <div class="flex items-center gap-2">
+                <div class="flex items-center gap-3">
                     <img
                         src="/favicon.png"
-                        alt="Acadent Logo"
+                        alt="Acadent"
                         class="h-10 w-10"
                     />
-                    <h1 class="pt-1 text-xl font-bold text-sky-600">
-                        Acadent
-                    </h1>
+
+                    <div>
+                        <h1 class="text-xl font-bold tracking-tight text-sky-600">
+                            Acadent
+                        </h1>
+
+                        <p class="hidden text-xs text-slate-400 sm:block">
+                            Gestão de clínicas odontológicas
+                        </p>
+                    </div>
                 </div>
 
-                <nav class="flex gap-4">
+                <nav>
                     <Link
                         v-if="$page.props.auth.user"
                         :href="initialPage()"
-                        class="rounded border border-sky-600 px-4 py-2 text-sky-600 hover:bg-sky-50"
+                        class="inline-flex items-center rounded-lg border border-sky-600 px-5 py-2.5 text-sm font-semibold text-sky-600 transition hover:bg-sky-50"
                     >
-                        Início
+                        Acessar sistema
                     </Link>
 
-                    <template v-else>
-                        <Link
-                            :href="login()"
-                            class="px-4 py-2 text-gray-600 hover:text-sky-600"
-                        >
-                            Entrar
-                        </Link>
-
-                        <Link
-                            :href="register()"
-                            class="rounded bg-sky-600 px-4 py-2 text-white hover:bg-sky-700"
-                        >
-                            Solicitar acesso
-                        </Link>
-                    </template>
+                    <Link
+                        v-else
+                        :href="login()"
+                        class="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-5 py-2.5 text-sm font-semibold text-white shadow-sm transition hover:bg-sky-700 hover:shadow"
+                    >
+                        <LogIn class="h-4 w-4" />
+                        Entrar
+                    </Link>
                 </nav>
             </div>
         </header>
 
-        <!-- HERO -->
-        <section class="bg-white">
+        <section
+            class="relative overflow-hidden bg-white"
+        >
             <div
-                class="mx-auto grid max-w-7xl items-center gap-16 px-8 py-24 lg:grid-cols-2"
+                class="absolute -top-32 -right-32 h-96 w-96 rounded-full bg-sky-100/70 blur-3xl"
+            />
+
+            <div
+                class="absolute -bottom-40 -left-32 h-96 w-96 rounded-full bg-blue-100/60 blur-3xl"
+            />
+
+            <div
+                class="relative mx-auto grid max-w-7xl items-center gap-16 px-6 py-24 lg:grid-cols-2 lg:px-8 lg:py-32"
             >
-                <!-- TEXTO -->
                 <div>
+                    <div
+                        class="mb-6 inline-flex items-center gap-2 rounded-full border border-sky-100 bg-sky-50 px-4 py-2 text-sm font-medium text-sky-700"
+                    >
+                        <ShieldCheck class="h-4 w-4" />
+                        Gestão acadêmica e clínica
+                    </div>
+
                     <h2
-                        class="mb-6 text-4xl leading-tight font-bold lg:text-5xl"
+                        class="max-w-2xl text-4xl leading-[1.1] font-bold tracking-tight text-slate-900 sm:text-5xl lg:text-6xl"
                     >
                         Gestão inteligente para
                         <span class="text-sky-600">
@@ -66,92 +91,328 @@ import { Head, Link } from '@inertiajs/vue3';
                         </span>
                     </h2>
 
-                    <p class="mb-8 text-lg text-gray-600">
-                        Centralize alunos, pacientes, atendimentos e períodos
-                        acadêmicos em um único sistema moderno e seguro.
+                    <p
+                        class="mt-6 max-w-xl text-lg leading-8 text-slate-600"
+                    >
+                        Centralize alunos, pacientes, atendimentos, agendas e
+                        períodos acadêmicos em um único sistema moderno,
+                        organizado e seguro.
                     </p>
 
-                    <div class="flex flex-wrap gap-4">
-                        <Link
-                            :href="register()"
-                            class="rounded bg-sky-600 px-6 py-3 font-medium text-white hover:bg-sky-700"
-                        >
-                            Começar agora
-                        </Link>
-
+                    <div class="mt-8">
                         <Link
                             :href="login()"
-                            class="rounded border border-gray-300 px-6 py-3 hover:border-sky-600"
+                            class="inline-flex items-center gap-2 rounded-lg bg-sky-600 px-7 py-3.5 font-semibold text-white shadow-lg shadow-sky-600/20 transition hover:-translate-y-0.5 hover:bg-sky-700 hover:shadow-xl"
                         >
-                            Já tenho acesso
+                            Acessar o sistema
                         </Link>
                     </div>
+
+                    <div
+                        class="mt-8 flex flex-wrap gap-x-6 gap-y-3 text-sm text-slate-500"
+                    >
+                        <div class="flex items-center gap-2">
+                            <ShieldCheck class="h-4 w-4 text-sky-600" />
+                            Acesso seguro
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <ClipboardList class="h-4 w-4 text-sky-600" />
+                            Gestão centralizada
+                        </div>
+
+                        <div class="flex items-center gap-2">
+                            <Users class="h-4 w-4 text-sky-600" />
+                            Gestão de usuários
+                        </div>
+                    </div>
                 </div>
 
-                <!-- IMAGEM -->
+                <!-- PAINEL VISUAL -->
+                <div class="relative hidden lg:block">
+                    <div
+                        class="relative mx-auto max-w-lg rounded-3xl border border-slate-200 bg-white p-5 shadow-2xl shadow-slate-300/40"
+                    >
+                        <div
+                            class="rounded-2xl bg-gradient-to-br from-sky-600 to-blue-700 p-7 text-white"
+                        >
+                            <div class="mb-8 flex items-center justify-between">
+                                <div>
+                                    <p class="text-sm text-sky-100">
+                                        Acadent
+                                    </p>
+
+                                    <p class="mt-1 text-2xl font-bold">
+                                        Gestão integrada
+                                    </p>
+                                </div>
+
+                                <div
+                                    class="flex h-11 w-11 items-center justify-center rounded-xl bg-white/15"
+                                >
+                                    <GraduationCap class="h-6 w-6" />
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div
+                                    class="rounded-xl bg-white/10 p-4 backdrop-blur"
+                                >
+                                    <Users class="mb-3 h-5 w-5" />
+
+                                    <p class="text-2xl font-bold">
+                                        Alunos
+                                    </p>
+
+                                    <p class="mt-1 text-xs text-sky-100">
+                                        Gestão acadêmica
+                                    </p>
+                                </div>
+
+                                <div
+                                    class="rounded-xl bg-white/10 p-4 backdrop-blur"
+                                >
+                                    <ClipboardList class="mb-3 h-5 w-5" />
+
+                                    <p class="text-2xl font-bold">
+                                        Pacientes
+                                    </p>
+
+                                    <p class="mt-1 text-xs text-sky-100">
+                                        Histórico clínico
+                                    </p>
+                                </div>
+
+                                <div
+                                    class="rounded-xl bg-white/10 p-4 backdrop-blur"
+                                >
+                                    <CalendarDays class="mb-3 h-5 w-5" />
+
+                                    <p class="text-2xl font-bold">
+                                        Agenda
+                                    </p>
+
+                                    <p class="mt-1 text-xs text-sky-100">
+                                        Atendimentos
+                                    </p>
+                                </div>
+
+                                <div
+                                    class="rounded-xl bg-white/10 p-4 backdrop-blur"
+                                >
+                                    <ShieldCheck class="mb-3 h-5 w-5" />
+
+                                    <p class="text-2xl font-bold">
+                                        Segurança
+                                    </p>
+
+                                    <p class="mt-1 text-xs text-sky-100">
+                                        Controle de acesso
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </section>
 
-        <!-- BENEFÍCIOS -->
-        <section class="bg-gray-50 py-20">
-            <div class="mx-auto max-w-7xl px-8">
-                <h3 class="mb-12 text-center text-3xl font-bold">
-                    Tudo o que sua universidade precisa
-                </h3>
+        <section class="border-y border-slate-200 bg-slate-50 py-24">
+            <div class="mx-auto max-w-7xl px-6 lg:px-8">
+                <div class="mx-auto max-w-2xl text-center">
+                    <p
+                        class="text-sm font-semibold tracking-wide text-sky-600 uppercase"
+                    >
+                        Uma solução completa
+                    </p>
 
-                <div class="grid gap-8 md:grid-cols-3">
-                    <div class="rounded-xl bg-white p-6 shadow-sm">
-                        <h4 class="mb-2 text-lg font-semibold">
+                    <h3
+                        class="mt-3 text-3xl font-bold tracking-tight text-slate-900 sm:text-4xl"
+                    >
+                        Tudo em um único lugar
+                    </h3>
+
+                    <p class="mt-4 text-lg text-slate-600">
+                        Ferramentas pensadas para simplificar a rotina
+                        acadêmica e clínica.
+                    </p>
+                </div>
+
+                <div class="mt-14 grid gap-6 md:grid-cols-3">
+                    <div
+                        class="group rounded-2xl border border-slate-200 bg-white p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                    >
+                        <div
+                            class="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-600 transition group-hover:bg-sky-600 group-hover:text-white"
+                        >
+                            <GraduationCap class="h-6 w-6" />
+                        </div>
+
+                        <h4 class="text-lg font-semibold text-slate-900">
                             Gestão Acadêmica
                         </h4>
-                        <p class="text-gray-600">
-                            Controle períodos, especialidades e vínculo dos
-                            alunos com a clínica.
+
+                        <p class="mt-3 leading-6 text-slate-600">
+                            Controle períodos, especialidades, alunos e seus
+                            vínculos com a clínica-escola.
                         </p>
                     </div>
 
-                    <div class="rounded-xl bg-white p-6 shadow-sm">
-                        <h4 class="mb-2 text-lg font-semibold">
-                            Atendimentos Clínicos
+                    <div
+                        class="group rounded-2xl border border-slate-200 bg-white p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                    >
+                        <div
+                            class="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-600 transition group-hover:bg-sky-600 group-hover:text-white"
+                        >
+                            <ClipboardList class="h-6 w-6" />
+                        </div>
+
+                        <h4 class="text-lg font-semibold text-slate-900">
+                            Gestão Clínica
                         </h4>
-                        <p class="text-gray-600">
-                            Histórico completo de pacientes, procedimentos e
-                            supervisões.
+
+                        <p class="mt-3 leading-6 text-slate-600">
+                            Organize pacientes, procedimentos, atendimentos e
+                            histórico clínico de forma centralizada.
                         </p>
                     </div>
 
-                    <div class="rounded-xl bg-white p-6 shadow-sm">
-                        <h4 class="mb-2 text-lg font-semibold">
-                            Seguro e Centralizado
+                    <div
+                        class="group rounded-2xl border border-slate-200 bg-white p-7 shadow-sm transition hover:-translate-y-1 hover:shadow-lg"
+                    >
+                        <div
+                            class="mb-5 flex h-12 w-12 items-center justify-center rounded-xl bg-sky-50 text-sky-600 transition group-hover:bg-sky-600 group-hover:text-white"
+                        >
+                            <CalendarDays class="h-6 w-6" />
+                        </div>
+
+                        <h4 class="text-lg font-semibold text-slate-900">
+                            Agenda e Atendimentos
                         </h4>
-                        <p class="text-gray-600">
-                            Dados protegidos, acessos controlados e tudo em um
-                            só lugar.
+
+                        <p class="mt-3 leading-6 text-slate-600">
+                            Facilite o planejamento dos atendimentos e o
+                            acompanhamento das atividades clínicas.
                         </p>
                     </div>
                 </div>
             </div>
         </section>
 
-        <!-- CTA FINAL -->
-        <section class="py-20">
-            <div class="mx-auto max-w-4xl px-8 text-center">
-                <h3 class="mb-4 text-3xl font-bold">
-                    Leve sua clínica-escola para o próximo nível
+        <section class="bg-white py-24">
+            <div
+                class="mx-auto flex max-w-5xl flex-col items-center px-6 text-center lg:px-8"
+            >
+                <div
+                    class="flex h-16 w-16 items-center justify-center rounded-2xl bg-sky-50 text-sky-600"
+                >
+                    <ShieldCheck class="h-8 w-8" />
+                </div>
+
+                <h3
+                    class="mt-6 text-3xl font-bold tracking-tight text-slate-900"
+                >
+                    Organização, segurança e controle
                 </h3>
 
-                <p class="mb-8 text-gray-600">
-                    Um sistema feito sob medida para universidades e cursos de
-                    odontologia.
+                <p
+                    class="mt-4 max-w-2xl text-lg leading-8 text-slate-600"
+                >
+                    O Acadent centraliza as informações da clínica-escola,
+                    permitindo controlar acessos e organizar os processos
+                    acadêmicos e clínicos em um ambiente único.
                 </p>
 
-                <Link
-                    :href="register()"
-                    class="inline-block rounded bg-sky-600 px-8 py-4 text-lg text-white hover:bg-sky-700"
+                <div
+                    class="mt-10 grid w-full gap-4 text-left sm:grid-cols-3"
                 >
-                    Solicitar acesso
-                </Link>
+                    <div class="rounded-xl bg-slate-50 p-5">
+                        <ShieldCheck class="h-5 w-5 text-sky-600" />
+
+                        <p class="mt-3 font-semibold text-slate-900">
+                            Controle de acesso
+                        </p>
+
+                        <p class="mt-1 text-sm text-slate-500">
+                            Permissões organizadas por perfil.
+                        </p>
+                    </div>
+
+                    <div class="rounded-xl bg-slate-50 p-5">
+                        <Users class="h-5 w-5 text-sky-600" />
+
+                        <p class="mt-3 font-semibold text-slate-900">
+                            Usuários organizados
+                        </p>
+
+                        <p class="mt-1 text-sm text-slate-500">
+                            Alunos, professores e equipe administrativa.
+                        </p>
+                    </div>
+
+                    <div class="rounded-xl bg-slate-50 p-5">
+                        <ClipboardList class="h-5 w-5 text-sky-600" />
+
+                        <p class="mt-3 font-semibold text-slate-900">
+                            Informações centralizadas
+                        </p>
+
+                        <p class="mt-1 text-sm text-slate-500">
+                            Dados acessíveis em um único ambiente.
+                        </p>
+                    </div>
+                </div>
             </div>
         </section>
+
+        <section class="px-6 py-20 lg:px-8">
+            <div
+                class="mx-auto max-w-5xl overflow-hidden rounded-3xl bg-gradient-to-r from-sky-600 to-blue-700 px-8 py-14 text-center shadow-xl sm:px-12"
+            >
+                <h3
+                    class="text-3xl font-bold tracking-tight text-white sm:text-4xl"
+                >
+                    Simplifique a gestão da sua clínica-escola
+                </h3>
+
+                <p
+                    class="mx-auto mt-4 max-w-2xl text-lg leading-7 text-sky-100"
+                >
+                    Tenha uma visão centralizada dos processos acadêmicos e
+                    clínicos da sua instituição.
+                </p>
+
+                <div class="mt-8">
+                    <Link
+                        :href="login()"
+                        class="inline-flex items-center rounded-lg bg-white px-7 py-3.5 font-semibold text-sky-700 shadow-sm transition hover:-translate-y-0.5 hover:bg-sky-50"
+                    >
+                        Acessar o sistema
+                    </Link>
+                </div>
+            </div>
+        </section>
+
+        <footer class="border-t border-slate-200 bg-white">
+            <div
+                class="mx-auto flex max-w-7xl flex-col items-center justify-between gap-4 px-6 py-8 text-sm text-slate-500 sm:flex-row lg:px-8"
+            >
+                <div class="flex items-center gap-2">
+                    <img
+                        src="/favicon.png"
+                        alt="Acadent"
+                        class="h-7 w-7"
+                    />
+
+                    <span>
+                        © {{ new Date().getFullYear() }} Acadent
+                    </span>
+                </div>
+
+                <span>
+                    Gestão de clínicas odontológicas universitárias
+                </span>
+            </div>
+        </footer>
     </div>
 </template>
