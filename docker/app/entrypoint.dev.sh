@@ -1,11 +1,9 @@
 #!/bin/bash
 
 echo "Removendo arquivo .env existente..."
-
 rm -f .env
 
 echo "Criando arquivo .env..."
-
 cat > .env << EOF
 APP_ENV=local
 APP_DEBUG=true
@@ -18,10 +16,6 @@ DB_DATABASE=${DB_DATABASE}
 DB_USERNAME=${DB_USERNAME}
 DB_PASSWORD=${DB_PASSWORD}
 EOF
-
-echo "Gerando application key..."
-
-php artisan key:generate --no-interaction
 
 wait_for_postgres() {
     echo "Aguardando PostgreSQL em ${DB_HOST}:${DB_PORT}..."
@@ -38,14 +32,11 @@ wait_for_postgres() {
         fi
 
         echo "⏳ PostgreSQL ainda não está pronto. Aguardando..."
-
         sleep 2
-
         attempt=$((attempt + 1))
     done
 
     echo "❌ Não foi possível conectar ao PostgreSQL após $max_attempts tentativas."
-
     return 1
 }
 
@@ -55,12 +46,13 @@ if [ $? -ne 0 ]; then
     exit 1
 fi
 
-echo "Executando migrações..."
+echo "Gerando application key..."
+php artisan key:generate --no-interaction
 
+echo "Executando migrações..."
 php artisan migrate --force
 
 echo "Iniciando servidor Laravel..."
-
 php artisan serve \
     --host=0.0.0.0 \
     --port="${PORT:-8001}"
