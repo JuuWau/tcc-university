@@ -193,7 +193,7 @@ const filteredNavItems = computed(() => {
             <SidebarMenu>
                 <SidebarMenuItem>
                     <SidebarMenuButton size="lg" as-child>
-                        <Link :href="initialPage().url">
+                        <Link href="/">
                             <AppLogo />
                         </Link>
                     </SidebarMenuButton>
