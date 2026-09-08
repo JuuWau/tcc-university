@@ -145,8 +145,9 @@ const mainNavItems: NavItem[] = [
                 permission: 'appointments-reports.view'
             },
             {
-                title: 'Relatórios de clínicas por aluno',
-                href: '/reports/clinics-by-student',
+                title: 'Relatórios das clínicas',
+                href: '/reports/clinics',
+                icon: Building2,
                 permission: 'clinics-reports.view'
             },
             {
