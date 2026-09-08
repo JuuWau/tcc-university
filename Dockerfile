@@ -62,7 +62,7 @@ RUN npm install
 
 RUN php artisan wayfinder:generate
 
-RUN npm run build
+RUN echo "BUILD ACADENT 2026" && npm run build
 
 EXPOSE 8001
 
