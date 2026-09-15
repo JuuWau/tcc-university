@@ -61,9 +61,14 @@ services:
     image: node:22
     container_name: laravel_node_dev
     working_dir: /var/www/html
+    environment:
+      - NODE_ENV=development
+      - CHOKIDAR_USEPOLLING=true
+      - WATCHPACK_POLLING=true
     volumes:
-      - .:/var/www/html
-    command: npm run dev
+      - .:/var/www/html:cached
+      - /var/www/html/node_modules
+    command: npm run dev -- --host 0.0.0.0
     ports:
       - "5173:5173"
     networks:
