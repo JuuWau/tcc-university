@@ -19,6 +19,7 @@ use App\Http\Controllers\ScheduleSlotController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\SpecialtiesController;
 use App\Http\Controllers\StudentsController;
+use App\Http\Controllers\StudentsPerformanceReportController;
 use App\Http\Controllers\StudentsReportController;
 use App\Http\Controllers\UserInviteController;
 use App\Http\Controllers\UsersController;
@@ -42,10 +43,6 @@ Route::get('initialPage', function () {
     return Inertia::render('InitialPage');
 })->middleware(['auth', 'verified'])->name('initialPage');
 
-Route::get('reports/students', function () {
-    return Inertia::render('reports/StudentsReportMock');
-})->middleware(['auth', 'verified'])->name('reports.students');
-
 Route::get('/my-profile', [ProfileController::class, 'redirect'])
     ->middleware(['auth'])
     ->name('profile.redirect');
@@ -63,10 +60,6 @@ Route::prefix('schedules')->group(function () {
     Route::delete('multiple-slots', [ScheduleSlotController::class, 'destroyMultipleSlots'])->name('schedules.slots.multiple.destroy');
 })->middleware(['auth', 'verified'])->name('schedules');
 
-// Route::prefix('confirm-appointment')->group(function () {
-//     Route::get('confirm-appointment', [ConfirmAppointmentController::class, 'index'])->name('confirmAppointment.index');
-// })->middleware(['auth', 'verified'])->name('confirm-appointment');
-
 Route::prefix('schedule-enrollment')->group(function () {
     Route::post('open', [ScheduleEnrollmentController::class, 'storeOpenSchedule'])->name('schedules.enrollment.open.store');
     Route::get('open-clinics', [ScheduleEnrollmentController::class, 'openClinicsSchedullesEnrollmentManagement'])->name('schedules.enrollment.openClinics')->middleware('permission:open-schedule-management-student.view');
@@ -83,10 +76,6 @@ Route::prefix('schedule-enrollment')->group(function () {
     Route::get('slots/{slot}/students', [ScheduleEnrollmentController::class, 'slotStudents'])->name('schedules.enrollment.slots.students');
     Route::delete('slots/{slot}/students/{student}', [ScheduleEnrollmentController::class, 'removeStudentFromSlot'])->name('schedules.enrollment.slots.students.destroy');
 });
-
-// Route::prefix('schedule-attendance')->group(function () {
-//     Route::get('schedule-attendance', [ScheduleAttendanceController::class, 'index'])->name('schedule.attendance.index');
-// })->middleware(['auth', 'verified'])->name('schedule-attendance');
 
 Route::prefix('reports/appointments')->name('reports.appointments.')->group(function () {
     Route::get('/', [AppointmentReportsController::class, 'index'])->name('index');
@@ -112,6 +101,11 @@ Route::prefix('reports/clinics')->middleware(['auth', 'verified'])->group(functi
     Route::get('/export', [ClinicReportController::class, 'exportExcel'])->name('reports.clinics.export');
 })->middleware('permission:clinics-reports.view');
 
+Route::prefix('reports/students-performance')->middleware(['auth', 'verified'])->group(function () {
+    Route::get('/', [StudentsPerformanceReportController::class, 'index'])->name('reports.students.performance.index');
+    Route::get('/data', [StudentsPerformanceReportController::class, 'data'])->name('reports.students.performance.data');
+    Route::get('/export', [StudentsPerformanceReportController::class, 'exportExcel'])->name('reports.students.performance.export');
+})->middleware('permission:students-performance-reports.view');
 
 Route::get('/reports/clinics-by-student', function () {
     return Inertia::render('reports/ClinicsByStudentReportMock');
