@@ -103,7 +103,8 @@ class PermissionSeeder extends Seeder
             'students-reports.view', // Página de relatórios de estudantes
             'appointments-reports.view', // Página de relatórios de agendamentos
             'patients-reports.view', // Página de relatórios de pacientes
-            'clinics-reports.view' // Página de relatórios de clínicas
+            'clinics-reports.view', // Página de relatórios de clínicas
+            'students-performance-reports.view' // Página de relatórios de performance dos estudantes 
         ];
 
         foreach ($permissions as $permission) {
