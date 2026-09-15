@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BarChart, Building2, Calendar, ClipboardList, GraduationCap, LayoutGrid, ListPlus, Stethoscope, User, Users, Timer, CalendarPlus, CalendarCog, CalendarCheck, Hospital, LogIn, Notebook, FileUser, BookUser, UsersRound } from 'lucide-vue-next';
+import { BarChart, Building2, Calendar, ClipboardList, GraduationCap, LayoutGrid, ListPlus, Stethoscope, User, Users, Timer, CalendarPlus, CalendarCog, CalendarCheck, Hospital, LogIn, Notebook, FileUser, BookUser, UsersRound, Layers } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed } from 'vue';
 
@@ -149,6 +149,12 @@ const mainNavItems: NavItem[] = [
                 href: '/reports/clinics',
                 icon: Building2,
                 permission: 'clinics-reports.view'
+            },
+            {
+                title: 'Relatórios de desempenho clínico',
+                href: '/reports/students-performance',
+                icon: Layers,
+                permission: 'students-performance-reports.view'
             },
             {
                 title: 'Relatórios de pacientes',
