@@ -255,6 +255,37 @@ class StudentService
                         }
 
                         $student->save();
+                        
+                        if ($currentPeriod?->id !== $newPeriodId) {
+                                $enrollmentIds = DB::table('schedule_enrollments')
+                                        ->where('student_id', $student->id)
+                                        ->where('status', 'active')
+                                        ->whereIn('schedule_slot_id', function ($query) use ($currentPeriod) {
+                                                $query->select('id')
+                                                        ->from('schedule_slots')
+                                                        ->where('period_id', $currentPeriod?->id);
+                                        })
+                                        ->pluck('id');
+
+                                if ($enrollmentIds->isNotEmpty()) {
+                                        DB::table('appointments')
+                                                ->whereIn('schedule_enrollment_id', $enrollmentIds)
+                                                ->whereIn('status', [
+                                                        'scheduled',
+                                                        'confirmed',
+                                                        'rescheduled',
+                                                ])
+                                                ->update([
+                                                        'status' => 'canceled',
+                                                ]);
+
+                                        DB::table('schedule_enrollments')
+                                                ->whereIn('id', $enrollmentIds)
+                                                ->update([
+                                                        'status' => 'canceled',
+                                                ]);
+                                }
+                        }
 
                         DB::table('student_periods')
                                 ->where('student_id', $student->id)
