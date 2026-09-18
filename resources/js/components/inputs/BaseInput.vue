@@ -1,6 +1,11 @@
 <script setup lang="ts">
 import { computed } from 'vue';
+
 import type { Component } from 'vue';
+
+defineOptions({
+	inheritAttrs: false,
+});
 
 interface Props {
 	modelValue?: string | number | null;
@@ -31,13 +36,24 @@ const props = withDefaults(defineProps<Props>(), {
 });
 
 const emit = defineEmits<{
-	'update:modelValue': [value: string];
+	'update:modelValue': [value: string | number | null];
 	input: [event: Event];
 }>();
 
 const inputValue = computed({
 	get: () => props.modelValue ?? '',
-	set: (value) => emit('update:modelValue', String(value)),
+	set: (value) => {
+		if (props.type === 'number') {
+			emit(
+				'update:modelValue',
+				value === '' ? null : Number(value),
+			);
+
+			return;
+		}
+
+		emit('update:modelValue', String(value));
+	},
 });
 </script>
 
@@ -74,6 +90,7 @@ const inputValue = computed({
 				:disabled="disabled"
 				:required="required"
 				:autocomplete="autocomplete"
+				v-bind="$attrs"
 				:class="[
 					'w-full rounded-lg border bg-white py-2.5 pr-3 text-sm transition focus:ring-2 focus:outline-none disabled:cursor-not-allowed disabled:bg-gray-100',
 					icon ? 'pl-9' : 'pl-3',

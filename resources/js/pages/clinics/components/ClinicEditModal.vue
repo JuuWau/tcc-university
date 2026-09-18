@@ -136,16 +136,17 @@ onMounted(() => {
 				<div class="space-y-4 py-5">
 					<BaseInput
 						v-model="form.name"
-						label="Nome da clínica (*)"
+						label="Nome da clínica"
 						type="text"
 						maxlength="120"
 						placeholder="Nome da clínica"
+                        required
 					/>
 
 					<AppMultiselect
 						v-model="form.specialty_ids"
 						:options="specialtyOptions"
-						field-label="Especialidades (*)"
+						field-label="Especialidades"
 						label="label"
 						value-prop="value"
 						mode="tags"
@@ -154,6 +155,7 @@ onMounted(() => {
 						:can-clear="true"
 						:append-to-body="true"
 						placeholder="Selecione as especialidades"
+                        required
 					/>
 				</div>
 			</div>

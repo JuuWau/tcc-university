@@ -208,43 +208,48 @@ async function submit() {
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <BaseInput
                             v-model="form.name"
-                            label="Nome completo (*)"
+                            label="Nome completo"
                             type="text"
                             maxlength="255"
                             placeholder="Nome completo"
+                            required
                         />
                         
                         <BaseInput
                             v-model="form.email"
-                            label="E-mail (*)"
+                            label="E-mail"
                             type="email"
                             maxlength="255"
                             placeholder="email@exemplo.com"
+                            required
                         />
                     </div>
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <BaseInput
                             v-model="form.phone"
-                            label="Telefone (*)"
+                            label="Telefone"
                             type="tel"
                             v-mask="'(##) #####-####'"
                             placeholder="(99) 99999-9999"
+                            required
                         />
                         
                         <BaseInput
                             v-model="form.cpf"
-                            label="CPF (*)"
+                            label="CPF"
                             type="text"
                             maxlength="14"
                             v-mask="'###.###.###-##'"
                             placeholder="000.000.000-00"
+                            required
                         />
                     </div>
                     <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                         <BaseInput
                             v-model="form.birth_date"
-                            label="Data de nascimento (*)"
+                            label="Data de nascimento"
                             type="date"
+                            required
                         />
 
                         <div>
@@ -267,38 +272,42 @@ async function submit() {
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
                             <BaseInput
                                 v-model="form.cep"
-                                label="CEP (*)"
+                                label="CEP"
                                 type="text"
                                 maxlength="9"
                                 v-mask="'#####-###'"
                                 placeholder="00000-000"
+                                required
                             />
 
                             <div class="md:col-span-2">
                                 <BaseInput
                                     v-model="form.street"
-                                    label="Endereço (*)"
+                                    label="Endereço"
                                     type="text"
                                     maxlength="100"
                                     placeholder="Logradouro"
+                                    required
                                 />
                             </div>
                         </div>
                         <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
                             <BaseInput
                                 v-model="form.neighborhood"
-                                label="Bairro (*)"
+                                label="Bairro"
                                 type="text"
                                 maxlength="50"
                                 placeholder="Bairro"
+                                required
                             />
 
                             <BaseInput
                                 v-model="form.number"
-                                label="Número (*)"
+                                label="Número"
                                 type="text"
                                 maxlength="5"
                                 placeholder="Número"
+                                required
                             />
                             
                             <BaseInput
@@ -313,7 +322,7 @@ async function submit() {
                             <AppMultiselect
                                 v-model="form.state"
                                 :options="stateOptions"
-                                field-label="Estado (*)"
+                                field-label="Estado"
                                 label="label"
                                 value-prop="value"
                                 :append-to-body="true"
@@ -321,12 +330,13 @@ async function submit() {
                                 :close-on-select="true"
                                 :can-clear="true"
                                 placeholder="Selecione o estado"
+                                required
                             />
 
                             <AppMultiselect
                                 v-model="form.city"
                                 :options="cityOptions"
-                                field-label="Cidade (*)"
+                                field-label="Cidade"
                                 label="label"
                                 value-prop="value"
                                 :append-to-body="true"
@@ -334,6 +344,7 @@ async function submit() {
                                 :close-on-select="true"
                                 :can-clear="true"
                                 placeholder="Selecione a cidade"
+                                required
                             />
                         </div>
                     </div>

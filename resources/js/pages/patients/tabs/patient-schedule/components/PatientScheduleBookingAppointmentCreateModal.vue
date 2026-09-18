@@ -196,7 +196,7 @@ async function createAppointment() {
 					<AppMultiselect
 						v-model="form.status"
 						:options="statusOptions"
-						field-label="Status (*)"
+						field-label="Status"
 						label="label"
 						value-prop="value"
 						:searchable="true"
@@ -204,6 +204,7 @@ async function createAppointment() {
 						:can-clear="false"
 						:append-to-body="true"
 						placeholder="Selecione o status"
+                        required
 					/>
 
 					<div>

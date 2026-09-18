@@ -70,10 +70,11 @@ defineExpose({ submit });
         <form class="space-y-4 py-4" @submit.prevent="submit">
                 <BaseInput
                         v-model="form.code"
-                        label="Código do paciente (*)"
+                        label="Código do paciente"
                         type="text"
                         maxlength="20"
                         placeholder="Código do paciente"
+                        required
                 />
                 <AppMultiselect
                         v-model="form.student_ids"

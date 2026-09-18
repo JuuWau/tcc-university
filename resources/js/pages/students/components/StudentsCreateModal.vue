@@ -108,32 +108,35 @@ async function submit() {
 				<div class="space-y-4 py-4">
 					<BaseInput
 						v-model="form.name"
-						label="Nome completo (*)"
+						label="Nome completo"
 						type="text"
 						maxlength="50"
 						placeholder="Escreva o nome completo do aluno"
+						required
 					/>
 
 					<BaseInput
 						v-model="form.registration"
-						label="Registro do aluno (*)"
+						label="Registro do aluno"
 						type="text"
 						maxlength="20"
 						placeholder="Escreva o registro do aluno"
+						required
 					/>
 
 					<BaseInput
 						v-model="form.email"
-						label="Email do aluno (*)"
+						label="Email do aluno"
 						type="email"
 						maxlength="50"
 						placeholder="Escreva o email do aluno"
+						required
 					/>
 
 					<AppMultiselect
 						v-model="form.period"
 						:options="periodsOptions"
-						field-label="Período (*)"
+						field-label="Período"
 						label="label"
 						value-prop="value"
 						:searchable="true"
@@ -141,6 +144,7 @@ async function submit() {
 						:can-clear="true"
 						:append-to-body="true"
 						placeholder="Selecione o período do aluno"
+						required
 					/>
 				</div>
 			</div>

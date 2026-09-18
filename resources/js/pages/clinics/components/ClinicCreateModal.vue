@@ -104,16 +104,17 @@ async function loadSpecialties() {
 				<div class="space-y-4 py-5">
 					<BaseInput
 						v-model="form.name"
-						label="Nome da clínica (*)"
+						label="Nome da clínica"
 						type="text"
 						maxlength="120"
 						placeholder="Ex: Clínica Escola A"
+                        required
 					/>
 
 					<AppMultiselect
 						v-model="form.specialty_ids"
 						:options="specialtyOptions"
-						field-label="Especialidades (*)"
+						field-label="Especialidades"
 						label="label"
 						value-prop="value"
 						mode="tags"
@@ -122,6 +123,7 @@ async function loadSpecialties() {
 						:can-clear="true"
 						:append-to-body="true"
 						placeholder="Selecione as especialidades"
+                        required
 					/>
 				</div>
 			</div>

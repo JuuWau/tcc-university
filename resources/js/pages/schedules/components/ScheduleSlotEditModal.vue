@@ -157,25 +157,28 @@ async function submit() {
 
 					<BaseInput
 						v-model="form.date"
-						label="Data (*)"
+						label="Data"
 						type="date"
+						required
 					/>
 
 					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<BaseInput
 							v-model="form.start_time"
-							label="Início (*)"
+							label="Início"
 							type="text"
 							v-mask="'##:##'"
 							placeholder="HH:mm"
+							required
 						/>
 
 						<BaseInput
 							v-model="form.end_time"
-							label="Fim (*)"
+							label="Fim"
 							type="text"
 							v-mask="'##:##'"
 							placeholder="HH:mm"
+							required
 						/>
 					</div>
 
