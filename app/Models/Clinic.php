@@ -32,9 +32,9 @@ class Clinic extends Model
         return $this->hasMany(ClinicWaitingList::class);
     }
 
-    public function patientClinics(): HasMany
+    public function prePatientClinics(): HasMany
     {
-        return $this->hasMany(PatientClinic::class);
+        return $this->hasMany(PrePatientClinic::class);
     }
 
     public function patients(): BelongsToMany

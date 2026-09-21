@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -49,6 +50,7 @@ class Patient extends Model
         'code',
         'patient_type',
         'biological_sex',
+        'pre_patient_id'
     ];
 
     public function university()
@@ -79,22 +81,8 @@ class Patient extends Model
         )->withTimestamps()
         ->wherePivotNull('deleted_at');
     }
-    
-    public function waitingLists(): HasMany
+    public function prePatient(): BelongsTo
     {
-        return $this->hasMany(ClinicWaitingList::class);
-    }
-
-    public function patientClinics(): HasMany
-    {
-        return $this->hasMany(PatientClinic::class);
-    }
-
-    public function clinics(): BelongsToMany
-    {
-        return $this->belongsToMany(
-            Clinic::class,
-            'patient_clinics'
-        )->withPivot('enrolled_at');
+        return $this->belongsTo(PrePatient::class);
     }
 }
