@@ -14,11 +14,11 @@ class PatientsReportService
         return [
             'patient_types' => [
                 [
-                    'id' => 'pediatria',
+                    'id' => 'pediatrics',
                     'name' => 'Pediatria',
                 ],
                 [
-                    'id' => 'adulto',
+                    'id' => 'adult',
                     'name' => 'Adulto',
                 ],
             ],
