@@ -2,9 +2,10 @@
 
 namespace App\Http\Requests;
 
+use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
 
-class StoreClinicWaitingListRequest extends FormRequest
+class PrePatientConvertRequest extends FormRequest
 {
     /**
      * Determine if the user is authorized to make this request.
@@ -17,19 +18,16 @@ class StoreClinicWaitingListRequest extends FormRequest
     /**
      * Get the validation rules that apply to the request.
      *
-     * @return array<string, \Illuminate\Contracts\Validation\ValidationRule|array<mixed>|string>
+     * @return array<string, ValidationRule|array<mixed>|string>
      */
     public function rules(): array
     {
         return [
-            'pre_patient_ids' => [
-                'required',
-                'array',
-                'min:1',
-            ],
-            'pre_patient_ids.*' => [
-                'integer',
-                'exists:pre_patients,id',
+            'code' => [
+                'required', 
+                'string', 
+                'max:20', 
+                'unique:patients,code'
             ],
         ];
     }
