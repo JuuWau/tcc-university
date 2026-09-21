@@ -84,7 +84,7 @@ export const patientCreateSchema = z.object({
         z.string().max(50, 'Complemento não pode ter mais de 50 caracteres').optional().nullable(),
     ),
     patient_type: z
-        .enum(['adulto', 'pediatria'])
+        .enum(['adult', 'pediatrics'])
         .nullable()
         .refine((value) => value !== null, {
             message: 'Tipo de atendimento é obrigatório',

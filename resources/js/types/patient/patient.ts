@@ -52,7 +52,7 @@ export interface PatientForTab {
     cpf: string | null;
     birth_date: string | null;
     biological_sex: 'female' | 'male';
-    patient_type: 'adulto' | 'pediatria';
+    patient_type: 'adult' | 'pediatrics';
     phone: string | null;   
     email: string | null;
     status?: PatientStatusKey;

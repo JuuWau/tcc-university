@@ -16,7 +16,7 @@ export const patientPersonalDataEditSchema = z.object({
     ),
     patient_type: z.preprocess(
         normalizeOptionalString,
-        z.enum(['adulto', 'pediatria'], {
+        z.enum(['adult', 'pediatrics'], {
             required_error: 'Tipo do paciente é obrigatório',
             invalid_type_error: 'Tipo do paciente inválido',
         }),
