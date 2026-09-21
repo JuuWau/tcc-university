@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('clinic_waiting_lists', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('patient_id')
+            $table->foreignId('pre_patient_id')
                 ->constrained()
                 ->cascadeOnDelete();
             $table->foreignId('clinic_id')
@@ -21,7 +21,8 @@ return new class extends Migration
                 ->cascadeOnDelete();
             $table->timestamp('enrolled_at');
             $table->timestamps();
-            $table->unique(['patient_id', 'clinic_id']);
+            $table->softDeletes();
+            $table->unique(['pre_patient_id', 'clinic_id']);
         });
     }
 

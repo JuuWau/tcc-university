@@ -11,25 +11,19 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('patients', function (Blueprint $table) {
+        Schema::create('pre_patients', function (Blueprint $table) {
             $table->id();
             $table->foreignId('university_id')
                 ->constrained()
                 ->cascadeOnDelete();
-            $table->foreignId('pre_patient_id')
-                ->nullable()
-                ->constrained('pre_patients')
-                ->nullOnDelete();
             $table->string('name');
-            $table->string('cpf')->nullable()->unique();
+            $table->string('cpf')->nullable();
             $table->date('birth_date')->nullable();
-            $table->string('biological_sex', 20)->nullable();
+            $table->string('biological_sex', 20);
             $table->string('phone')->nullable();
             $table->string('email')->nullable();
             $table->string('patient_type');
-            $table->string('code')->unique();
-            $table->string('status', 30)->default('ativo');
-            $table->softDeletes();
+            $table->string('status', 30)->default('waiting');
             $table->timestamps();
         });
     }
@@ -39,6 +33,6 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('patients');
+        Schema::dropIfExists('pre_patients');
     }
 };
