@@ -31,8 +31,8 @@ class PatientsReportExport implements FromQuery, WithHeadings, WithMapping
                 : null,
 
             match ($patient->patient_type) {
-                'pediatria' => 'Pediatria',
-                'adulto' => 'Adulto',
+                'pediatrics' => 'Pediatria',
+                'adult' => 'Adulto',
                 default => $patient->patient_type,
             },
 
