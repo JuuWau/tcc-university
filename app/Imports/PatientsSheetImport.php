@@ -121,9 +121,9 @@ class PatientsSheetImport implements ToCollection, WithHeadingRow, WithChunkRead
                     'code' => $code,
                     'name' => $name,
                     'phone' => (string) $row->get('telefone', ''),
-                    'patient_type' => $clinic === 'adulto'
-                        ? 'adulto'
-                        : 'pediatria',
+                    'patient_type' => $clinic === 'adult'
+                        ? 'adult'
+                        : 'pediatrics',
                     'status' => Patient::STATUS_ATIVO,
                     'biological_sex' => match ($biologicalSex) {
                         'male', 'masculino', 'm' => 'male',
