@@ -15,6 +15,7 @@ use App\Http\Controllers\AppointmentReportsController;
 use App\Http\Controllers\ClinicManagementController;
 use App\Http\Controllers\ClinicReportController;
 use App\Http\Controllers\PatientsReportController;
+use App\Http\Controllers\PrePatientController;
 use App\Http\Controllers\ScheduleSlotController;
 use App\Http\Controllers\Settings\ProfileController;
 use App\Http\Controllers\SpecialtiesController;
@@ -51,7 +52,7 @@ Route::prefix('schedules')->group(function () {
     Route::post('open', [ScheduleSlotController::class, 'storeOpenSchedule'])->name('schedules.open.store');
     Route::get('open-schedule', [ScheduleSlotController::class, 'openSchedule'])->name('schedules.openSchedule');
     Route::get('open-clinics', [ScheduleSlotController::class, 'openClinicsManagement'])->name('schedules.openClinics');
-    Route::get('/open-clinics/table',[ScheduleSlotController::class, 'openClinicsTable'])->name('schedules.openClinics.table');
+    Route::get('/open-clinics/table', [ScheduleSlotController::class, 'openClinicsTable'])->name('schedules.openClinics.table');
     Route::get('open-clinics/{clinic}', [ScheduleSlotController::class, 'clinicOpenSchedules'])->name('schedules.openClinics.show');
     Route::post('open-clinics/{clinic}', [ScheduleSlotController::class, 'storeOpenClinicDay'])->name('schedules.openClinics.storeDay');
     Route::patch('slots/{slot}', [ScheduleSlotController::class, 'updateSlot'])->name('schedules.slots.update');
@@ -63,7 +64,7 @@ Route::prefix('schedules')->group(function () {
 Route::prefix('schedule-enrollment')->group(function () {
     Route::post('open', [ScheduleEnrollmentController::class, 'storeOpenSchedule'])->name('schedules.enrollment.open.store');
     Route::get('open-clinics', [ScheduleEnrollmentController::class, 'openClinicsSchedullesEnrollmentManagement'])->name('schedules.enrollment.openClinics')->middleware('permission:open-schedule-management-student.view');
-    Route::get('open-clinics/table', [ScheduleEnrollmentController::class, 'openClinicsSchedullesEnrollmentTable'] )->name('schedules.enrollment.openClinics.table');
+    Route::get('open-clinics/table', [ScheduleEnrollmentController::class, 'openClinicsSchedullesEnrollmentTable'])->name('schedules.enrollment.openClinics.table');
     Route::get('open-clinic/{clinic}', [ScheduleEnrollmentController::class, 'clinicOpenSchedulesEnrollment'])->name('schedules.enrollment.openClinic.show')->middleware('permission:open-schedule-management-student.view');
     Route::get('open-clinic/{clinic}/table', [ScheduleEnrollmentController::class, 'clinicOpenSchedulesEnrollmentTable'])->name('schedules.enrollment.openClinic.table')->middleware('permission:open-schedule-management-student.view');
     Route::post('open-clinics/{clinic}', [ScheduleEnrollmentController::class, 'storeOpenClinicDay'])->name('schedules.enrollment.openClinics.storeDay');
@@ -136,6 +137,7 @@ Route::prefix('clinics')->group(function () {
     Route::patch('/{clinic}/deactivate', [ClinicController::class, 'deactivate'])->name('clinics.deactivate')->middleware('permission:clinics.deactivate');
     Route::patch('/{clinic}/activate', [ClinicController::class, 'activate'])->name('clinics.activate')->middleware('permission:clinics.activate');
     Route::delete('/{clinic}', [ClinicController::class, 'destroy'])->name('clinics.destroy')->middleware('permission:clinics.delete');
+    Route::get('/options', [ClinicController::class, 'getClinics'])->name('clinics.getClinics');
 })->middleware(['auth', 'verified', 'permission:registrations.view']);
 
 Route::prefix('procedures')->group(function () {
@@ -202,6 +204,7 @@ Route::prefix('patients')->group(function () {
     Route::get('/schedule/{patient}/clinics', [PatientController::class, 'getEnrolledClinics'])->name('patients.getEnrolledClinics');
     Route::get('/schedule/{clinic}/periods', [PatientController::class, 'getClinicPeriods'])->name('patients.getClinicPeriods');
     Route::get('/schedule/{patient}/students', [PatientController::class, 'getClinicStudents'])->name('patients.getClinicStudents');
+    Route::get('/next-code', [PatientController::class, 'nextCode'])->name('patients.next-code');
 })->middleware(['auth', 'verified']);
 
 Route::prefix('users')->group(function () {
@@ -239,7 +242,7 @@ Route::prefix('clinics-management')->name('clinics-management.')->group(function
     Route::get('/{clinic}', [ClinicManagementController::class, 'show'])->name('show');
     Route::get('/{clinic}/table', [ClinicManagementController::class, 'table'])->name('table');
     Route::post('/{clinic}/enroll', [ClinicManagementController::class, 'enroll'])->name('enroll')->middleware('permission:clinics-management.enrollClinic');
-    Route::delete('/{clinic}/remove-enrollment/{patient}', [ClinicManagementController::class, 'removeEnrollment'])->name('remove-enrollment')->middleware('permission:clinics-management.removeEnrollmentClinic');
+    Route::delete('/{clinic}/remove-enrollment/{prePatient}', [ClinicManagementController::class, 'removeEnrollment'])->name('remove-enrollment')->middleware('permission:clinics-management.removeEnrollmentClinic');
     Route::post('/{clinic}/waiting-list', [ClinicManagementController::class, 'storeWaitingList'])->name('storeWaitingList')->middleware('permission:clinics-management.addPatientToWaitingList');
 });
 
@@ -254,6 +257,16 @@ Route::prefix('invite')->group(function () {
     Route::get('/{token}', [UserInviteController::class, 'show'])->name('invite.show');
     Route::patch('/{token}', [UserInviteController::class, 'updateStudent'])->name('invite.updateStudent');
     Route::post('/{token}', [UserInviteController::class, 'store'])->name('invite.store');
+});
+
+Route::prefix('pre-patients')->group(function () {
+    Route::get('/', [PrePatientController::class, 'index'])->name('pre-patients.index')->middleware('permission:pre-patients.view');
+    Route::get('/table', [PrePatientController::class, 'table'])->name('pre-patients.table');
+    Route::post('/', [PrePatientController::class, 'store'])->name('pre-patients.store')->middleware('permission:pre-patients.create');
+    Route::put('/{prePatient}', [PrePatientController::class, 'update'])->name('pre-patients.update')->middleware('permission:pre-patients.update');
+    Route::delete('/{prePatient}', [PrePatientController::class, 'destroy'])->name('pre-patients.destroy')->middleware('permission:pre-patients.delete');
+    Route::post('/{prePatient}/convert', [PrePatientController::class, 'convert'])->name('pre-patients.convert')->middleware('permission:pre-patients.convert');
+    Route::get('/options/{clinic}', [PrePatientController::class, 'availablePrePatients'])->name('pre-patients.availablePrePatients');
 });
 
 require __DIR__ . '/settings.php';
