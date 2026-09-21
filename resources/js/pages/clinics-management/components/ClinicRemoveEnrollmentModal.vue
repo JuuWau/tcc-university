@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import CancelButton from '@/components/buttons/CancelButton.vue';
-import DeleteButton from '@/components/buttons/DeleteButton.vue';
 import FormFooter from '@/components/form/FormFooter.vue';
 import FormHeader from '@/components/form/FormHeader.vue';
 import { ClinicRemoveEnrollmentKey, RefreshTableKey } from '@/keys/clinics-management/clinicManagementShowKeys';
@@ -12,6 +10,8 @@ import { toast } from 'vue3-toastify';
 const removeModal = inject<any>(ClinicRemoveEnrollmentKey);
 const loading = inject(LoadingKey);
 const refreshTableRef = inject(RefreshTableKey);
+
+console.log(removeModal.patient.value);
 
 if (!removeModal || !loading) {
     throw new Error(
@@ -31,7 +31,7 @@ async function submit() {
         loading.value = true;
 
         await axios.delete(
-            `/clinics-management/${removeModal.clinicId.value}/remove-enrollment/${removeModal.patient.value.patient_id}`
+            `/clinics-management/${removeModal.clinicId.value}/remove-enrollment/${removeModal.patient.value.pre_patient_id}`
         );
 
         toast.success('Inscrição removida com sucesso');
@@ -64,6 +64,7 @@ async function submit() {
                     Tem certeza que deseja remover a inscrição de
                     <strong>
                         {{ removeModal.patient.value?.name }}
+                        {{ removeModal.patient.value?.pre_patient_id }}
                     </strong>
                     da clínica?
                 </p>

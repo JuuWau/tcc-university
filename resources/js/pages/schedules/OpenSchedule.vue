@@ -58,9 +58,10 @@ const responsibleOptions: SelectOption[] = (props.responsible ?? []).map(
         value: responsible.id,
     }),
 );
+
 const clinicOptions: SelectOption[] = (props.clinics ?? []).map((clinic) => ({
     label: clinic.label,
-    value: clinic.id,
+    value: clinic.value,
 }));
 
 const existingSlots = ref<OpenScheduleSlot[]>(props.existingSlots ?? []);
@@ -89,7 +90,9 @@ const monthLabel = computed(() =>
         },
     ),
 );
-
+console.log('props.clinics:', props.clinics);
+console.log('clinicOptions:', clinicOptions);
+console.log('clinic_id inicial:', form.clinic_id);
 const periodLabel = computed(
     () =>
         periodOptions.find((option) => option.value === form.period_id)

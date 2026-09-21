@@ -4,10 +4,7 @@ import FormFooter from '@/components/form/FormFooter.vue';
 import FormHeader from '@/components/form/FormHeader.vue';
 import BaseInput from '@/components/inputs/BaseInput.vue';
 import { AppointmentCreateModalKey } from '@/keys/appointment/useAppointmentKeys';
-import {
-    StudentScheduleContextKey,
-    type StudentScheduleContext,
-} from '@/keys/students/studentScheduleKeys';
+import { StudentScheduleContextKey, type StudentScheduleContext } from '@/keys/students/studentScheduleKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import { appointmentCreateSchema } from '@/schemas/appointmentCreateSchema';
 import { getTodayDateKey } from '@/src/utils/formatters';

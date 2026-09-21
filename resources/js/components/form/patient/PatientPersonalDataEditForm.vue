@@ -20,7 +20,7 @@ const emit = defineEmits<{
 			phone: string;
 			cpf: string;
 			birth_date: string;
-			patient_type: 'adulto' | 'pediatria' | null;
+			patient_type: 'adult' | 'pediatrics' | null;
 			biological_sex: 'male' | 'female' | null;
 			cep: string;
 			street: string;
@@ -39,7 +39,7 @@ const cities = ref<City[]>([]);
 const viaCep = ViaCep();
 
 const patientTypeOptions = [
-	{ label: 'Adulto', value: 'adulto' },
+	{ label: 'Adulto', value: 'adult' },
 	{ label: 'Pediatria', value: 'pediatria' },
 ];
 
@@ -68,7 +68,7 @@ const form = reactive({
 	phone: '',
 	cpf: '',
 	birth_date: '',
-	patient_type: null as 'adulto' | 'pediatria' | null,
+	patient_type: null as 'adult' | 'pediatrics' | null,
 	biological_sex: null as 'male' | 'female' | null,
 	cep: '',
 	street: '',

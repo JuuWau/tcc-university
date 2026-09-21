@@ -40,7 +40,7 @@ async function submit(data: {
 	cpf: string;
 	birth_date: string;
 	biological_sex: 'male' | 'female' | null;
-	patient_type: 'adulto' | 'pediatria' | null;
+	patient_type: 'adult' | 'pediatrics' | null;
 	cep: string;
 	street: string;
 	neighborhood: string;

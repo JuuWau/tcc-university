@@ -2,10 +2,6 @@
 import { inject, reactive } from 'vue';
 import axios from 'axios';
 import { toast } from 'vue3-toastify';
-
-import CancelButton from '@/components/buttons/CancelButton.vue';
-import SaveButton from '@/components/buttons/SaveButton.vue';
-
 import { ClinicEnrollKey, RefreshTableKey } from '@/keys/clinics-management/clinicManagementShowKeys';
 import FormFooter from '@/components/form/FormFooter.vue';
 import FormHeader from '@/components/form/FormHeader.vue';
@@ -31,7 +27,7 @@ async function submit() {
         await axios.post(
             `/clinics-management/${enrollModal.clinicId.value}/enroll`,
             {
-                patient_id: enrollModal.patient.value.patient_id,
+                pre_patient_id: enrollModal.patient.value.pre_patient_id,
             }
         );
 

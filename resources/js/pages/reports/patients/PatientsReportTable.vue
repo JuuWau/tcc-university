@@ -61,8 +61,8 @@ const columnDefs = computed(() => [
         sortable: false,
         valueGetter: (params: any) => {
             const types: Record<string, string> = {
-                pediatria: 'Pediatria',
-                adulto: 'Adulto',
+                pediatrics: 'Pediatria',
+                adult: 'Adulto',
             };
 
             return types[params.data.patient_type]

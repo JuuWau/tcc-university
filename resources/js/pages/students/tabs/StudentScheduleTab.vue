@@ -9,7 +9,6 @@ import { StudentTabContext, StudentTabContextKey } from '@/keys/students/student
 import { AppointmentCreateModalKey, AppointmentDetailsModalKey } from '@/keys/appointment/useAppointmentKeys.js';
 import StudentAppointmentEditModal from './components/StudentAppointmentEditModal.vue';
 import { LoadingKey } from '@/keys/ui/loadingKey';
-import { edit } from '@/routes/appearance/index.js';
 import StudentAppointmentCreateModal from './components/StudentAppointmentCreateModal.vue';
 
 const ctx = inject(StudentTabContextKey) as StudentTabContext;

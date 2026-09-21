@@ -190,7 +190,6 @@ const calendarOptions = computed(() => ({
         if (!canCreateAppointments.value) {
             return false;
         }
-        console.log('selectAllow', info.start, info.end);
 
         return isInsideAllowedRange(info.start, info.end);
     },

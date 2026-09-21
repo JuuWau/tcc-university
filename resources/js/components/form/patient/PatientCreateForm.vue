@@ -33,12 +33,12 @@ const model = defineModel<{
 	complement: string | null;
 	city: string | null;
 	state: string | null;
-	patient_type: 'adulto' | 'pediatria' | null;
+	patient_type: 'adult' | 'pediatrics' | null;
 }>();
 
 const patientTypeOptions = [
-	{ label: 'Adulto', value: 'adulto' },
-	{ label: 'Pediatria', value: 'pediatria' },
+	{ label: 'Adulto', value: 'adult' },
+	{ label: 'Pediatria', value: 'pediatrics' },
 ];
 
 const biologicalSexOptions = [
