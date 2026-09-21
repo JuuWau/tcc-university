@@ -40,7 +40,7 @@ use PhpOffice\PhpSpreadsheet\IOFactory;
 class PatientController extends Controller
 {
     use AuthorizesRequests;
-    
+
     public function __construct(
         protected PatientService $patientService,
         protected StudentService $studentService
@@ -347,16 +347,23 @@ class PatientController extends Controller
         );
     }
 
-    public function getAvailableDays(Patient $patient, PatientScheduleAvailableDaysRequest $request) {
+    public function getAvailableDays(Patient $patient, PatientScheduleAvailableDaysRequest $request)
+    {
         return response()->json(
             $this->patientService->getAvailableDays($patient, $request->validated())
         );
     }
 
-    public function getAvailableTimes(Patient $patient, PatientScheduleAvailableTimesRequest $request) 
+    public function getAvailableTimes(Patient $patient, PatientScheduleAvailableTimesRequest $request)
     {
         return response()->json(
             $this->patientService->getAvailableTimes($patient, $request->validated())
         );
+    }
+
+    public function nextCode(Request $request)
+    {
+        $request->validate(['patient_type' => ['required', 'in:adult,pediatric'],]);
+        return response()->json(['code' => $this->patientService->nextCode($request->patient_type)]);
     }
 }
