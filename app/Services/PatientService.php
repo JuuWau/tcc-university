@@ -826,4 +826,26 @@ class PatientService
                         'available_times' => $availableTimes,
                 ];
         }
+
+        public function nextCode(string $patientType): string
+        {
+                $prefix = $patientType === 'pediatric' ? 'P' : 'A';
+
+                $lastCode = Patient::query()
+                        ->where('code', 'like', "{$prefix}-%")
+                        ->orderByDesc('id')
+                        ->value('code');
+
+                if (!$lastCode) {
+                        return "{$prefix}-0001";
+                }
+
+                $number = (int) str_replace("{$prefix}-", '', $lastCode);
+
+                return sprintf(
+                        '%s-%04d',
+                        $prefix,
+                        $number + 1,
+                );
+        }
 }

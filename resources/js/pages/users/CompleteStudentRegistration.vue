@@ -171,36 +171,40 @@ async function submit() {
 					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<BaseInput
 							v-model="form.email"
-							label="Email (*)"
+							label="Email"
 							type="email"
 							disabled
 							placeholder="email@exemplo.com"
+							required
 						/>
 
 						<BaseInput
 							v-model="form.phone"
-							label="Telefone (*)"
+							label="Telefone"
 							type="tel"
 							v-mask="'(##) #####-####'"
 							placeholder="(99) 99999-9999"
+							required
 						/>
 					</div>
 
 					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<BaseInput
 							v-model="form.cpf"
-							label="CPF (*)"
+							label="CPF"
 							type="text"
 							maxlength="14"
 							v-mask="'###.###.###-##'"
 							placeholder="000.000.000-00"
 							@blur="validateCpf"
+							required
 						/>
 
 						<BaseInput
 							v-model="form.birth_date"
-							label="Data de nascimento (*)"
+							label="Data de nascimento"
 							type="date"
+							required
 						/>
 					</div>
 
@@ -212,20 +216,22 @@ async function submit() {
 						<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
 							<BaseInput
 								v-model="form.cep"
-								label="CEP (*)"
+								label="CEP"
 								type="text"
 								maxlength="9"
 								v-mask="'#####-###'"
 								placeholder="00000-000"
+								required
 							/>
 
 							<div class="sm:col-span-2">
 								<BaseInput
 									v-model="form.street"
-									label="Endereço (*)"
+									label="Endereço"
 									type="text"
 									maxlength="100"
 									placeholder="Logradouro"
+									required
 								/>
 							</div>
 						</div>
@@ -233,26 +239,29 @@ async function submit() {
 						<div class="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-3">
 							<BaseInput
 								v-model="form.neighborhood"
-								label="Bairro (*)"
+								label="Bairro"
 								type="text"
 								maxlength="100"
 								placeholder="Bairro"
+								required
 							/>
 
 							<BaseInput
 								v-model="form.number"
-								label="Número (*)"
+								label="Número"
 								type="text"
 								maxlength="10"
 								placeholder="Número"
+								required
 							/>
 
 							<BaseInput
 								v-model="form.complement"
-								label="Complemento (*)"
+								label="Complemento"
 								type="text"
 								maxlength="20"
 								placeholder="Complemento"
+								required
 							/>
 						</div>
 
@@ -260,7 +269,7 @@ async function submit() {
 							<AppMultiselect
 								v-model="form.state"
 								:options="stateOptions"
-								field-label="Estado (*)"
+								field-label="Estado"
 								label="label"
 								value-prop="value"
 								:searchable="true"
@@ -268,12 +277,13 @@ async function submit() {
 								:can-clear="true"
 								:append-to-body="true"
 								placeholder="Selecione o estado"
+								required
 							/>
 
 							<AppMultiselect
 								v-model="form.city"
 								:options="cityOptions"
-								field-label="Cidade (*)"
+								field-label="Cidade"
 								label="label"
 								value-prop="value"
 								:searchable="true"
@@ -281,6 +291,7 @@ async function submit() {
 								:can-clear="true"
 								:append-to-body="true"
 								placeholder="Selecione a cidade"
+								required
 							/>
 						</div>
 					</div>
@@ -292,10 +303,11 @@ async function submit() {
 
 						<BaseInput
 							v-model="form.password"
-							label="Senha (*)"
+							label="Senha"
 							type="password"
 							maxlength="50"
 							placeholder="Digite sua senha"
+							required
 						/>
 
 						<div
@@ -360,10 +372,11 @@ async function submit() {
 					<div>
 						<BaseInput
 							v-model="passwordConfirmation"
-							label="Confirmar senha (*)"
+							label="Confirmar senha"
 							type="password"
 							maxlength="50"
 							placeholder="Confirme sua senha"
+							required
 						/>
 
 						<p

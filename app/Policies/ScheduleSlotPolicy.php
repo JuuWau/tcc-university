@@ -43,19 +43,6 @@ class ScheduleSlotPolicy
 
     public function updateAttendance(User $user, ScheduleSlot $slot): bool
     {
-
-        dd([
-        'user_id' => $user->id,
-        'roles' => $user->getRoleNames(),
-        'slot_id' => $slot->id,
-        'slot_date' => $slot->date,
-        'today' => now()->toDateString(),
-        'is_today' => $slot->date->isToday(),
-        'responsibles' => $slot->responsibles()->pluck('users.id')->toArray(),
-        'is_responsible' => $slot->responsibles()
-            ->where('users.id', $user->id)
-            ->exists(),
-    ]);
         if ($user->hasRole(Role::ADMIN, Role::RECEPTIONIST)) {
             return true;
         }

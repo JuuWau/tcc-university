@@ -44,8 +44,8 @@ class PatientsReportTableRequest extends FormRequest
                 'nullable',
                 'string',
                 Rule::in([
-                    'pediatria',
-                    'adulto',
+                    'pediatrics',
+                    'adult',
                 ]),
             ],
             'status' => [

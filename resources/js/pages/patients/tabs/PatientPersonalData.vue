@@ -171,10 +171,10 @@ function openEditModal() {
 
 function formatPatientType(type: string | null) {
     switch (type) {
-        case 'adulto':
+        case 'adult':
             return 'Adulto';
 
-        case 'pediatria':
+        case 'pediatrics':
             return 'Pediatria';
 
         default:

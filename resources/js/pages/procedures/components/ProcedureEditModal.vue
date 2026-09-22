@@ -105,16 +105,17 @@ async function submit() {
 					<BaseInput
 						id="edit_procedure_name"
 						v-model="form.name"
-						label="Nome (*)"
+						label="Nome"
 						type="text"
 						maxlength="255"
 						placeholder="Ex: Anamnese"
+						required
 					/>
 
 					<AppMultiselect
 						v-model="form.specialty_id"
 						:options="specialtiesOptions"
-						field-label="Especialidade (*)"
+						field-label="Especialidade"
 						label="label"
 						value-prop="value"
 						:searchable="true"
@@ -122,6 +123,7 @@ async function submit() {
 						:can-clear="true"
 						:append-to-body="true"
 						placeholder="Selecione a especialidade"
+						required
 					/>
 				</div>
 			</div>

@@ -58,9 +58,10 @@ const responsibleOptions: SelectOption[] = (props.responsible ?? []).map(
         value: responsible.id,
     }),
 );
+
 const clinicOptions: SelectOption[] = (props.clinics ?? []).map((clinic) => ({
     label: clinic.label,
-    value: clinic.id,
+    value: clinic.value,
 }));
 
 const existingSlots = ref<OpenScheduleSlot[]>(props.existingSlots ?? []);
@@ -89,7 +90,9 @@ const monthLabel = computed(() =>
         },
     ),
 );
-
+console.log('props.clinics:', props.clinics);
+console.log('clinicOptions:', clinicOptions);
+console.log('clinic_id inicial:', form.clinic_id);
 const periodLabel = computed(
     () =>
         periodOptions.find((option) => option.value === form.period_id)
@@ -401,7 +404,7 @@ async function submit() {
                             <AppMultiselect
                                 v-model="form.clinic_id"
                                 :options="clinicOptions"
-                                field-label="Clínica (*)"
+                                field-label="Clínica"
                                 label="label"
                                 value-prop="value"
                                 :searchable="true"
@@ -409,6 +412,7 @@ async function submit() {
                                 :can-clear="true"
                                 :append-to-body="true"
                                 placeholder="Selecione a clínica"
+                                required
                             />
                             <BaseInput
                                 v-model="form.available_slots"
@@ -628,7 +632,7 @@ async function submit() {
                             <AppMultiselect
                                 v-model="form.period_id"
                                 :options="periodOptions"
-                                field-label="Período (*)"
+                                field-label="Período"
                                 label="label"
                                 value-prop="value"
                                 :searchable="true"
@@ -636,6 +640,7 @@ async function submit() {
                                 :can-clear="true"
                                 :append-to-body="true"
                                 placeholder="Selecione o período"
+                                required
                             />
                             <AppMultiselect
                                 v-model="form.responsible_ids"
@@ -654,17 +659,19 @@ async function submit() {
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <BaseInput
                                 v-model="form.start_time"
-                                label="Horário de início (*)"
+                                label="Horário de início"
                                 type="text"
                                 v-mask="'##:##'"
                                 placeholder="HH:mm"
+                                required
                             />
                             <BaseInput
                                 v-model="form.end_time"
-                                label="Horário de fim (*)"
+                                label="Horário de fim"
                                 type="text"
                                 v-mask="'##:##'"
                                 placeholder="HH:mm"
+                                required
                             />
                         </div>
                         <div

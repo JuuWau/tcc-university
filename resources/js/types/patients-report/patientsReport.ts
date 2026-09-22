@@ -7,7 +7,7 @@ export interface PatientReport {
     cpf: string | null;
     phone: string | null;
     birth_date: string | null;
-    patient_type: 'pediatria' | 'adulto';
+    patient_type: 'pediatrics' | 'adult';
     status:
         | 'ativo'
         | 'inativo'

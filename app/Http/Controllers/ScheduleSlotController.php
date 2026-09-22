@@ -10,6 +10,7 @@ use App\Http\Requests\StoreOpenScheduleRequest;
 use App\Http\Requests\TableOpenClinicSchedulesRequest;
 use App\Http\Requests\UpdateMultipleScheduleSlotsRequest;
 use App\Http\Requests\UpdateScheduleSlotRequest;
+use App\Http\Resources\ClinicResource;
 use App\Models\Clinic;
 use App\Models\Period;
 use App\Models\ScheduleSlot;
@@ -38,7 +39,9 @@ class ScheduleSlotController extends Controller
         return Inertia::render('schedules/OpenSchedule', [
             'periods' => $this->periodService->getPeriods($universityId),
             'responsible' => $this->userService->getResponsible($universityId),
-            'clinics' => $this->clinicService->getClinics($universityId),
+            'clinics' => ClinicResource::collection(
+                $this->clinicService->getClinics($universityId)
+            )->resolve(),
             'existingSlots' => $universityId
                 ? $this->scheduleSlotService->listForUniversity($universityId)
                 : [],

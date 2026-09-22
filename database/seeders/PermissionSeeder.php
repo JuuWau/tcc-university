@@ -73,10 +73,12 @@ class PermissionSeeder extends Seeder
             'patients.personal-page.updateHeaderData', // Permissão para atualizar dados do header do paciente
             'patients.personal-page.viewAppointments', // Permissão para acessar tab de agendamentos do paciente
             'patients.personal-page.manageAppointments', // Permissão para gerenciar tab de agendamentos do paciente
-            'patients.personal-page.viewClinics', // Permissão para acessar tab de clínicas do paciente
-            'patients.personal-page.addPatientToWaitingList', // Permissão para adicionar paciente a lista de espera
-            'patients.personal-page.removeEnrollmentClinic', // Permissão remover inscrição em clínicas do paciente
-            'patients.personal-page.enrollClinic', // Permissão para adicionar paciente a clínicas
+
+            'pre-patients.view', //Permissão para acessar página
+            'pre-patients.create', //Permissão para criar pré-paciente
+            'pre-patients.update', //Permissão para atualizar pré-paciente
+            'pre-patients.convert', //Permissão para converter pré-paciente
+            'pre-patients.delete', //Permissão para deletar pré-paciente
 
             'users.view', // Permissão para acessar página de cadastros de usuários
             'users.create', // Permissão para criar usuário
@@ -185,13 +187,15 @@ class PermissionSeeder extends Seeder
             'patients.personal-page.viewAppointments', // Permissão para acessar tab de agendamentos do paciente
             'patients.personal-page.viewAppointments', // Permissão para acessar tab de agendamentos do paciente
             'patients.personal-page.manageAppointments', // Permissão para gerenciar tab de agendamentos do paciente
-            'patients.personal-page.viewClinics', // Permissão para acessar tab de clínicas do paciente
-            'patients.personal-page.addPatientToWaitingList', // Permissão para adicionar paciente a lista de espera
-            'patients.personal-page.removeEnrollmentClinic', // Permissão remover inscrição em clínicas do paciente
-            'patients.personal-page.enrollClinic', // Permissão para adicionar paciente a clínicas
 
             'appointments-confirmation.view', // permissão para confirmação pacientes
             'appointments-confirmation.update', // permissão para alterar os status dos pacientes na pagina de confirmação
+
+            'pre-patients.view', // Permissão para acessar página
+            'pre-patients.create', //Permissão para criar pré-paciente
+            'pre-patients.update', //Permissão para atualizar pré-paciente
+            'pre-patients.convert', //Permissão para converter pré-paciente
+            'pre-patients.delete', //Permissão para deletar pré-paciente
 
             'clinics-management.view', // Gerênciar clinicas acesso total (página)
             'clinics-management.addPatientToWaitingList', // Adicionar paciente a lista de espera

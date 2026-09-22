@@ -55,7 +55,7 @@ const form = reactive({
     complement: null as string | null,
     city: '' as string | null,
     state: '' as string | null,
-    patient_type: null as 'adulto' | 'pediatria' | null,
+    patient_type: null as 'adult' | 'pediatrics' | null,
 });
 
 watch(

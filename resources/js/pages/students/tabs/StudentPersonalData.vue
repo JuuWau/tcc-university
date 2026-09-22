@@ -127,10 +127,7 @@
 
 <script setup lang="ts">
 import { Button } from '@/components/ui/button';
-import {
-    type StudentTabContext,
-    StudentTabContextKey,
-} from '@/keys/students/studentKeys';
+import { type StudentTabContext, StudentTabContextKey } from '@/keys/students/studentKeys';
 import { usePage } from '@inertiajs/vue3';
 import { Pencil } from 'lucide-vue-next';
 import { computed, inject } from 'vue';

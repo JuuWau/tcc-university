@@ -94,31 +94,34 @@ async function submit() {
                 <div class="space-y-4 py-4">
                     <BaseInput
                         v-model="form.name"
-                        label="Nome completo (*)"
+                        label="Nome completo"
                         type="text"
                         maxlength="255"
                         placeholder="Nome do usuário"
+                        required
                     />
                     
                     <BaseInput
                         v-model="form.email"
-                        label="Email (*)"
+                        label="Email"
                         type="email"
                         maxlength="255"
                         placeholder="email@exemplo.com"
+                        required
                     />
 
                     <AppMultiselect
                         v-model="form.role_id"
                         :options="rolesOptions"
                         label="label"
-                        field-label="Perfil (*)"
+                        field-label="Perfil"
                         value-prop="value"
                         :searchable="true"
                         :close-on-select="true"
                         :can-clear="true"
                         :append-to-body="true"
                         placeholder="Selecione o perfil"
+                        required
                     />
                 </div>
             </div>

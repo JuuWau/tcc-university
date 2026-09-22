@@ -135,7 +135,7 @@ export function usePatientScheduleBooking(patientId: number, patientName: string
 
         try {
             const { data } = await axios.get(
-                `/patients/schedule/${patientId}/clinics`,
+                `/clinics/options`,
             );
 
             clinics.value = data.data ?? data;

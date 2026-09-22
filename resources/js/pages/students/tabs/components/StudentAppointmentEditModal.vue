@@ -163,7 +163,7 @@ async function save() {
 					<AppMultiselect
 						v-model="form.patient_id"
 						:options="modal.patientOptions.value"
-						field-label="Paciente (*)"
+						field-label="Paciente"
 						label="label"
 						track-by="value"
 						value-prop="value"
@@ -172,30 +172,34 @@ async function save() {
 						:can-clear="false"
 						:append-to-body="true"
 						placeholder="Selecione o paciente"
+						required
 					/>
 
 					<div class="grid grid-cols-1 gap-4 sm:grid-cols-3">
 						<BaseInput
 							v-model="form.date"
-							label="Data (*)"
+							label="Data"
 							type="date"
 							:min="todayDateKey"
+							required
 						/>
 
 						<BaseInput
 							v-model="form.start_time"
-							label="Início (*)"
+							label="Início"
 							type="text"
 							v-mask="'##:##'"
 							placeholder="HH:mm"
+							required
 						/>
 
 						<BaseInput
 							v-model="form.end_time"
-							label="Fim (*)"
+							label="Fim"
 							type="text"
 							v-mask="'##:##'"
 							placeholder="HH:mm"
+							required
 						/>
 					</div>
 
@@ -217,7 +221,7 @@ async function save() {
 					<AppMultiselect
 						v-model="form.status"
 						:options="statusOptions"
-						field-label="Status (*)"
+						field-label="Status"
 						label="label"
 						value-prop="value"
 						:searchable="true"
@@ -225,6 +229,7 @@ async function save() {
 						:can-clear="false"
 						:append-to-body="true"
 						placeholder="Selecione o status"
+						required
 					/>
 
 					<div>

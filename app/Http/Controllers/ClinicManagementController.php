@@ -10,8 +10,10 @@ use App\Http\Requests\EnrollPatientRequest;
 use App\Http\Requests\StoreClinicWaitingListRequest;
 use App\Http\Resources\ClinicManagementIndexResource;
 use App\Http\Resources\ClinicManagementPatientResource;
+use App\Http\Resources\ClinicManagementPrePatientResource;
 use App\Models\Clinic;
 use App\Models\Patient;
+use App\Models\PrePatient;
 use App\Services\ClinicManagementService;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
@@ -59,64 +61,68 @@ class ClinicManagementController extends Controller
             ClinicManagementTableFiltersData::fromRequest($request)
         );
 
-        return ClinicManagementPatientResource::collection(
+        return ClinicManagementPrePatientResource::collection(
             $patients
         );
     }
 
-    public function enroll(EnrollPatientRequest $request, Clinic $clinic,)
+    public function enroll(EnrollPatientRequest $request, Clinic $clinic)
     {
         try {
-            $patientClinic = $this->clinicManagementService->enrollPatient(
+            $waitingList = $this->clinicManagementService->enrollPatient(
                 $clinic,
-                $request->validated()
+                $request->validated(),
             );
 
             return response()->json([
-                'message' => 'Paciente inscrito com sucesso.',
-                'data' => $patientClinic,
+                'message' => 'Pré-paciente inscrito na lista de espera com sucesso.',
+                'data' => $waitingList,
             ]);
         } catch (\Throwable $e) {
             return response()->json([
-                'message' => 'Erro ao inscrever paciente na clínica.',
+                'message' => 'Erro ao inscrever pré-paciente na clínica.',
                 'error' => $e->getMessage(),
             ], 500);
         }
     }
 
-    public function removeEnrollment(Clinic $clinic, Patient $patient)
+
+    public function removeEnrollment(Clinic $clinic, PrePatient $prePatient)
     {
         try {
             $this->clinicManagementService->removeEnrollment(
                 $clinic,
-                $patient
+                $prePatient
             );
 
             return response()->json([
                 'message' => 'Inscrição removida com sucesso.',
             ]);
         } catch (\Throwable $e) {
+            report($e);
+
             return response()->json([
                 'message' => 'Erro ao remover inscrição.',
             ], 500);
         }
     }
 
+
     public function storeWaitingList(StoreClinicWaitingListRequest $request, Clinic $clinic)
     {
         try {
             $this->clinicManagementService->storeWaitingList(
                 $clinic,
-                $request->validated('patient_ids')
+                $request->validated('pre_patient_ids')
             );
 
             return response()->json([
-                'message' => 'Pacientes adicionados à lista de espera com sucesso.',
+                'message' => 'Pré-pacientes adicionados à lista de espera com sucesso.',
             ]);
         } catch (\Throwable $e) {
             report($e);
             return response()->json([
-                'message' => 'Erro ao adicionar pacientes à lista de espera.',
+                'message' => 'Erro ao adicionar pré-pacientes à lista de espera.',
             ], 500);
         }
     }

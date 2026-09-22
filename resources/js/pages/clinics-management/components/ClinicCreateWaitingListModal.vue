@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import CancelButton from '@/components/buttons/CancelButton.vue';
-import SaveButton from '@/components/buttons/SaveButton.vue';
 import AppMultiselect from '@/components/AppMultiselect.vue';
 import { ClinicCreateWaitingListKey, RefreshTableKey } from '@/keys/clinics-management/clinicManagementShowKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
@@ -11,7 +9,7 @@ import { X } from 'lucide-vue-next';
 import FormFooter from '@/components/form/FormFooter.vue';
 import FormHeader from '@/components/form/FormHeader.vue';
 
-type PatientOption = {
+type PrePatientOption = {
     label: string;
     value: number;
 };
@@ -28,18 +26,18 @@ if (!modal) {
 const loading = inject<any>(LoadingKey);
 
 const form = reactive({
-    patients: [] as PatientOption[],
+    prePatients: [] as PrePatientOption[],
 });
 
-const selectedPatient = ref<PatientOption | null>(null);
-const patientOptions = ref<PatientOption[]>([]);
+const selectedPrePatient = ref<PrePatientOption | null>(null);
+const prePatientOptions = ref<PrePatientOption[]>([]);
 const loadingPatients = ref(false);
 
-const availablePatients = computed(() => {
-    return patientOptions.value.filter(
-        (patient) =>
-            !form.patients.some(
-                (selected) => selected.value === patient.value
+const availablePrePatients = computed(() => {
+    return prePatientOptions.value.filter(
+        (prePatient) =>
+            !form.prePatients.some(
+                (selected) => selected.value === prePatient.value
             )
     );
 });
@@ -60,10 +58,10 @@ async function loadPatients() {
         loadingPatients.value = true;
 
         const { data } = await axios.get(
-            `/patients/options/${modal.clinicId.value}`
+            `/pre-patients/options/${modal.clinicId.value}`
         );
 
-        patientOptions.value = data ?? [];
+        prePatientOptions.value = data ?? [];
 
     } catch {
         toast.error(
@@ -74,30 +72,29 @@ async function loadPatients() {
     }
 }
 
-function addPatient(patientId: number | null) {
-    if (!patientId) return;
+function addPrePatient(prePatientId: number | null) {
+	if (!prePatientId) return;
 
-    const patient = patientOptions.value.find(
-        p => p.value === patientId
-    );
+	const patient = prePatientOptions.value.find(
+		p => p.value === prePatientId,
+	);
 
-    if (!patient) return;
+	if (!patient) return;
 
-    form.patients.push(patient);
-
-    selectedPatient.value = null;
+	form.prePatients.push(patient);
+	selectedPrePatient.value = null;
 }
 
-function removePatient(patientId: number) {
-    form.patients = form.patients.filter(
+function removePrePatient(prePatientId: number) {
+    form.prePatients = form.prePatients.filter(
         (patient) =>
-            patient.value !== patientId
+            patient.value !== prePatientId
     );
 }
 
 function resetForm() {
-    form.patients = [];
-    selectedPatient.value = null;
+    form.prePatients = [];
+    selectedPrePatient.value = null;
 }
 
 function close() {
@@ -107,7 +104,7 @@ function close() {
 }
 
 async function submit() {
-    if (!form.patients.length) {
+    if (!form.prePatients.length) {
         toast.error(
             'Selecione pelo menos um paciente'
         );
@@ -120,8 +117,8 @@ async function submit() {
         await axios.post(
             `/clinics-management/${modal.clinicId.value}/waiting-list`,
             {
-                patient_ids: form.patients.map(
-                    patient => patient.value
+                pre_patient_ids: form.prePatients.map(
+                    pre_patient => pre_patient.value
                 )
             }
         );
@@ -151,8 +148,8 @@ async function submit() {
 			class="flex max-h-[90vh] w-full max-w-4xl flex-col overflow-hidden rounded-lg bg-white shadow-xl"
 		>
 			<FormHeader
-				title="Adicionar pacientes à lista de espera"
-				subtitle="Selecione os pacientes que deseja incluir na lista."
+				title="Adicionar pré-pacientes à lista de espera"
+				subtitle="Selecione os pré-pacientes que deseja incluir na lista."
 			/>
 
 			<div class="min-h-0 flex-1 overflow-y-auto px-6">
@@ -160,10 +157,10 @@ async function submit() {
 					<div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
 						<div>
 							<AppMultiselect
-								v-model="selectedPatient"
-								:options="availablePatients"
+								v-model="selectedPrePatient"
+								:options="availablePrePatients"
 								:loading="loadingPatients"
-								field-label="Buscar pacientes"
+								field-label="Buscar pré-pacientes"
 								label="label"
 								value-prop="value"
 								:searchable="true"
@@ -171,27 +168,27 @@ async function submit() {
 								:close-on-select="true"
 								:append-to-body="true"
 								placeholder="Buscar paciente"
-								@select="addPatient"
+								@select="addPrePatient"
 							/>
 
 							<p
-								v-if="!availablePatients.length"
+								v-if="!availablePrePatients.length"
 								class="mt-2 text-sm text-gray-500"
 							>
-								Nenhum paciente disponível.
+								Nenhum pré-paciente disponível.
 							</p>
 						</div>
 
 						<div>
 							<div class="mb-2 flex items-center justify-between">
 								<label class="block text-sm font-medium text-gray-700">
-									Pacientes adicionados
+									Pré-pacientes adicionados
 								</label>
 
 								<span
 									class="inline-flex min-w-6 items-center justify-center rounded-full bg-sky-100 px-2 py-1 text-xs font-medium text-sky-700"
 								>
-									{{ form.patients.length }}
+									{{ form.prePatients.length }}
 								</span>
 							</div>
 
@@ -199,30 +196,30 @@ async function submit() {
 								class="min-h-50 max-h-64 overflow-y-auto rounded-lg border border-gray-200 bg-gray-50 p-3"
 							>
 								<div
-									v-for="patient in form.patients"
-									:key="patient.value"
+									v-for="prePatient in form.prePatients"
+									:key="prePatient.value"
 									class="mb-2 flex items-center justify-between rounded-lg border border-gray-200 bg-white px-3 py-2.5 shadow-sm last:mb-0"
 								>
 									<span
 										class="min-w-0 truncate pr-3 text-sm text-gray-700"
 									>
-										{{ patient.label }}
+										{{ prePatient.label }}
 									</span>
 
 									<button
 										type="button"
 										class="flex h-7 w-7 shrink-0 cursor-pointer items-center justify-center rounded-md text-gray-400 transition hover:bg-red-50 hover:text-red-600"
-										@click="removePatient(patient.value)"
+										@click="removePrePatient(prePatient.value)"
 									>
 										<X class="h-4 w-4" />
 									</button>
 								</div>
 
 								<div
-									v-if="!form.patients.length"
+									v-if="!form.prePatients.length"
 									class="flex h-40 items-center justify-center text-center text-sm text-gray-500"
 								>
-									Nenhum paciente selecionado.
+									Nenhum pré-paciente selecionado.
 								</div>
 							</div>
 						</div>

@@ -12,7 +12,7 @@ import {
 } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
-import { BarChart, Building2, Calendar, ClipboardList, GraduationCap, LayoutGrid, ListPlus, Stethoscope, User, Users, Timer, CalendarPlus, CalendarCog, CalendarCheck, Hospital, LogIn, Notebook, FileUser, BookUser, UsersRound, Layers } from 'lucide-vue-next';
+import { BarChart, Building2, Calendar, ClipboardList, GraduationCap, LayoutGrid, ListPlus, Stethoscope, User, Users, Timer, CalendarPlus, CalendarCog, CalendarCheck, Hospital, LogIn, Notebook, FileUser, BookUser, UsersRound, Layers, UserPlus } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed } from 'vue';
 
@@ -77,6 +77,11 @@ const mainNavItems: NavItem[] = [
                 href: '/patients',
                 icon: User,
                 permission: 'patients.view',
+            },
+            {
+                title: 'Pré-Pacientes',
+                href: '/pre-patients',
+                icon: UserPlus,
             },
             {
                 title: 'Usuários',

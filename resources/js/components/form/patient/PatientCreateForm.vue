@@ -33,12 +33,12 @@ const model = defineModel<{
 	complement: string | null;
 	city: string | null;
 	state: string | null;
-	patient_type: 'adulto' | 'pediatria' | null;
+	patient_type: 'adult' | 'pediatrics' | null;
 }>();
 
 const patientTypeOptions = [
-	{ label: 'Adulto', value: 'adulto' },
-	{ label: 'Pediatria', value: 'pediatria' },
+	{ label: 'Adulto', value: 'adult' },
+	{ label: 'Pediatria', value: 'pediatrics' },
 ];
 
 const biologicalSexOptions = [
@@ -52,18 +52,20 @@ const biologicalSexOptions = [
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 			<BaseInput
 				v-model="model.code"
-				label="Código (*)"
+				label="Código"
 				type="text"
 				maxlength="50"
 				placeholder="Código do paciente"
+				required
 			/>
 
 			<BaseInput
 				v-model="model.name"
-				label="Nome completo (*)"
+				label="Nome completo"
 				type="text"
 				maxlength="255"
 				placeholder="Nome do paciente"
+				required
 			/>
 		</div>
 
@@ -113,6 +115,7 @@ const biologicalSexOptions = [
 				:can-clear="true"
 				:append-to-body="true"
 				placeholder="Selecione o sexo"
+				required
 			/>
 		</div>
 
@@ -127,6 +130,7 @@ const biologicalSexOptions = [
 				:can-clear="false"
 				:append-to-body="true"
 				placeholder="Selecione o tipo"
+				required
 			/>
 		</div>
 

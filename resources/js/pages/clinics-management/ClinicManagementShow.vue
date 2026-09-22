@@ -2,7 +2,7 @@
 import { onMounted, provide, ref, watch } from 'vue';
 import AppLayout from '@/layouts/AppLayout.vue';
 import ClinicStatusFilter from './components/ClinicStatusFilter.vue';
-import ClinicPatientsTable from './ClinicPatientsTable.vue';
+import ClinicPrePatientsTable from './ClinicPrePatientsTable.vue';
 import { useClinicManagement } from '@/composables/clinics-management/useClinicManagement';
 import { ClinicCreateWaitingListKey, ClinicEnrollKey, ClinicManagementShowKey, ClinicRemoveEnrollmentKey, RefreshTableKey, } from '@/keys/clinics-management/clinicManagementShowKeys';
 import type { PatientForTab  } from '@/types/patient/patient';
@@ -96,21 +96,21 @@ onMounted(() => {
                 >
                     <div>
                         <h1 class="text-xl font-semibold tracking-tight text-gray-900">
-                            Pacientes
+                            Pré-pacientes
                         </h1>
 
                         <p class="text-sm text-gray-500">
-                            Gerencie pacientes inscritos e lista de espera da clínica.
+                            Gerencie pré-pacientes inscritos e lista de espera da clínica.
                         </p>
                     </div>
 
                     <CreateButton
                         v-if="clinicManagement.activeStatus.value === 'waiting'"
-                        label="Adicionar paciente a lista de espera"
+                        label="Adicionar pré-paciente a lista de espera"
                         icon="Plus"
                         @click="openCreateWaitingListModal"
                     >
-                        Adicionar paciente à lista de espera
+                        Adicionar pré-paciente à lista de espera
                     </CreateButton>
                 </div>
                 <ClinicEnrollModal />
@@ -118,7 +118,7 @@ onMounted(() => {
                 <ClinicStatusFilter />
                 <ClinicCreateWaitingListModal />
 
-                <ClinicPatientsTable 
+                <ClinicPrePatientsTable
                     @enroll="openEnrollModal"
                     @remove="openRemoveEnrollmentModal"
                 />

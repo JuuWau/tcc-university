@@ -93,7 +93,7 @@ async function submit() {
                 <AppMultiselect
                     v-model="form.role_id"
                     :options="roleOptions"
-                    field-label="Perfil (*)"
+                    field-label="Perfil"
                     label="label"
                     value-prop="value"
                     :append-to-body="true"
@@ -101,6 +101,7 @@ async function submit() {
                     :close-on-select="true"
                     :can-clear="false"
                     placeholder="Selecione o perfil"
+                    required
                 />
             </form>
             

@@ -1,10 +1,10 @@
 <?php
 
-namespace App\Data\Patients;
+namespace App\Data\PrePatients;
 
-use App\Http\Requests\PatientClinicsTableRequest;
+use App\Data\Patients\PrePatientClinicsTableRequest
 
-class PatientClinicsTableFiltersData
+class PrePatientClinicsTableFiltersData
 {
     public function __construct(
         public readonly int $page,
@@ -15,7 +15,7 @@ class PatientClinicsTableFiltersData
         public readonly int $universityId,
     ) {}
 
-    public static function fromRequest(PatientClinicsTableRequest $request): self 
+    public static function fromRequest(PrePatientClinicsTableRequest $request): self 
     {
         return new self(
             $request->integer('page', 1),

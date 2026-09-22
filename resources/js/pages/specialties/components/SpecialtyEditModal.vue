@@ -97,9 +97,10 @@ async function submit() {
 				<div class="py-5">
 					<BaseInput
 						v-model="form.name"
-						label="Nome da especialidade (*)"
+						label="Nome da especialidade"
 						type="text"
 						placeholder="Nome da especialidade"
+                        required
 					/>
 				</div>
 			</div>

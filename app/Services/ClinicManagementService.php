@@ -9,13 +9,15 @@ use App\Models\Clinic;
 use App\Models\ClinicWaitingList;
 use App\Models\Patient;
 use App\Models\PatientClinic;
+use App\Models\PrePatient;
+use App\Models\PrePatientClinic;
 use Illuminate\Support\Collection;
 use Illuminate\Contracts\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Facades\DB;
 
 class ClinicManagementService
 {
-    public function listClinics(ClinicManagementIndexFiltersData $filters): LengthAwarePaginator 
+    public function listClinics(ClinicManagementIndexFiltersData $filters): LengthAwarePaginator
     {
         return Clinic::query()
             ->select([
@@ -31,7 +33,7 @@ class ClinicManagementService
                 );
             })
             ->withCount([
-                'patientClinics as active_patients_count',
+                'prePatientClinics as active_patients_count',
                 'waitingList as waiting_patients_count',
             ])
             ->orderBy('name')
@@ -43,20 +45,18 @@ class ClinicManagementService
             );
     }
 
-    public function paginate(Clinic $clinic, ClinicManagementTableFiltersData $filters): LengthAwarePaginator
+    public function paginate(Clinic $clinic,  ClinicManagementTableFiltersData $filters): LengthAwarePaginator
     {
         if ($filters->status === 'waiting') {
-            $query = ClinicWaitingList::query()
-                ->with('patient');
-        } else {
-            $query = PatientClinic::query()
-                ->with('patient');
-        }
-
-        $query->where('clinic_id', $clinic->id);
+                    $query = ClinicWaitingList::query()
+                            ->with('clinic');
+            } else {
+                    $query = PrePatientClinic::query()
+                            ->with('clinic');
+            }
 
         if ($filters->search) {
-            $query->whereHas('patient', function ($q) use ($filters) {
+            $query->whereHas('prePatient', function ($q) use ($filters) {
                 $q->where(
                     'name',
                     'ilike',
@@ -75,56 +75,59 @@ class ClinicManagementService
         );
     }
 
-    public function enrollPatient(Clinic $clinic, array $data): PatientClinic
+    public function enrollPatient(Clinic $clinic, array $data): PrePatientClinic
     {
         return DB::transaction(function () use ($clinic, $data) {
-            $patient = Patient::find($data['patient_id']);
+            $prePatient = PrePatient::find($data['pre_patient_id']);
 
-            if (!$patient) {
-                throw new \Exception('Paciente não encontrado.');
+            if (!$prePatient) {
+                throw new \Exception('Pré-paciente não encontrado.');
             }
 
-            if (PatientClinic::where('clinic_id', $clinic->id)
-                ->where('patient_id', $data['patient_id'])
+            if (PrePatientClinic::where('clinic_id', $clinic->id)
+                ->where('pre_patient_id', $prePatient->id)
                 ->exists()
             ) {
                 throw new \Exception(
-                    'Paciente já está inscrito nesta clínica.'
+                    'Pré-paciente já está inscrito nessa clínica.'
                 );
             }
 
-            $patientClinic = PatientClinic::create([
+            $patientClinic = PrePatientClinic::create([
                 'clinic_id' => $clinic->id,
-                'patient_id' => $data['patient_id'],
+                'pre_patient_id' => $prePatient->id,
                 'enrolled_at' => now(),
             ]);
 
             ClinicWaitingList::where('clinic_id', $clinic->id)
-                ->where('patient_id', $data['patient_id'])
+                ->where('pre_patient_id', $data['pre_patient_id'])
                 ->delete();
 
             $changes = ActivityLogService::getCreatedChanges($patientClinic);
 
-            ActivityLogService::trackRelationChanges(
+            ActivityLogService::trackBelongsToChange(
                 $changes,
+                'clinic_id',
                 'clínica',
-                [],
-                [$clinic->name],
+                Clinic::class,
+                null,
+                $clinic->id,
+                fn(Clinic $clinic) => $clinic->name ?? "ID: {$clinic->id}",
             );
 
             ActivityLogService::trackBelongsToChange(
                 $changes,
-                'patient_id',
-                'paciente',
-                Patient::class,
+                'pre_patient_id',
+                'pré-paciente',
+                PrePatient::class,
                 null,
-                $patient->id,
-                fn(Patient $patient) => $patient->name ?? "ID: {$patient->id}",
+                $prePatient->id,
+                fn(PrePatient $prePatient) => $prePatient->name ?? "ID: {$prePatient->id}",
             );
 
             ActivityLogService::created(
                 ActivityModules::PATIENTS,
-                "Paciente {$patient->code} - {$patient->name} inscrito na clínica '{$clinic->name}'.",
+                "Pré-paciente {$prePatient->name} inscrito na clínica '{$clinic->name}'.",
                 $patientClinic,
                 $changes,
             );
@@ -133,18 +136,19 @@ class ClinicManagementService
         });
     }
 
-    public function removeEnrollment(Clinic $clinic, Patient $patient): void
+
+    public function removeEnrollment(Clinic $clinic, PrePatient $prePatient): void 
     {
-        DB::transaction(function () use ($clinic, $patient) {
-            $patientClinic = PatientClinic::where('clinic_id', $clinic->id)
-                ->where('patient_id', $patient->id)
+        DB::transaction(function () use ($clinic, $prePatient) {
+            $waitingList = PrePatientClinic::where('clinic_id', $clinic->id)
+                ->where('pre_patient_id', $prePatient->id)
                 ->first();
 
-            if (!$patientClinic) {
+            if (!$waitingList) {
                 throw new \Exception('Inscrição não encontrada.');
             }
 
-            $changes = ActivityLogService::getCreatedChanges($patientClinic);
+            $changes = ActivityLogService::getCreatedChanges($waitingList);
 
             ActivityLogService::trackRelationChanges(
                 $changes,
@@ -155,73 +159,77 @@ class ClinicManagementService
 
             ActivityLogService::trackBelongsToChange(
                 $changes,
-                'patient_id',
-                'paciente',
-                Patient::class,
-                $patient->id,
+                'pre_patient_id',
+                'pré-paciente',
+                PrePatient::class,
+                $prePatient->id,
                 null,
-                fn(Patient $patient) => $patient->name ?? "ID: {$patient->id}",
+                fn(PrePatient $prePatient) =>
+                $prePatient->name ?? "ID: {$prePatient->id}",
             );
 
-            $patientClinic->delete();
+            $waitingList->delete();
 
             ActivityLogService::deleted(
                 ActivityModules::PATIENTS,
-                "Inscrição do paciente '{$patient->code} - {$patient->name}' removida da clínica '{$clinic->name}'.",
-                $patientClinic,
+                "Inscrição do pré-paciente '{$prePatient->name}' removida da lista de espera da clínica '{$clinic->name}'.",
+                $waitingList,
                 $changes,
             );
         });
     }
 
-    public function storeWaitingList(Clinic $clinic, array $patientIds): void
-    {
-        DB::transaction(function () use ($clinic, $patientIds) {
-            $patients = Patient::whereIn('id', $patientIds)->get();
 
-            $rows = collect($patientIds)
+    public function storeWaitingList(Clinic $clinic, array $prePatientIds): void
+    {
+        DB::transaction(function () use ($clinic, $prePatientIds) {
+            $prePatients = PrePatient::whereIn('id', $prePatientIds)->get();
+
+            $rows = collect($prePatientIds)
                 ->unique()
-                ->map(fn($patientId) => [
+                ->map(fn($prePatientId) => [
                     'clinic_id' => $clinic->id,
-                    'patient_id' => $patientId,
+                    'pre_patient_id' => $prePatientId,
                     'enrolled_at' => now(),
                 ])
                 ->all();
 
             ClinicWaitingList::insert($rows);
 
-            foreach ($patients as $patient) {
+            foreach ($prePatients as $prePatient) {
                 $waitingList = ClinicWaitingList::where('clinic_id', $clinic->id)
-                    ->where('patient_id', $patient->id)
+                    ->where('pre_patient_id', $prePatient->id)
                     ->first();
 
-                if ($waitingList) {
-                    $changes = ActivityLogService::getCreatedChanges($waitingList);
-
-                    ActivityLogService::trackRelationChanges(
-                        $changes,
-                        'clínica',
-                        [],
-                        [$clinic->name],
-                    );
-
-                    ActivityLogService::trackBelongsToChange(
-                        $changes,
-                        'patient_id',
-                        'paciente',
-                        Patient::class,
-                        null,
-                        $patient->id,
-                        fn(Patient $patient) => $patient->name ?? "ID: {$patient->id}",
-                    );
-
-                    ActivityLogService::created(
-                        ActivityModules::PATIENTS,
-                        "Paciente {$patient->code} - {$patient->name} adicionado à lista de espera da clínica '{$clinic->name}'.",
-                        $waitingList,
-                        $changes,
-                    );
+                if (!$waitingList) {
+                    continue;
                 }
+
+                $changes = ActivityLogService::getCreatedChanges($waitingList);
+
+                ActivityLogService::trackRelationChanges(
+                    $changes,
+                    'clínica',
+                    [],
+                    [$clinic->name],
+                );
+
+                ActivityLogService::trackBelongsToChange(
+                    $changes,
+                    'pre_patient_id',
+                    'pré-paciente',
+                    PrePatient::class,
+                    null,
+                    $prePatient->id,
+                    fn(PrePatient $prePatient) => $prePatient->name ?? "ID: {$prePatient->id}",
+                );
+
+                ActivityLogService::created(
+                    ActivityModules::PATIENTS,
+                    "Pré-paciente {$prePatient->name} adicionado à lista de espera da clínica '{$clinic->name}'.",
+                    $waitingList,
+                    $changes,
+                );
             }
         });
     }

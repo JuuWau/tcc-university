@@ -1,87 +1,102 @@
 <script setup lang="ts">
 import AppMultiselect from '@/components/AppMultiselect.vue';
-import ActivationButton from '@/components/buttons/ActivationButton.vue';
-import CancelButton from '@/components/buttons/CancelButton.vue';
 import FormFooter from '@/components/form/FormFooter.vue';
 import FormHeader from '@/components/form/FormHeader.vue';
+import BaseTextarea from '@/components/inputs/BaseTextarea.vue';
+
 import { STUDENT_ACTIVATION_REASONS } from '@/constants/studentActivationReason';
+
 import {
-    RefreshTableKey,
-    StudentActivateKey,
+	RefreshTableKey,
+	StudentActivateKey,
 } from '@/keys/students/studentKeys';
+
 import { LoadingKey } from '@/keys/ui/loadingKey';
+
 import { studentActivationSchema } from '@/schemas/studentActivation.schema';
+
 import axios from 'axios';
+
 import { computed, inject, ref, watch } from 'vue';
+
 import { toast } from 'vue3-toastify';
 
 const activationModal = inject<any>(StudentActivateKey);
+
 const refreshTableRef = inject<{ value: (() => void) | null }>(RefreshTableKey);
+
 const loading = inject(LoadingKey);
+
 const selectedReason = ref<string | null>(null);
+
 const otherReasonText = ref('');
 
 const reasonOptions = computed(() =>
-    Object.entries(STUDENT_ACTIVATION_REASONS).map(([value, data]) => ({
-        value,
-        label: data.label,
-    })),
+	Object.entries(STUDENT_ACTIVATION_REASONS).map(([value, data]) => ({
+		value,
+		label: data.label,
+	})),
 );
 
 const selectedReasonData = computed(() => {
-    if (!selectedReason.value) return null;
-    return STUDENT_ACTIVATION_REASONS[
-        selectedReason.value as keyof typeof STUDENT_ACTIVATION_REASONS
-    ];
+	if (!selectedReason.value) return null;
+
+	return STUDENT_ACTIVATION_REASONS[
+		selectedReason.value as keyof typeof STUDENT_ACTIVATION_REASONS
+	];
 });
 
 if (!activationModal || !loading) {
-    throw new Error('StudentActivationModal precisa estar dentro do provider');
+	throw new Error('StudentActivationModal precisa estar dentro do provider');
 }
 
 function close() {
-    activationModal.isOpen.value = false;
+	activationModal.isOpen.value = false;
 }
 
 watch(selectedReason, () => {
-    otherReasonText.value = '';
+	otherReasonText.value = '';
 });
 
 async function confirmActivation() {
-    if (
-        !activationModal.student.value ||
-        loading?.value ||
-        !selectedReason.value
-    ) {
-        return;
-    }
+	if (
+		!activationModal.student.value ||
+		loading?.value ||
+		!selectedReason.value
+	) {
+		return;
+	}
 
-    const payload = {
-        reason: selectedReason.value,
-        note: otherReasonText.value?.trim() || null,
-    };
+	const payload = {
+		reason: selectedReason.value,
+		note: otherReasonText.value?.trim() || null,
+	};
 
-    const parsed = studentActivationSchema.safeParse(payload);
+	const parsed = studentActivationSchema.safeParse(payload);
 
-    if (!parsed.success) {
-        toast.error(parsed.error.issues[0].message);
-        return;
-    }
+	if (!parsed.success) {
+		toast.error(parsed.error.issues[0].message);
+		return;
+	}
 
-    try {
-        if (loading) loading.value = true;
+	try {
+		if (loading) loading.value = true;
 
-        await axios.delete(
-            `/students/activate/${activationModal.student.value.id}`,
-            { data: parsed.data },
-        );
+		await axios.delete(
+			`/students/activate/${activationModal.student.value.id}`,
+			{
+				data: parsed.data,
+			},
+		);
 
-        toast.success('Aluno ativado com sucesso');
-        close();
-        refreshTableRef?.value?.();
-    } finally {
-        if (loading) loading.value = false;
-    }
+		toast.success('Aluno ativado com sucesso');
+
+		close();
+
+		refreshTableRef?.value?.();
+	} finally {
+		if (loading) loading.value = false;
+	}
 }
 </script>
 
@@ -111,7 +126,7 @@ async function confirmActivation() {
 					<AppMultiselect
 						v-model="selectedReason"
 						:options="reasonOptions"
-						field-label="Motivo da ativação (*)"
+						field-label="Motivo da ativação"
 						label="label"
 						value-prop="value"
 						placeholder="Selecione um motivo"
@@ -119,6 +134,7 @@ async function confirmActivation() {
 						:close-on-select="true"
 						:can-clear="false"
 						:append-to-body="true"
+						required
 					/>
 
 					<div
@@ -130,20 +146,14 @@ async function confirmActivation() {
 						</p>
 					</div>
 
-					<div v-if="selectedReasonData?.requiresNote">
-						<label
-							class="mb-1 block text-sm font-medium text-gray-700"
-						>
-							Descrição do motivo (*)
-						</label>
-
-						<textarea
-							v-model="otherReasonText"
-							rows="3"
-							class="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm transition placeholder:text-gray-400 focus:border-sky-500 focus:ring-1 focus:ring-sky-500 focus:outline-none"
-							placeholder="Descreva o motivo da ativação"
-						/>
-					</div>
+					<BaseTextarea
+						v-if="selectedReasonData?.requiresNote"
+						v-model="otherReasonText"
+						label="Descrição do motivo"
+						placeholder="Descreva o motivo da ativação"
+						:required="true"
+						:rows="3"
+					/>
 				</div>
 			</div>
 
@@ -157,3 +167,4 @@ async function confirmActivation() {
 		</div>
 	</div>
 </template>
+

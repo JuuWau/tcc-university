@@ -7,9 +7,12 @@ use App\Http\Requests\StoreClinicRequest;
 use App\Http\Requests\UpdateClinicRequest;
 use App\Http\Requests\TableClinicRequest;
 use App\Data\Clinics\ClinicTableFiltersData;
+use App\Http\Resources\ClinicResource;
 use App\Http\Resources\ClinicTableResource;
 use App\Models\Clinic;
+use App\Models\User;
 use App\Services\ClinicService;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Http\JsonResponse;
 use Inertia\Inertia;
 
@@ -123,5 +126,16 @@ class ClinicController extends Controller
                 'message' => $e->getMessage(),
             ], 422);
         }
+    }
+
+    public function getClinics()
+    {
+        $user = request()->user();
+
+        $clinics = $this->clinicService->getClinics(
+            $user->university_id
+        );
+
+        return ClinicResource::collection($clinics);
     }
 }

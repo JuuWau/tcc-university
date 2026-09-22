@@ -127,16 +127,17 @@ async function submit() {
 				<div class="space-y-4 py-5">
 					<BaseInput
 						v-model="form.registration"
-						label="Registro acadêmico (*)"
+						label="Registro acadêmico"
 						type="text"
 						maxlength="255"
 						placeholder="Registro acadêmico"
+                        required
 					/>
 
 					<AppMultiselect
 						v-model="form.period"
 						:options="periodsOptions"
-						field-label="Período (*)"
+						field-label="Período"
 						label="label"
 						value-prop="value"
 						:searchable="true"
@@ -144,6 +145,7 @@ async function submit() {
 						:can-clear="true"
 						:append-to-body="true"
 						placeholder="Selecione o período"
+                        required
 					/>
 				</div>
 			</form>

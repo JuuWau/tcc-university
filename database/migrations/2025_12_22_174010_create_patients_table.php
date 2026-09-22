@@ -16,9 +16,9 @@ return new class extends Migration
             $table->foreignId('university_id')
                 ->constrained()
                 ->cascadeOnDelete();
-            $table->foreignId('student_id')
+            $table->foreignId('pre_patient_id')
                 ->nullable()
-                ->constrained()
+                ->constrained('pre_patients')
                 ->nullOnDelete();
             $table->string('name');
             $table->string('cpf')->nullable()->unique();

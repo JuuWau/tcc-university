@@ -9,10 +9,12 @@ withDefaults(
 	defineProps<{
 		fieldLabel?: string;
 		showLabel?: boolean;
+		required?: boolean;
 	}>(),
 	{
 		fieldLabel: undefined,
 		showLabel: true,
+		required: false,
 	},
 );
 </script>
@@ -24,10 +26,17 @@ withDefaults(
 			class="mb-1 block text-sm font-medium text-gray-700"
 		>
 			{{ fieldLabel }}
+			<span
+				v-if="required"
+				class="text-red-500"
+			>
+				*
+			</span>
 		</label>
 
 		<Multiselect
 			v-bind="$attrs"
+			:required="required"
 			:no-options-text="'Nenhuma opção disponível'"
 			:no-results-text="'Nenhum resultado encontrado'"
 		/>

@@ -99,40 +99,43 @@ async function submit() {
 					<BaseInput
 						id="academic_year"
 						v-model="form.academic_year"
-						label="Ano acadêmico (*)"
+						label="Ano acadêmico"
 						type="text"
 						maxlength="1"
 						inputmode="numeric"
 						pattern="[0-9]*"
 						placeholder="Ex: 4º ano"
+						required
 					/>
 
 					<BaseInput
 						id="semester"
 						v-model="form.semester"
-						label="Semestre (*)"
+						label="Semestre"
 						type="text"
 						maxlength="1"
 						inputmode="numeric"
 						pattern="[0-9]*"
 						placeholder="Ex: 1º semestre"
+						required
 					/>
 
 					<BaseInput
 						id="calendar_year"
 						v-model="form.calendar_year"
-						label="Ano calendário (*)"
+						label="Ano calendário"
 						type="text"
 						maxlength="4"
 						inputmode="numeric"
 						pattern="[0-9]*"
 						placeholder="Ex: 2024"
+						required
 					/>
 
 					<AppMultiselect
 						v-model="form.specialties"
 						:options="specialtiesOptions"
-						field-label="Especialidades (*)"
+						field-label="Especialidades"
 						mode="tags"
 						label="label"
 						track-by="value"
@@ -142,6 +145,7 @@ async function submit() {
 						:can-clear="true"
 						:append-to-body="true"
 						placeholder="Selecione as especialidades"
+						required
 					/>
 				</div>
 			</div>

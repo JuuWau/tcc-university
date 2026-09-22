@@ -128,28 +128,31 @@ async function submit() {
 					<div class="grid grid-cols-1 gap-4 sm:grid-cols-2">
 						<BaseInput
 							v-model="form.start_time"
-							label="Início (*)"
+							label="Início"
 							type="text"
 							v-mask="'##:##'"
 							placeholder="HH:mm"
+							required
 						/>
 
 						<BaseInput
 							v-model="form.end_time"
-							label="Fim (*)"
+							label="Fim"
 							type="text"
 							v-mask="'##:##'"
 							placeholder="HH:mm"
+							required
 						/>
 					</div>
 
 					<BaseInput
 						v-model="form.available_slots"
-						label="Vagas disponíveis (*)"
+						label="Vagas disponíveis"
 						type="number"
 						min="0"
 						step="1"
 						placeholder="Ex: 6"
+						required
 					/>
 
 					<div class="space-y-3 border-t border-gray-200 pt-4">

@@ -22,11 +22,11 @@ class EnrollPatientRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'patient_id' => [
-                'required',
-                'integer',
-                'exists:patients,id',
-            ],
+            'pre_patient_id' => [ 
+                'required', 
+                'integer', 
+                'exists:pre_patients,id', 
+            ], 
         ];
     }
 }

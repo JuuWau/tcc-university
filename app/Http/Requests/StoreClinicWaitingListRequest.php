@@ -22,14 +22,14 @@ class StoreClinicWaitingListRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'patient_ids' => [
+            'pre_patient_ids' => [
                 'required',
                 'array',
                 'min:1',
             ],
-            'patient_ids.*' => [
+            'pre_patient_ids.*' => [
                 'integer',
-                'exists:patients,id',
+                'exists:pre_patients,id',
             ],
         ];
     }

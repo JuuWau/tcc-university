@@ -228,7 +228,7 @@ async function submit() {
                                 :searchable="true"
                                 :loading="loadingStudents"
                                 :can-clear="true"
-                                :close-on-select="true"
+                                :close-on-select="false"
                                 :append-to-body="true"
                                 placeholder="Buscar estudante"
                                 @select="addStudent"

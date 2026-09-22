@@ -20,7 +20,7 @@ const emit = defineEmits<{
 			phone: string;
 			cpf: string;
 			birth_date: string;
-			patient_type: 'adulto' | 'pediatria' | null;
+			patient_type: 'adult' | 'pediatrics' | null;
 			biological_sex: 'male' | 'female' | null;
 			cep: string;
 			street: string;
@@ -39,7 +39,7 @@ const cities = ref<City[]>([]);
 const viaCep = ViaCep();
 
 const patientTypeOptions = [
-	{ label: 'Adulto', value: 'adulto' },
+	{ label: 'Adulto', value: 'adult' },
 	{ label: 'Pediatria', value: 'pediatria' },
 ];
 
@@ -68,7 +68,7 @@ const form = reactive({
 	phone: '',
 	cpf: '',
 	birth_date: '',
-	patient_type: null as 'adulto' | 'pediatria' | null,
+	patient_type: null as 'adult' | 'pediatrics' | null,
 	biological_sex: null as 'male' | 'female' | null,
 	cep: '',
 	street: '',
@@ -212,10 +212,11 @@ defineExpose({
 		<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
 			<BaseInput
 				v-model="form.name"
-				label="Nome completo (*)"
+				label="Nome completo"
 				type="text"
 				maxlength="255"
 				placeholder="Nome completo"
+				required
 			/>
 
 			<BaseInput
@@ -257,7 +258,7 @@ defineExpose({
 			<AppMultiselect
 				v-model="form.biological_sex"
 				:options="biologicalSexOptions"
-				field-label="Sexo biológico (*)"
+				field-label="Sexo biológico"
 				label="label"
 				value-prop="value"
 				:searchable="false"
@@ -265,6 +266,7 @@ defineExpose({
 				:can-clear="false"
 				:append-to-body="true"
 				placeholder="Selecione o sexo"
+				required
 			/>
 		</div>
 
@@ -272,7 +274,7 @@ defineExpose({
 			<AppMultiselect
 				v-model="form.patient_type"
 				:options="patientTypeOptions"
-				field-label="Tipo de atendimento (*)"
+				field-label="Tipo de atendimento"
 				label="label"
 				value-prop="value"
 				:searchable="false"
@@ -280,26 +282,29 @@ defineExpose({
 				:can-clear="false"
 				:append-to-body="true"
 				placeholder="Selecione o tipo"
+				required
 			/>
 		</div>
 
 		<div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
 			<BaseInput
 				v-model="form.cep"
-				label="CEP (*)"
+				label="CEP"
 				type="text"
 				maxlength="9"
 				v-mask="'#####-###'"
 				placeholder="00000-000"
+				required
 			/>
 
 			<div class="md:col-span-2">
 				<BaseInput
 					v-model="form.street"
-					label="Endereço (*)"
+					label="Endereço"
 					type="text"
 					maxlength="100"
 					placeholder="Logradouro"
+					required
 				/>
 			</div>
 		</div>
@@ -307,18 +312,20 @@ defineExpose({
 		<div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
 			<BaseInput
 				v-model="form.neighborhood"
-				label="Bairro (*)"
+				label="Bairro"
 				type="text"
 				maxlength="50"
 				placeholder="Bairro"
+				required
 			/>
 
 			<BaseInput
 				v-model="form.number"
-				label="Número (*)"
+				label="Número"
 				type="text"
 				maxlength="5"
 				placeholder="Número"
+				required
 			/>
 
 			<BaseInput
@@ -334,7 +341,7 @@ defineExpose({
 			<AppMultiselect
 				v-model="form.state"
 				:options="stateOptions"
-				field-label="Estado (*)"
+				field-label="Estado"
 				label="label"
 				value-prop="value"
 				:searchable="true"
@@ -342,12 +349,13 @@ defineExpose({
 				:can-clear="true"
 				:append-to-body="true"
 				placeholder="Selecione o estado"
+				required
 			/>
 
 			<AppMultiselect
 				v-model="form.city"
 				:options="cityOptions"
-				field-label="Cidade (*)"
+				field-label="Cidade"
 				label="label"
 				value-prop="value"
 				:searchable="true"
@@ -355,6 +363,7 @@ defineExpose({
 				:can-clear="true"
 				:append-to-body="true"
 				placeholder="Selecione a cidade"
+				required
 			/>
 		</div>
 	</form>
