@@ -12,12 +12,15 @@ import { computed, inject, reactive, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 
 const context = inject(StudentTabContextKey);
+
 if (!context) {
     throw new Error('StudentsEditModal must be used inside StudentTab');
 }
 
 const page = usePage();
+
 const student = computed(() => context.student.value);
+
 const academicDataEditModalOpen = context.academicDataEditModalOpen;
 
 const periodsOptions = computed(() => {
@@ -32,6 +35,7 @@ const periodsOptions = computed(() => {
                 }>;
             }
         ).periods ?? [];
+
     return periods.map((p) => ({
         label: `${p.academic_year}º ano ${p.semester}º semestre ${p.calendar_year}`,
         value: p.id,
@@ -49,11 +53,28 @@ const form = reactive({
     period: null as number | null,
 });
 
+const errors = reactive({
+    registration: '',
+    period: '',
+});
+
+const registrationInput = ref<{ focus: () => void } | null>(null);
+
+const periodInput = ref<{ focus: () => void } | null>(null);
+
+function clearErrors() {
+    errors.registration = '';
+    errors.period = '';
+}
+
 watch(
     () => academicDataEditModalOpen.value,
     (isOpen) => {
         if (isOpen && student.value) {
+            clearErrors();
+
             form.registration = student.value.registration ?? '';
+
             const currentPeriod =
                 (
                     student.value.periods as Array<{
@@ -62,6 +83,7 @@ watch(
                     }>
                 )?.find((p) => p.pivot?.is_current) ??
                 student.value.periods?.[0];
+
             form.period = currentPeriod?.id ?? null;
         }
     },
@@ -69,10 +91,14 @@ watch(
 
 function close() {
     academicDataEditModalOpen.value = false;
+
+    clearErrors();
 }
 
 async function submit() {
     if (loading.value) return;
+
+    clearErrors();
 
     const payload: Record<string, unknown> = {
         registration: form.registration,
@@ -80,26 +106,54 @@ async function submit() {
     };
 
     const result = studentAcademicDataEditSchema.safeParse(payload);
+
     if (!result.success) {
-        toast.error(result.error.issues[0].message);
+        result.error.issues.forEach((issue) => {
+            const field = issue.path[0];
+
+            if (field === 'registration' || field === 'period') {
+                errors[field] = issue.message;
+            }
+        });
+
+        const firstError = result.error.issues[0];
+
+        if (firstError.path[0] === 'registration') {
+            registrationInput.value?.focus();
+        } else if (firstError.path[0] === 'period') {
+            periodInput.value?.focus();
+        }
+
         return;
     }
 
     try {
         loading.value = true;
+
         const { data } = await axios.patch<{
             message: string;
             student: Student;
         }>(`/students/${student.value.id}/academic-data`, payload);
+
         toast.success(data.message ?? 'Dados atualizados com sucesso');
+
         emit('updated');
+
         close();
     } catch (err: unknown) {
         const message =
             err && typeof err === 'object' && 'response' in err
-                ? (err as { response?: { data?: { message?: string } } })
-                      .response?.data?.message
+                ? (
+                      err as {
+                          response?: {
+                              data?: {
+                                  message?: string;
+                              };
+                          };
+                      }
+                  ).response?.data?.message
                 : null;
+
         toast.error(message ?? 'Erro ao atualizar dados do aluno');
     } finally {
         loading.value = false;
@@ -108,55 +162,59 @@ async function submit() {
 </script>
 
 <template>
-	<div
-		v-if="academicDataEditModalOpen"
-		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-	>
-		<div
-			class="flex w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow"
-		>
-			<FormHeader
-				title="Editar dados acadêmicos do aluno"
-				subtitle="Atualize as informações acadêmicas do aluno."
-			/>
+    <div
+        v-if="academicDataEditModalOpen"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+    >
+        <div
+            class="flex w-full max-w-md flex-col overflow-hidden rounded-lg bg-white shadow"
+        >
+            <FormHeader
+                title="Editar dados acadêmicos do aluno"
+                subtitle="Atualize as informações acadêmicas do aluno."
+            />
 
-			<form
-				class="min-h-0 flex-1 px-6"
-				@submit.prevent="submit"
-			>
-				<div class="space-y-4 py-5">
-					<BaseInput
-						v-model="form.registration"
-						label="Registro acadêmico"
-						type="text"
-						maxlength="255"
-						placeholder="Registro acadêmico"
+            <form
+                class="min-h-0 flex-1 px-6"
+                @submit.prevent="submit"
+            >
+                <div class="space-y-4 py-5">
+                    <BaseInput
+                        ref="registrationInput"
+                        v-model="form.registration"
+                        label="Registro acadêmico"
+                        type="text"
+                        maxlength="255"
+                        placeholder="Registro acadêmico"
                         required
-					/>
+                        :error="errors.registration"
+                    />
 
-					<AppMultiselect
-						v-model="form.period"
-						:options="periodsOptions"
-						field-label="Período"
-						label="label"
-						value-prop="value"
-						:searchable="true"
-						:close-on-select="true"
-						:can-clear="true"
-						:append-to-body="true"
-						placeholder="Selecione o período"
+                    <AppMultiselect
+                        ref="periodInput"
+                        v-model="form.period"
+                        :options="periodsOptions"
+                        field-label="Período"
+                        label="label"
+                        value-prop="value"
+                        :searchable="true"
+                        :close-on-select="true"
+                        :can-clear="true"
+                        :append-to-body="true"
+                        placeholder="Selecione o período"
                         required
-					/>
-				</div>
-			</form>
+                        :error="errors.period"
+                    />
+                </div>
+            </form>
 
-			<FormFooter
-				:loading="loading"
-				action="save"
-				action-label="Salvar"
-				@cancel="close"
-				@save="submit"
-			/>
-		</div>
-	</div>
+            <FormFooter
+                :loading="loading"
+                action="save"
+                action-label="Salvar"
+                @cancel="close"
+                @save="submit"
+            />
+        </div>
+    </div>
 </template>

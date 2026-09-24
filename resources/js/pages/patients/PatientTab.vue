@@ -31,13 +31,6 @@
                     "
                 />
 
-                <PatientClinicsData
-                    v-if="
-                        activeTab === 'clinics' &&
-                        can('patients.personal-page.viewClinics')
-                    "
-                />
-
                 <PatientActionLogs
                     v-if="
                         activeTab === 'logs' &&
@@ -64,7 +57,6 @@ import PatientSchedules from '@/pages/patients/tabs/patient-schedule/PatientSche
 import type { PatientForTab } from '@/types/patient/patient';
 import { router, usePage } from '@inertiajs/vue3';
 import { computed, provide, ref, watch } from 'vue';
-import PatientClinicsData from './tabs/clinics-data/PatientClinicsData.vue';
 import PatientActionLogs from '@/pages/users/tabs/UserActionLogs.vue';
 import { useUserActionLogs } from '@/composables/user/useUserActionLogs.js';
 import { UserActionLogsContextKey } from '@/keys/action-logs/userActionLogsKeys.js';
@@ -108,13 +100,12 @@ provide(PatientTabContextKey, {
     students,
 } as PatientTabContext);
 
-type TabKey = 'personal' | 'schedules' | 'clinics' | 'logs';
+type TabKey = 'personal' | 'schedules' | 'logs';
 const activeTab = ref<TabKey>('personal');
 
 const tabs: { key: TabKey; label: string, permission?: string; }[] = [
     { key: 'personal', label: 'Dados pessoais' },
     { key: 'schedules', label: 'Agendamentos' },
-    { key: 'clinics', label: 'Clínicas' },
     { key: 'logs', label: 'Histórico de ações', permission: 'action-logs.view' },
 ];
 

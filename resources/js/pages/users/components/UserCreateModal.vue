@@ -12,8 +12,13 @@ import { inject, onMounted, reactive, ref } from 'vue';
 import { toast } from 'vue3-toastify';
 
 const createModal = inject(UserCreateKey);
-const refreshTableRef = inject<{ value: (() => void) | null }>(RefreshTableKey);
+
+const refreshTableRef = inject<{ value: (() => void) | null }>(
+    RefreshTableKey,
+);
+
 const loading = inject(LoadingKey);
+
 const rolesOptions = ref<{ label: string; value: number }[]>([]);
 
 const page = usePage();
@@ -25,9 +30,10 @@ onMounted(() => {
             name: string;
             slug: string;
         }>) ?? [];
-    rolesOptions.value = roles.map((r) => ({
-        label: r.name,
-        value: r.id,
+
+    rolesOptions.value = roles.map((role) => ({
+        label: role.name,
+        value: role.id,
     }));
 });
 
@@ -41,24 +47,77 @@ const form = reactive({
     role_id: null as number | null,
 });
 
+const errors = reactive({
+    name: '',
+    email: '',
+    role_id: '',
+});
+
+const nameInput = ref<{ focus: () => void } | null>(null);
+const emailInput = ref<{ focus: () => void } | null>(null);
+const roleInput = ref<{ focus: () => void } | null>(null);
+
+function clearErrors() {
+    errors.name = '';
+    errors.email = '';
+    errors.role_id = '';
+}
+
+function focusFirstError(field: string) {
+    switch (field) {
+        case 'name':
+            nameInput.value?.focus();
+            break;
+        case 'email':
+            emailInput.value?.focus();
+            break;
+        case 'role_id':
+            roleInput.value?.focus();
+            break;
+    }
+}
+
 function close() {
     createModal.isOpen.value = false;
+
     form.name = null;
     form.email = null;
     form.role_id = null;
+
+    clearErrors();
 }
 
 async function submit() {
-    if (loading?.value) return;
+    if (loading?.value) {
+        return;
+    }
+
+    clearErrors();
 
     const result = userSchema.safeParse(form);
+
     if (!result.success) {
-        toast.error(result.error.issues[0].message);
+        result.error.issues.forEach((issue) => {
+            const field = issue.path[0] as keyof typeof errors;
+
+            if (field in errors) {
+                errors[field] = issue.message;
+            }
+        });
+
+        const firstError = result.error.issues[0]?.path[0];
+
+        if (firstError) {
+            focusFirstError(firstError as string);
+        }
+
         return;
     }
 
     try {
-        if (loading) loading.value = true;
+        if (loading) {
+            loading.value = true;
+        }
 
         await axios.post('/users', {
             name: form.name,
@@ -67,12 +126,19 @@ async function submit() {
         });
 
         toast.success('Convite enviado com sucesso!');
+
         close();
+
         refreshTableRef?.value?.();
     } catch (error: any) {
-        toast.error(error.response?.data?.message ?? 'Erro ao criar usuário');
+        toast.error(
+            error.response?.data?.message ??
+                'Erro ao criar usuário',
+        );
     } finally {
-        if (loading) loading.value = false;
+        if (loading) {
+            loading.value = false;
+        }
     }
 }
 </script>
@@ -93,24 +159,29 @@ async function submit() {
             <div class="min-h-0 flex-1 overflow-y-auto px-6">
                 <div class="space-y-4 py-4">
                     <BaseInput
+                        ref="nameInput"
                         v-model="form.name"
                         label="Nome completo"
                         type="text"
                         maxlength="255"
                         placeholder="Nome do usuário"
                         required
+                        :error="errors.name"
                     />
-                    
+
                     <BaseInput
+                        ref="emailInput"
                         v-model="form.email"
                         label="Email"
                         type="email"
                         maxlength="255"
                         placeholder="email@exemplo.com"
                         required
+                        :error="errors.email"
                     />
 
                     <AppMultiselect
+                        ref="roleInput"
                         v-model="form.role_id"
                         :options="rolesOptions"
                         label="label"
@@ -122,6 +193,7 @@ async function submit() {
                         :append-to-body="true"
                         placeholder="Selecione o perfil"
                         required
+                        :error="errors.role_id"
                     />
                 </div>
             </div>

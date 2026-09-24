@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, reactive, watch } from 'vue';
+import { computed, inject, reactive, ref, watch } from 'vue';
 import AppMultiselect from '@/components/AppMultiselect.vue';
 import { PatientScheduleBookingContextKey, PatientScheduleCreateModalKey } from '@/keys/patients/patientScheduleBookingKeys';
 import { toast } from 'vue3-toastify';
@@ -32,6 +32,29 @@ const form = reactive({
     status: 'scheduled',
     notes: '',
 });
+
+const errors = reactive({
+    patient_id: '',
+    date: '',
+    start_time: '',
+    end_time: '',
+    procedure_id: '',
+    status: '',
+});
+
+const startTimeInput = ref<{ focus: () => void } | null>(null);
+const endTimeInput = ref<{ focus: () => void } | null>(null);
+const procedureInput = ref<{ focus: () => void } | null>(null);
+const statusInput = ref<{ focus: () => void } | null>(null);
+
+function clearErrors() {
+    errors.patient_id = '';
+    errors.date = '';
+    errors.start_time = '';
+    errors.end_time = '';
+    errors.procedure_id = '';
+    errors.status = '';
+}
 
 const initialData = computed(
     () => modal.initialData.value,
@@ -75,6 +98,8 @@ watch(
             return;
         }
 
+        clearErrors();
+
         form.procedure_id = null;
         form.start_time = initialData.value.start_time;
         form.end_time = initialData.value.end_time;
@@ -92,12 +117,30 @@ function close() {
 }
 
 async function createAppointment() {
+    clearErrors();
+
     const result = patientScheduleBookingSchema.safeParse(form);
 
     if (!result.success) {
-        toast.error(
-            result.error.issues[0].message,
-        );
+        result.error.issues.forEach((issue) => {
+            const field = issue.path[0] as keyof typeof errors;
+
+            if (field in errors) {
+                errors[field] = issue.message;
+            }
+        });
+
+        const firstError = result.error.issues[0]?.path[0];
+
+        if (firstError === 'start_time') {
+            startTimeInput.value?.focus();
+        } else if (firstError === 'end_time') {
+            endTimeInput.value?.focus();
+        } else if (firstError === 'procedure_id') {
+            procedureInput.value?.focus();
+        } else if (firstError === 'status') {
+            statusInput.value?.focus();
+        }
 
         return;
     }
@@ -159,23 +202,30 @@ async function createAppointment() {
                             label="Data"
                             type="date"
                             disabled
+                            required
                         />
 
 						<BaseInput
-							v-model="form.start_time"
-							label="Início"
-							type="text"
-							v-mask="'##:##'"
-							placeholder="HH:mm"
-						/>
+                            ref="startTimeInput"
+                            v-model="form.start_time"
+                            label="Início"
+                            type="text"
+                            v-mask="'##:##'"
+                            placeholder="HH:mm"
+                            :error="errors.start_time"
+                            required
+                        />
 
 						<BaseInput
-							v-model="form.end_time"
-							label="Fim"
-							type="text"
-							v-mask="'##:##'"
-							placeholder="HH:mm"
-						/>
+                            ref="endTimeInput"
+                            v-model="form.end_time"
+                            label="Fim"
+                            type="text"
+                            v-mask="'##:##'"
+                            placeholder="HH:mm"
+                            :error="errors.end_time"
+                            required
+                        />
 					</div>
 
 					<AppMultiselect
@@ -194,18 +244,20 @@ async function createAppointment() {
 					/>
 
 					<AppMultiselect
-						v-model="form.status"
-						:options="statusOptions"
-						field-label="Status"
-						label="label"
-						value-prop="value"
-						:searchable="true"
-						:close-on-select="true"
-						:can-clear="false"
-						:append-to-body="true"
-						placeholder="Selecione o status"
+                        ref="statusInput"
+                        v-model="form.status"
+                        :options="statusOptions"
+                        field-label="Status"
+                        label="label"
+                        value-prop="value"
+                        :searchable="true"
+                        :close-on-select="true"
+                        :can-clear="false"
+                        :append-to-body="true"
+                        placeholder="Selecione o status"
                         required
-					/>
+                        :error="errors.status"
+                    />
 
 					<div>
 						<label

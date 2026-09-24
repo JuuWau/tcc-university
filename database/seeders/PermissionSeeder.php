@@ -139,10 +139,6 @@ class PermissionSeeder extends Seeder
             'open-schedule-management-student.view', //permissão para se inscrever nas clinicas
             'open-schedule-management-student.enroll', // Permissão para se inscrever em clínicas específicas (estudante)
 
-            'patients.personal-page.view', // Permissão para acessar pagina do paciente
-            'patients.personal-page.viewAppointments', // Permissão para acessar tab de agendamentos do paciente
-            'patients.personal-page.viewClinics', // Permissão para acessar tab de clínicas do paciente
-
             'patients.personal-page.view',
         ]);
 
@@ -212,7 +208,6 @@ class PermissionSeeder extends Seeder
             'patients.view', // Permissão para acessar página de cadastros de pacientes
             'patients.personal-page.view', // Permissão para acessar pagina do paciente
             'patients.personal-page.viewAppointments', // Permissão para acessar tab de agendamentos do paciente
-            'patients.personal-page.viewClinics', // Permissão para acessar tab de clínicas do paciente
 
             'users.personal-page.view', // Permissão para acessar pagina do usuário
             'users.personal-page.updatePersonalData', // Permissão para atualizar dados pessoais do usuário

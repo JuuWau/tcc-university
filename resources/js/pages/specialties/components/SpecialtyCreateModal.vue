@@ -2,25 +2,27 @@
 import FormFooter from '@/components/form/FormFooter.vue';
 import FormHeader from '@/components/form/FormHeader.vue';
 import BaseInput from '@/components/inputs/BaseInput.vue';
-import {
-	RefreshTableKey,
-    SpecialtyCreateKey,
-} from '@/keys/specialties/specialtyKeys';
+import { RefreshTableKey, SpecialtyCreateKey } from '@/keys/specialties/specialtyKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import { specialtySchema } from '@/schemas/specialty.schema';
 import axios from 'axios';
-import { inject, reactive } from 'vue';
+import { inject, reactive, ref } from 'vue';
 import { toast } from 'vue3-toastify';
 
 const createModal = inject<any>(SpecialtyCreateKey);
 const refreshTableRef = inject(RefreshTableKey);
 const loading = inject(LoadingKey);
+const nameInput = ref<HTMLInputElement | null>(null);
 
 if (!createModal) {
     throw new Error('SpecialtyCreateModal precisa estar dentro do provider');
 }
 
 const form = reactive({
+    name: '',
+});
+
+const errors = reactive({
     name: '',
 });
 
@@ -32,10 +34,20 @@ function close() {
 async function submit() {
     if (loading.value) return;
 
+    errors.name = '';
+
     const result = specialtySchema.safeParse(form);
+
     if (!result.success) {
-        toast.error(result.error.issues[0].message);
-        return;
+	result.error.issues.forEach((issue) => {
+		if (issue.path[0] === 'name') {
+		errors.name = issue.message;
+		}
+	});
+
+	nameInput.value?.focus();
+
+	return;
     }
 
     try {
@@ -75,11 +87,13 @@ async function submit() {
 			<div class="px-6">
 				<div class="py-5">
 					<BaseInput
+						ref="nameInput"
 						v-model="form.name"
 						label="Nome da especialidade"
 						type="text"
 						placeholder="Ex: Endodontia"
 						required
+						:error="errors.name"
 					/>
 				</div>
 			</div>
