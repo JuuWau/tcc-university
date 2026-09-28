@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import NavMain from '@/components/NavMain.vue';
 import NavUser from '@/components/NavUser.vue';
+import AppLogoIcon from '@/components/AppLogoIcon.vue';
 import {
     Sidebar,
     SidebarContent,
@@ -9,18 +10,22 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    useSidebar,
 } from '@/components/ui/sidebar';
 import { type NavItem } from '@/types';
 import { Link, usePage } from '@inertiajs/vue3';
 import { BarChart, Building2, Calendar, ClipboardList, GraduationCap, LayoutGrid, ListPlus, Stethoscope, User, Users, Timer, CalendarPlus, CalendarCog, CalendarCheck, Hospital, LogIn, Notebook, FileUser, BookUser, UsersRound, Layers, UserPlus } from 'lucide-vue-next';
 import AppLogo from './AppLogo.vue';
 import { computed } from 'vue';
+const { state, isMobile } = useSidebar();
 
 const page = usePage();
 
 const permissions = computed(
     () => page.props.auth.permissions ?? []
 );
+
+
 
 const can = (permission: string) => {
     return permissions.value.includes(permission);
@@ -201,12 +206,26 @@ const filteredNavItems = computed(() => {
 
 <template>
     <Sidebar collapsible="icon" variant="inset">
-        <SidebarHeader>
-            <SidebarMenu>
-                <SidebarMenuItem>
-                    <SidebarMenuButton size="lg" as-child>
-                        <Link href="/">
-                            <AppLogo />
+        <SidebarHeader class="mb-4 mt-2">
+            <SidebarMenu class="w-full">
+                <SidebarMenuItem class="w-full">
+                    <SidebarMenuButton
+                        size="default"
+                        as-child
+                        class="h-12! w-full! justify-start! px-3!"
+                    >
+                        <Link
+                            href="/"
+                            class="flex items-center gap-3"
+                        >
+                            <AppLogo
+                                v-if="isMobile || state !== 'collapsed'"
+                            />
+
+                            <AppLogoIcon
+                                v-else
+                                class="size-7 shrink-0 object-contain"
+                            />
                         </Link>
                     </SidebarMenuButton>
                 </SidebarMenuItem>
