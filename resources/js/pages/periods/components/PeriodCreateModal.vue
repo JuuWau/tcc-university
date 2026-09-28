@@ -1,6 +1,4 @@
 <script setup lang="ts">
-import CancelButton from '@/components/buttons/CancelButton.vue';
-import SaveButton from '@/components/buttons/SaveButton.vue';
 import { PeriodCreateKey, RefreshTableKey } from '@/keys/periods/periodKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import { periodSchema } from '@/schemas/period.schema';
@@ -17,6 +15,10 @@ const createModal = inject<any>(PeriodCreateKey);
 const refreshTableRef = inject(RefreshTableKey);
 const loading = inject(LoadingKey);
 const specialtiesOptions = ref<{ label: string; value: number }[]>([]);
+
+const academicYearInput = ref<{ focus: () => void } | null>(null);
+const semesterInput = ref<{ focus: () => void } | null>(null);
+const calendarYearInput = ref<{ focus: () => void } | null>(null);
 
 const page = usePage();
 
@@ -43,34 +45,76 @@ const form = reactive({
     specialties: [] as number[],
 });
 
+const errors = reactive({
+    academic_year: '',
+    semester: '',
+    calendar_year: '',
+    specialties: '',
+});
+
+function clearErrors() {
+    errors.academic_year = '';
+    errors.semester = '';
+    errors.calendar_year = '';
+    errors.specialties = '';
+}
+
 function close() {
     createModal.isOpen.value = false;
+
     form.academic_year = null;
     form.semester = null;
     form.calendar_year = null;
     form.specialties = [];
+
+    clearErrors();
 }
 
 async function submit() {
     if (loading.value) return;
 
+    clearErrors();
+
     const result = periodSchema.safeParse(form);
+
     if (!result.success) {
-        toast.error(result.error.issues[0].message);
+        result.error.issues.forEach((issue) => {
+            const field = issue.path[0];
+
+            if (
+                field === 'academic_year' ||
+                field === 'semester' ||
+                field === 'calendar_year' ||
+                field === 'specialties'
+            ) {
+                errors[field] = issue.message;
+            }
+        });
+
+        const firstError = result.error.issues[0];
+
+        if (firstError.path[0] === 'academic_year') {
+            academicYearInput.value?.focus();
+        } else if (firstError.path[0] === 'semester') {
+            semesterInput.value?.focus();
+        } else if (firstError.path[0] === 'calendar_year') {
+            calendarYearInput.value?.focus();
+        }
+
         return;
     }
 
     try {
         loading.value = true;
 
-		await axios.post('/periods', {
+	await axios.post('/periods', {
             academic_year: form.academic_year,
             semester: form.semester,
             calendar_year: form.calendar_year,
             specialties: form.specialties,
         });
 
-		refreshTableRef?.value?.();
+	refreshTableRef?.value?.();
         toast.success('Período criado com sucesso');
         close();
     } catch (error: any) {
@@ -97,6 +141,7 @@ async function submit() {
 			<div class="min-h-0 flex-1 overflow-y-auto px-6">
 				<div class="space-y-4 py-5">
 					<BaseInput
+						ref="academicYearInput"
 						id="academic_year"
 						v-model="form.academic_year"
 						label="Ano acadêmico"
@@ -106,9 +151,11 @@ async function submit() {
 						pattern="[0-9]*"
 						placeholder="Ex: 4º ano"
 						required
+						:error="errors.academic_year"
 					/>
 
 					<BaseInput
+						ref="semesterInput"
 						id="semester"
 						v-model="form.semester"
 						label="Semestre"
@@ -118,9 +165,11 @@ async function submit() {
 						pattern="[0-9]*"
 						placeholder="Ex: 1º semestre"
 						required
+						:error="errors.semester"
 					/>
 
 					<BaseInput
+						ref="calendarYearInput"
 						id="calendar_year"
 						v-model="form.calendar_year"
 						label="Ano calendário"
@@ -130,6 +179,7 @@ async function submit() {
 						pattern="[0-9]*"
 						placeholder="Ex: 2024"
 						required
+						:error="errors.calendar_year"
 					/>
 
 					<AppMultiselect
@@ -146,6 +196,7 @@ async function submit() {
 						:append-to-body="true"
 						placeholder="Selecione as especialidades"
 						required
+						:error="errors.specialties"
 					/>
 				</div>
 			</div>

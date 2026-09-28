@@ -4,10 +4,14 @@ import { formatDateBr } from '@/src/utils/formatters';
 export const scheduleSlotsUpdateSchema = z
     .object({
         ids: z.array(z.number()).min(1, 'Selecione pelo menos um horário.'),
-        responsible_ids: z.array(
-            z.coerce.number().int()
-            .positive({ message: 'Selecione o responsável.' })
-            .nullable()),
+        responsible_ids: z
+            .array(
+                z.coerce
+                    .number()
+                    .int()
+                    .positive({ message: 'Selecione um responsável válido.' }),
+            )
+            .min(1, 'Selecione pelo menos um responsável.'),
         slots_data: z.array(z.object({
             id: z.number(),
             date: z.string(),

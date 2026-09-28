@@ -1,10 +1,20 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, ref } from 'vue';
 
 import type { Component } from 'vue';
 
 defineOptions({
 	inheritAttrs: false,
+});
+
+const inputRef = ref<HTMLInputElement | null>(null);
+
+function focus() {
+    inputRef.value?.focus();
+}
+
+defineExpose({
+    focus,
 });
 
 interface Props {
@@ -82,6 +92,7 @@ const inputValue = computed({
 			/>
 
 			<input
+				ref="inputRef"
 				:id="id"
 				v-model="inputValue"
 				:name="name"

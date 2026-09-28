@@ -3,12 +3,12 @@ import AppMultiselect from '@/components/AppMultiselect.vue';
 import FormFooter from '@/components/form/FormFooter.vue';
 import FormHeader from '@/components/form/FormHeader.vue';
 import BaseInput from '@/components/inputs/BaseInput.vue';
-import { PrePatientEditKey, RefreshTableKey, } from '@/keys/pre-patients/prePatientKeys';
+import { PrePatientEditKey, RefreshTableKey } from '@/keys/pre-patients/prePatientKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import { prePatientUpdateSchema } from '@/schemas/prePatientUpdate.schema';
 import type { PrePatient } from '@/types/pre-patients/prePatient';
 import axios from 'axios';
-import { computed, inject, reactive, watch } from 'vue';
+import { computed, inject, reactive, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 
 const loading = inject(LoadingKey);
@@ -16,199 +16,294 @@ const modal = inject(PrePatientEditKey);
 const refreshTableRef = inject(RefreshTableKey);
 
 if (!modal || !loading) {
-	throw new Error(
-		'PrePatientEditModal precisa estar dentro do provider',
-	);
+    throw new Error(
+        'PrePatientEditModal precisa estar dentro do provider',
+    );
 }
 
 const prePatient = computed(
-	() => modal.prePatient.value,
+    () => modal.prePatient.value,
 );
 
 const form = reactive({
-	name: '',
-	cpf: '',
-	birth_date: '',
-	biological_sex: null as 'male' | 'female' | null,
-	phone: '',
-	email: '',
-	patient_type: null as 'adult' | 'pediatric' | null,
+    name: '',
+    cpf: '',
+    birth_date: '',
+    biological_sex: null as 'male' | 'female' | null,
+    phone: '',
+    email: '',
+    patient_type: null as 'adult' | 'pediatric' | null,
 });
 
+const errors = reactive({
+    name: '',
+    cpf: '',
+    birth_date: '',
+    biological_sex: '',
+    phone: '',
+    email: '',
+    patient_type: '',
+});
+
+const nameInput = ref<{ focus: () => void } | null>(null);
+const cpfInput = ref<{ focus: () => void } | null>(null);
+const birthDateInput = ref<{ focus: () => void } | null>(null);
+const biologicalSexInput = ref<{ focus: () => void } | null>(null);
+const phoneInput = ref<{ focus: () => void } | null>(null);
+const emailInput = ref<{ focus: () => void } | null>(null);
+const patientTypeInput = ref<{ focus: () => void } | null>(null);
+
 const biologicalSexOptions = [
-	{
-		label: 'Feminino',
-		value: 'female',
-	},
-	{
-		label: 'Masculino',
-		value: 'male',
-	},
+    {
+        label: 'Feminino',
+        value: 'female',
+    },
+    {
+        label: 'Masculino',
+        value: 'male',
+    },
 ];
 
 const patientTypeOptions = [
-	{
-		label: 'Adulto',
-		value: 'adult',
-	},
-	{
-		label: 'Pediatria',
-		value: 'pediatric',
-	},
+    {
+        label: 'Adulto',
+        value: 'adult',
+    },
+    {
+        label: 'Pediatria',
+        value: 'pediatric',
+    },
 ];
 
-watch(
-	prePatient,
-	(value: PrePatient | null) => {
-		if (!value) {
-			return;
-		}
+function clearErrors() {
+    errors.name = '';
+    errors.cpf = '';
+    errors.birth_date = '';
+    errors.biological_sex = '';
+    errors.phone = '';
+    errors.email = '';
+    errors.patient_type = '';
+}
 
-		form.name = value.name ?? '';
-		form.cpf = value.cpf ?? '';
-		form.birth_date = value.birth_date ?? '';
-		form.biological_sex = value.biological_sex as
-			| 'male'
-			| 'female'
-			| null;
-		form.phone = value.phone ?? '';
-		form.email = value.email ?? '';
-		form.patient_type = value.patient_type as
-			| 'adult'
-			| 'pediatric'
-			| null;
-	},
-	{ immediate: true },
+function focusFirstError(field: string) {
+    switch (field) {
+        case 'name':
+            nameInput.value?.focus();
+            break;
+        case 'cpf':
+            cpfInput.value?.focus();
+            break;
+        case 'birth_date':
+            birthDateInput.value?.focus();
+            break;
+        case 'biological_sex':
+            biologicalSexInput.value?.focus();
+            break;
+        case 'phone':
+            phoneInput.value?.focus();
+            break;
+        case 'email':
+            emailInput.value?.focus();
+            break;
+        case 'patient_type':
+            patientTypeInput.value?.focus();
+            break;
+    }
+}
+
+watch(
+    prePatient,
+    (value: PrePatient | null) => {
+        if (!value) {
+            return;
+        }
+
+        form.name = value.name ?? '';
+        form.cpf = value.cpf ?? '';
+        form.birth_date = value.birth_date ?? '';
+        form.biological_sex = value.biological_sex as
+            | 'male'
+            | 'female'
+            | null;
+        form.phone = value.phone ?? '';
+        form.email = value.email ?? '';
+        form.patient_type = value.patient_type as
+            | 'adult'
+            | 'pediatric'
+            | null;
+
+        clearErrors();
+    },
+    { immediate: true },
+);
+
+watch(
+    () => modal.isOpen.value,
+    (isOpen) => {
+        if (isOpen) {
+            clearErrors();
+        }
+    },
 );
 
 function close() {
-	modal.isOpen.value = false;
+    modal.isOpen.value = false;
+    clearErrors();
 }
 
 async function save() {
-	if (!prePatient.value?.id || loading.value) {
-		return;
-	}
+    if (!prePatient.value?.id || loading.value) {
+        return;
+    }
 
-        const result = prePatientUpdateSchema.safeParse(form);
+    clearErrors();
 
-	if (!result.success) {
-		toast.error(result.error.issues[0].message);
-		return;
-	}
+    const result = prePatientUpdateSchema.safeParse(form);
 
-	try {
-		loading.value = true;
+    if (!result.success) {
+        result.error.issues.forEach((issue) => {
+            const field = issue.path[0] as keyof typeof errors;
 
-		const response = await axios.put(
-			`/pre-patients/${prePatient.value.id}`,
-			result.data,
-		);
+            if (field in errors) {
+                errors[field] = issue.message;
+            }
+        });
 
-		toast.success(response.data.message);
+        const firstError = result.error.issues[0]?.path[0];
 
-		close();
+        if (firstError) {
+            focusFirstError(firstError as string);
+        }
 
-		setTimeout(() => {
-			refreshTableRef?.value?.();
-		}, 0);
-	} catch (error: any) {
-		toast.error(
-			error.response?.data?.message ??
-				'Erro ao atualizar pré-paciente',
-		);
-	} finally {
-		loading.value = false;
-	}
+        return;
+    }
+
+    try {
+        loading.value = true;
+
+        const response = await axios.put(
+            `/pre-patients/${prePatient.value.id}`,
+            result.data,
+        );
+
+        toast.success(response.data.message);
+
+        close();
+
+        setTimeout(() => {
+            refreshTableRef?.value?.();
+        }, 0);
+    } catch (error: any) {
+        toast.error(
+            error.response?.data?.message ??
+                'Erro ao atualizar pré-paciente',
+        );
+    } finally {
+        loading.value = false;
+    }
 }
 </script>
 
 <template>
-	<div
-		v-if="modal.isOpen.value && prePatient"
-		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-	>
-		<div
-			class="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow"
-		>
-			<FormHeader
-				title="Editar Pré-Paciente"
-				subtitle="Atualize os dados do pré-paciente."
-			/>
+    <div
+        v-if="modal.isOpen.value && prePatient"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+    >
+        <div
+            class="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow"
+        >
+            <FormHeader
+                title="Editar Pré-Paciente"
+                subtitle="Atualize os dados do pré-paciente."
+            />
 
-			<div class="min-h-0 flex-1 overflow-y-auto px-6">
-				<div
-					class="grid grid-cols-1 gap-4 py-6 sm:grid-cols-2"
-				>
-					<div class="sm:col-span-2">
-						<BaseInput
-							v-model="form.name"
-							label="Nome"
-							placeholder="Digite o nome completo"
-							required
-						/>
-					</div>
+            <div class="min-h-0 flex-1 overflow-y-auto px-6">
+                <div
+                    class="grid grid-cols-1 gap-4 py-6 sm:grid-cols-2"
+                >
+                    <div class="sm:col-span-2">
+                        <BaseInput
+                            ref="nameInput"
+                            v-model="form.name"
+                            label="Nome"
+                            placeholder="Digite o nome completo"
+                            required
+                            :error="errors.name"
+                        />
+                    </div>
 
-					<BaseInput
-						v-model="form.cpf"
-						label="CPF"
-						placeholder="000.000.000-00"
-                                                v-mask="'###.###.###-##'"
-					/>
+                    <BaseInput
+                        ref="cpfInput"
+                        v-model="form.cpf"
+                        label="CPF"
+                        placeholder="000.000.000-00"
+                        v-mask="'###.###.###-##'"
+                        :error="errors.cpf"
+                    />
 
-					<BaseInput
-						v-model="form.birth_date"
-						label="Data de nascimento"
-						type="date"
-					/>
+                    <BaseInput
+                        ref="birthDateInput"
+                        v-model="form.birth_date"
+                        label="Data de nascimento"
+                        type="date"
+                        :error="errors.birth_date"
+                    />
 
-					<BaseInput
-						v-model="form.phone"
-						label="Telefone"
-                                                v-mask="'(##) #####-####'"
-						placeholder="(00) 00000-0000"
-					/>
+                    <BaseInput
+                        ref="phoneInput"
+                        v-model="form.phone"
+                        label="Telefone"
+                        v-mask="'(##) #####-####'"
+                        placeholder="(00) 00000-0000"
+                        :error="errors.phone"
+                    />
 
-					<BaseInput
-						v-model="form.email"
-						label="E-mail"
-						type="email"
-						placeholder="email@exemplo.com"
-					/>
+                    <BaseInput
+                        ref="emailInput"
+                        v-model="form.email"
+                        label="E-mail"
+                        type="email"
+                        placeholder="email@exemplo.com"
+                        :error="errors.email"
+                    />
 
-					<AppMultiselect
-						v-model="form.biological_sex"
-						field-label="Sexo biológico"
-						:options="biologicalSexOptions"
-						label="label"
-						value-prop="value"
-						placeholder="Selecione"
-						:can-clear="false"
-						required
-						:append-to-body="true"
-					/>
+                    <AppMultiselect
+                        ref="biologicalSexInput"
+                        v-model="form.biological_sex"
+                        field-label="Sexo biológico"
+                        :options="biologicalSexOptions"
+                        label="label"
+                        value-prop="value"
+                        placeholder="Selecione"
+                        :can-clear="false"
+                        required
+                        :append-to-body="true"
+                        :error="errors.biological_sex"
+                    />
 
-					<AppMultiselect
-						v-model="form.patient_type"
-						field-label="Tipo de paciente"
-						:options="patientTypeOptions"
-						label="label"
-						value-prop="value"
-						placeholder="Selecione"
-						:can-clear="false"
-						required
-						:append-to-body="true"
-					/>
-				</div>
-			</div>
+                    <AppMultiselect
+                        ref="patientTypeInput"
+                        v-model="form.patient_type"
+                        field-label="Tipo de paciente"
+                        :options="patientTypeOptions"
+                        label="label"
+                        value-prop="value"
+                        placeholder="Selecione"
+                        :can-clear="false"
+                        required
+                        :append-to-body="true"
+                        :error="errors.patient_type"
+                    />
+                </div>
+            </div>
 
-			<FormFooter
-				:loading="loading"
-				action="save"
-				action-label="Salvar"
-				@cancel="close"
-				@save="save"
-			/>
-		</div>
-	</div>
+            <FormFooter
+                :loading="loading"
+                action="save"
+                action-label="Salvar"
+                @cancel="close"
+                @save="save"
+            />
+        </div>
+    </div>
 </template>

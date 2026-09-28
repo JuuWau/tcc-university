@@ -4,7 +4,7 @@ import { AgGridVue } from 'ag-grid-vue3';
 import { AG_GRID_LOCALE_BR } from '@ag-grid-community/locale';
 import { ClinicManagementShowKey, RefreshTableKey } from '@/keys/clinics-management/clinicManagementShowKeys';
 import StatusBadgeClinicManagement from '@/components/badges/StatusBadgeClinicManagement.vue';
-import ClinicPrePatientActionsButtons from '@/components/buttons/ClinicPrePatientActionsButtons.vue';
+import ClinicPrePatientActionsButtons from '@/components/buttons/ClinicPatientActionsButtons.vue';
 import ClinicPrePatientCard from './components/ClinicPrePatientCard.vue';
 import { usePage } from '@inertiajs/vue3';
 import { PrePatientForTab } from '@/types/pre-patients/prePatient.js';

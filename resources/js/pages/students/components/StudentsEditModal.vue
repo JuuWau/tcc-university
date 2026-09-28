@@ -2,8 +2,6 @@
 import { City, IbgeService, Uf } from '@/api/ibge';
 import { ViaCep } from '@/api/viacep';
 import AppMultiselect from '@/components/AppMultiselect.vue';
-import CancelButton from '@/components/buttons/CancelButton.vue';
-import SaveButton from '@/components/buttons/SaveButton.vue';
 import FormFooter from '@/components/form/FormFooter.vue';
 import FormHeader from '@/components/form/FormHeader.vue';
 import BaseInput from '@/components/inputs/BaseInput.vue';
@@ -39,6 +37,34 @@ const cityOptions = computed(() =>
     cities.value.map((c) => ({ label: c.nome, value: c.nome })),
 );
 
+const errors = reactive({
+    name: '',
+    email: '',
+    phone: '',
+    cpf: '',
+    birth_date: '',
+    cep: '',
+    street: '',
+    neighborhood: '',
+    number: '',
+    complement: '',
+    city: '',
+    state: '',
+    password: '',
+});
+
+const nameInput = ref<{ focus: () => void } | null>(null);
+const emailInput = ref<{ focus: () => void } | null>(null);
+const phoneInput = ref<{ focus: () => void } | null>(null);
+const cpfInput = ref<{ focus: () => void } | null>(null);
+const birthDateInput = ref<{ focus: () => void } | null>(null);
+const cepInput = ref<{ focus: () => void } | null>(null);
+const streetInput = ref<{ focus: () => void } | null>(null);
+const neighborhoodInput = ref<{ focus: () => void } | null>(null);
+const numberInput = ref<{ focus: () => void } | null>(null);
+const cityInput = ref<{ focus: () => void } | null>(null);
+const stateInput = ref<{ focus: () => void } | null>(null);
+
 const form = reactive({
     name: '' as string,
     email: '' as string,
@@ -54,6 +80,22 @@ const form = reactive({
     state: '' as string,
     password: '' as string | null,
 });
+
+function clearErrors() {
+    errors.name = '';
+    errors.email = '';
+    errors.phone = '';
+    errors.cpf = '';
+    errors.birth_date = '';
+    errors.cep = '';
+    errors.street = '';
+    errors.neighborhood = '';
+    errors.number = '';
+    errors.complement = '';
+    errors.city = '';
+    errors.state = '';
+    errors.password = '';
+}
 
 function formatDateForInput(dateStr: string | null | undefined): string {
     if (!dateStr) return '';
@@ -133,10 +175,13 @@ watch(
 
 function close() {
     editModalOpen.value = false;
+    clearErrors();
 }
 
 async function submit() {
     if (loading.value) return;
+
+    clearErrors();
 
     const payload: Record<string, unknown> = {
         name: form.name,
@@ -157,8 +202,54 @@ async function submit() {
     }
 
     const result = studentEditSchema.safeParse(payload);
+
     if (!result.success) {
-        toast.error(result.error.issues[0].message);
+        result.error.issues.forEach((issue) => {
+            const field = issue.path[0];
+
+            if (field in errors) {
+                errors[field as keyof typeof errors] = issue.message;
+            }
+        });
+
+        const firstError = result.error.issues[0];
+
+        switch (firstError.path[0]) {
+            case 'name':
+                nameInput.value?.focus();
+                break;
+            case 'email':
+                emailInput.value?.focus();
+                break;
+            case 'phone':
+                phoneInput.value?.focus();
+                break;
+            case 'cpf':
+                cpfInput.value?.focus();
+                break;
+            case 'birth_date':
+                birthDateInput.value?.focus();
+                break;
+            case 'cep':
+                cepInput.value?.focus();
+                break;
+            case 'street':
+                streetInput.value?.focus();
+                break;
+            case 'neighborhood':
+                neighborhoodInput.value?.focus();
+                break;
+            case 'number':
+                numberInput.value?.focus();
+                break;
+            case 'state':
+                stateInput.value?.focus();
+                break;
+            case 'city':
+                cityInput.value?.focus();
+                break;
+        }
+
         return;
     }
 
@@ -185,166 +276,188 @@ async function submit() {
 </script>
 
 <template>
-	<div
-		v-if="editModalOpen"
-		class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-	>
-		<div
-			class="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow"
-		>
-			<FormHeader
-				title="Editar dados do aluno"
-				subtitle="Atualize os dados pessoais e de contato do aluno."
-			/>
+    <div
+        v-if="editModalOpen"
+        class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
+    >
+        <div
+            class="flex max-h-[90vh] w-full max-w-2xl flex-col overflow-hidden rounded-lg bg-white shadow"
+        >
+            <FormHeader
+                title="Editar dados do aluno"
+                subtitle="Atualize os dados pessoais e de contato do aluno."
+            />
 
-			<form
-				class="min-h-0 flex-1 overflow-y-auto px-6"
-				@submit.prevent="submit"
-			>
-				<div class="space-y-4 py-5">
-					<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-						<BaseInput
-							v-model="form.name"
-							label="Nome completo"
-							type="text"
-							maxlength="255"
-							placeholder="Nome completo"
-							required
-						/>
+            <form
+                class="min-h-0 flex-1 overflow-y-auto px-6"
+                @submit.prevent="submit"
+            >
+                <div class="space-y-4 py-5">
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <BaseInput
+                            ref="nameInput"
+                            v-model="form.name"
+                            label="Nome completo"
+                            type="text"
+                            maxlength="255"
+                            placeholder="Nome completo"
+                            required
+                            :error="errors.name"
+                        />
 
-						<BaseInput
-							v-model="form.email"
-							label="E-mail"
-							type="email"
-							placeholder="email@exemplo.com"
-							required
-						/>
-					</div>
+                        <BaseInput
+                            ref="emailInput"
+                            v-model="form.email"
+                            label="E-mail"
+                            type="email"
+                            placeholder="email@exemplo.com"
+                            required
+                            :error="errors.email"
+                        />
+                    </div>
 
-					<div class="grid grid-cols-1 gap-4 md:grid-cols-2">
-						<BaseInput
-							v-model="form.phone"
-							label="Telefone"
-							type="tel"
-							v-mask="'(##) #####-####'"
-							placeholder="(99) 99999-9999"
-							required
-						/>
+                    <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
+                        <BaseInput
+                            ref="phoneInput"
+                            v-model="form.phone"
+                            label="Telefone"
+                            type="tel"
+                            v-mask="'(##) #####-####'"
+                            placeholder="(99) 99999-9999"
+                            required
+                            :error="errors.phone"
+                        />
 
-						<BaseInput
-							v-model="form.cpf"
-							label="CPF"
-							type="text"
-							maxlength="14"
-							v-mask="'###.###.###-##'"
-							placeholder="000.000.000-00"
-							required
-						/>
-					</div>
+                        <BaseInput
+                            ref="cpfInput"
+                            v-model="form.cpf"
+                            label="CPF"
+                            type="text"
+                            maxlength="14"
+                            v-mask="'###.###.###-##'"
+                            placeholder="000.000.000-00"
+                            required
+                            :error="errors.cpf"
+                        />
+                    </div>
 
-					<BaseInput
-						v-model="form.birth_date"
-						label="Data de nascimento"
-						type="date"
-						required
-					/>
+                    <BaseInput
+                        ref="birthDateInput"
+                        v-model="form.birth_date"
+                        label="Data de nascimento"
+                        type="date"
+                        required
+                        :error="errors.birth_date"
+                    />
 
-					<div class="border-t border-gray-200 pt-4">
-						<h3 class="mb-3 text-sm font-semibold text-gray-700">
-							Endereço
-						</h3>
+                    <div class="border-t border-gray-200 pt-4">
+                        <h3 class="mb-3 text-sm font-semibold text-gray-700">
+                            Endereço
+                        </h3>
 
-						<div class="grid grid-cols-1 gap-4 md:grid-cols-3">
-							<BaseInput
-								v-model="form.cep"
-								label="CEP"
-								type="text"
-								maxlength="9"
-								v-mask="'#####-###'"
-								placeholder="00000-000"
-								required
-							/>
+                        <div class="grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <BaseInput
+                                ref="cepInput"
+                                v-model="form.cep"
+                                label="CEP"
+                                type="text"
+                                maxlength="9"
+                                v-mask="'#####-###'"
+                                placeholder="00000-000"
+                                required
+                                :error="errors.cep"
+                            />
 
-							<div class="md:col-span-2">
-								<BaseInput
-									v-model="form.street"
-									label="Endereço"
-									type="text"
-									maxlength="100"
-									placeholder="Logradouro"
-									required
-								/>
-							</div>
-						</div>
+                            <div class="md:col-span-2">
+                                <BaseInput
+				    ref="streetInput"
+                                    v-model="form.street"
+                                    label="Endereço"
+                                    type="text"
+                                    maxlength="100"
+                                    placeholder="Logradouro"
+                                    required
+				    :error="errors.street"
+                                />
+                            </div>
+                        </div>
 
-						<div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
-							<BaseInput
-								v-model="form.neighborhood"
-								label="Bairro"
-								type="text"
-								maxlength="50"
-								placeholder="Bairro"
-								required
-							/>
+                        <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-3">
+                            <BaseInput
+			        ref="neighborhoodInput"
+                                v-model="form.neighborhood"
+                                label="Bairro"
+                                type="text"
+                                maxlength="50"
+                                placeholder="Bairro"
+                                required
+				:error="errors.neighborhood"
+                            />
 
-							<BaseInput
-								v-model="form.number"
-								label="Número"
-								type="text"
-								maxlength="5"
-								placeholder="Número"
-								required
-							/>
+                            <BaseInput
+			        ref="numberInput"
+                                v-model="form.number"
+                                label="Número"
+                                type="text"
+                                maxlength="5"
+                                placeholder="Número"
+                                required
+				:error="errors.number"
+                            />
 
-							<BaseInput
-								v-model="form.complement"
-								label="Complemento"
-								type="text"
-								maxlength="20"
-								placeholder="Complemento"
-							/>
-						</div>
+                            <BaseInput
+                                v-model="form.complement"
+                                label="Complemento"
+                                type="text"
+                                maxlength="20"
+                                placeholder="Complemento"
+                            />
+                        </div>
 
-						<div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
-							<AppMultiselect
-								v-model="form.state"
-								:options="stateOptions"
-								field-label="Estado"
-								label="label"
-								value-prop="value"
-								:searchable="true"
-								:close-on-select="true"
-								:can-clear="true"
-								:append-to-body="true"
-								placeholder="Selecione o estado"
-								required
-							/>
+                        <div class="mt-4 grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <AppMultiselect
+				ref="stateInput"
+                                v-model="form.state"
+                                :options="stateOptions"
+                                field-label="Estado"
+                                label="label"
+                                value-prop="value"
+                                :searchable="true"
+                                :close-on-select="true"
+                                :can-clear="true"
+                                :append-to-body="true"
+                                placeholder="Selecione o estado"
+                                required
+				:error="errors.state"
+                            />
 
-							<AppMultiselect
-								v-model="form.city"
-								:options="cityOptions"
-								field-label="Cidade"
-								label="label"
-								value-prop="value"
-								:searchable="true"
-								:close-on-select="true"
-								:can-clear="true"
-								:append-to-body="true"
-								placeholder="Selecione a cidade"
-								required
-							/>
-						</div>
-					</div>
-				</div>
-			</form>
+                            <AppMultiselect
+			        ref="cityInput"
+                                v-model="form.city"
+                                :options="cityOptions"
+                                field-label="Cidade"
+                                label="label"
+                                value-prop="value"
+                                :searchable="true"
+                                :close-on-select="true"
+                                :can-clear="true"
+                                :append-to-body="true"
+                                placeholder="Selecione a cidade"
+                                required
+				:error="errors.city"
+                            />
+                        </div>
+                    </div>
+                </div>
+            </form>
 
-			<FormFooter
-				:loading="loading"
-				action="save"
-				action-label="Salvar"
-				@cancel="close"
-				@save="submit"
-			/>
-		</div>
-	</div>
+            <FormFooter
+                :loading="loading"
+                action="save"
+                action-label="Salvar"
+                @cancel="close"
+                @save="submit"
+            />
+        </div>
+    </div>
 </template>

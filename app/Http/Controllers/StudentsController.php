@@ -110,12 +110,12 @@ class StudentsController extends Controller
         ]);
     }
 
-    public function update(UpdateStudentRequest $request, int $student)
+    public function update(UpdateStudentRequest $request, Student $student)
     {
         $this->authorize('update', $student);
 
         $student = $this->studentService->update(
-            $student,
+            $student->id,
             $request->validated()
         );
 

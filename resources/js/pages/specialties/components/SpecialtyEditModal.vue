@@ -2,17 +2,16 @@
 import FormFooter from '@/components/form/FormFooter.vue';
 import FormHeader from '@/components/form/FormHeader.vue';
 import BaseInput from '@/components/inputs/BaseInput.vue';
-import {
-    RefreshTableKey,
-    SpecialtyEditKey,
-} from '@/keys/specialties/specialtyKeys';
+import { RefreshTableKey, SpecialtyEditKey } from '@/keys/specialties/specialtyKeys';
 import { LoadingKey } from '@/keys/ui/loadingKey';
 import { specialtySchema } from '@/schemas/specialty.schema';
 import axios from 'axios';
-import { inject, reactive, watch } from 'vue';
+import { inject, reactive, ref, watch } from 'vue';
 import { toast } from 'vue3-toastify';
 
 const editModal = inject<any>(SpecialtyEditKey);
+
+const nameInput = ref<{ focus: () => void } | null>(null);
 
 if (!editModal) {
     throw new Error('SpecialtyEditModal precisa estar dentro do provider');
@@ -20,6 +19,10 @@ if (!editModal) {
 
 const form = reactive({
     id: null as number | null,
+    name: '',
+});
+
+const errors = reactive({
     name: '',
 });
 
@@ -51,12 +54,21 @@ function close() {
 async function submit() {
     if (!form.id || loading.value) return;
 
+    errors.name = '';
+
     const result = specialtySchema.safeParse({
         name: form.name,
     });
 
     if (!result.success) {
-        toast.error(result.error.issues[0].message);
+        result.error.issues.forEach((issue) => {
+            if (issue.path[0] === 'name') {
+                errors.name = issue.message;
+            }
+        });
+
+        nameInput.value?.focus();
+
         return;
     }
 
@@ -96,11 +108,13 @@ async function submit() {
 			<div class="px-6">
 				<div class="py-5">
 					<BaseInput
+                        ref="nameInput"
 						v-model="form.name"
 						label="Nome da especialidade"
 						type="text"
 						placeholder="Nome da especialidade"
                         required
+                        :error="errors.name"
 					/>
 				</div>
 			</div>

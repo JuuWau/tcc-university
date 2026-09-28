@@ -6,13 +6,7 @@ import { OpenScheduleKey } from '@/keys/schedules/openScheduleKeys';
 import AppLayout from '@/layouts/AppLayout.vue';
 import { openScheduleSchema } from '@/schemas/openSchedule.schema';
 import { formatDateBr } from '@/src/utils/formatters';
-import type {
-    OpenScheduleErrorResponse,
-    OpenScheduleOption,
-    OpenSchedulePayload,
-    OpenScheduleResponse,
-    OpenScheduleSlot,
-} from '@/types/schedule/openSchedule';
+import type { OpenScheduleErrorResponse, OpenScheduleOption, OpenSchedulePayload, OpenScheduleResponse, OpenScheduleSlot } from '@/types/schedule/openSchedule';
 import { Switch } from '@headlessui/vue';
 import { usePage } from '@inertiajs/vue3';
 import axios from 'axios';
@@ -20,7 +14,11 @@ import { CalendarPlus, X } from 'lucide-vue-next';
 import { computed, provide, reactive, ref } from 'vue';
 import { toast } from 'vue3-toastify';
 
-type SelectOption = { label: string; value: number };
+type SelectOption = {
+    label: string;
+    value: number;
+};
+
 type CalendarDay = {
     key: string;
     isFiller: boolean;
@@ -34,12 +32,16 @@ type CalendarDay = {
 const now = new Date();
 const initialYear = now.getFullYear();
 const initialMonthIndex = now.getMonth();
+
 const displayYear = ref(initialYear);
 const displayMonthIndex = ref(initialMonthIndex);
+
 const todayDateString = toDateKey(now);
+
 const weekDays = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
 
 const page = usePage();
+
 const props = page.props as {
     periods?: OpenScheduleOption[];
     responsible?: OpenScheduleOption[];
@@ -52,20 +54,24 @@ const periodOptions: SelectOption[] = (props.periods ?? []).map((period) => ({
     value: period.id,
 }));
 
-const responsibleOptions: SelectOption[] = (props.responsible ?? []).map(
-    (responsible: OpenScheduleOption) => ({
-        label: responsible.label,
-        value: responsible.id,
-    }),
-);
+const responsibleOptions: SelectOption[] = (
+    props.responsible ?? []
+).map((responsible: OpenScheduleOption) => ({
+    label: responsible.label,
+    value: responsible.id,
+}));
 
 const clinicOptions: SelectOption[] = (props.clinics ?? []).map((clinic) => ({
     label: clinic.label,
     value: clinic.value,
 }));
 
-const existingSlots = ref<OpenScheduleSlot[]>(props.existingSlots ?? []);
+const existingSlots = ref<OpenScheduleSlot[]>(
+    props.existingSlots ?? [],
+);
+
 const loading = ref(false);
+
 provide(OpenScheduleKey, { loading });
 
 const form = reactive({
@@ -81,38 +87,91 @@ const form = reactive({
     allow_procedure_booking: false,
 });
 
+const errors = reactive({
+    clinic_id: '',
+    available_slots: '',
+    period_id: '',
+    responsible_ids: '',
+    days: '',
+    start_time: '',
+    end_time: '',
+});
+
+const clinicInput = ref<{ focus: () => void } | null>(null);
+const availableSlotsInput = ref<{ focus: () => void } | null>(null);
+const periodInput = ref<{ focus: () => void } | null>(null);
+const responsibleInput = ref<{ focus: () => void } | null>(null);
+const startTimeInput = ref<{ focus: () => void } | null>(null);
+const endTimeInput = ref<{ focus: () => void } | null>(null);
+
+function clearErrors() {
+    errors.clinic_id = '';
+    errors.available_slots = '';
+    errors.period_id = '';
+    errors.responsible_ids = '';
+    errors.days = '';
+    errors.start_time = '';
+    errors.end_time = '';
+}
+
+function focusFirstError(field: string) {
+    const inputRefs: Record<
+        string,
+        { focus: () => void } | null
+    > = {
+        clinic_id: clinicInput.value,
+        available_slots: availableSlotsInput.value,
+        period_id: periodInput.value,
+        responsible_ids: responsibleInput.value,
+        start_time: startTimeInput.value,
+        end_time: endTimeInput.value,
+    };
+
+    inputRefs[field]?.focus();
+}
+
 const monthLabel = computed(() =>
-    new Date(displayYear.value, displayMonthIndex.value, 1).toLocaleDateString(
-        'pt-BR',
-        {
-            month: 'long',
-            year: 'numeric',
-        },
-    ),
+    new Date(
+        displayYear.value,
+        displayMonthIndex.value,
+        1,
+    ).toLocaleDateString('pt-BR', {
+        month: 'long',
+        year: 'numeric',
+    }),
 );
-console.log('props.clinics:', props.clinics);
-console.log('clinicOptions:', clinicOptions);
-console.log('clinic_id inicial:', form.clinic_id);
+
 const periodLabel = computed(
     () =>
-        periodOptions.find((option) => option.value === form.period_id)
-            ?.label ?? '—',
+        periodOptions.find(
+            (option) => option.value === form.period_id,
+        )?.label ?? '—',
 );
+
 const responsibleLabel = computed(
     () =>
         responsibleOptions
-            .filter((option) => form.responsible_ids.includes(option.value))
+            .filter((option) =>
+                form.responsible_ids.includes(option.value),
+            )
             .map((option) => option.label)
             .join(', ') || '—',
 );
+
 const sortedDays = computed(() =>
     [...form.days].sort((a, b) => a.localeCompare(b)),
 );
 
 const normalizedAvailableChairs = computed(() => {
-    if (form.available_slots === '' || form.available_slots === null)
+    if (
+        form.available_slots === '' ||
+        form.available_slots === null
+    ) {
         return null;
+    }
+
     const parsed = Number(form.available_slots);
+
     return Number.isNaN(parsed) ? null : parsed;
 });
 
@@ -122,6 +181,7 @@ const calendarDays = computed(() => {
         displayMonthIndex.value + 1,
         0,
     ).getDate();
+
     const startWeekDay = new Date(
         displayYear.value,
         displayMonthIndex.value,
@@ -140,12 +200,15 @@ const calendarDays = computed(() => {
         { length: daysInMonth },
         (_, index) => {
             const day = index + 1;
+
             const date = new Date(
                 displayYear.value,
                 displayMonthIndex.value,
                 day,
             );
+
             const dateKey = toDateKey(date);
+
             return {
                 key: dateKey,
                 label: day,
@@ -163,7 +226,10 @@ const calendarDays = computed(() => {
 
 const currentMonthSelectableDays = computed(() =>
     calendarDays.value.filter(
-        (day) => !day.isFiller && !day.isPast && day.dateKey,
+        (day) =>
+            !day.isFiller &&
+            !day.isPast &&
+            day.dateKey,
     ),
 );
 
@@ -184,8 +250,9 @@ const formValidationResult = computed(() =>
 
 const clinicLabel = computed(
     () =>
-        clinicOptions.find((option) => option.value === form.clinic_id)
-            ?.label ?? '—',
+        clinicOptions.find(
+            (option) => option.value === form.clinic_id,
+        )?.label ?? '—',
 );
 
 const conflictPreview = computed(() => {
@@ -209,13 +276,16 @@ const conflictPreview = computed(() => {
 });
 
 const isFormReady = computed(
-    () => formValidationResult.value.success && !conflictPreview.value,
+    () =>
+        formValidationResult.value.success &&
+        !conflictPreview.value,
 );
 
 function toDateKey(date: Date): string {
     const year = date.getFullYear();
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
+
     return `${year}-${month}-${day}`;
 }
 
@@ -225,6 +295,7 @@ function goToPreviousMonth() {
         displayYear.value -= 1;
         return;
     }
+
     displayMonthIndex.value -= 1;
 }
 
@@ -234,6 +305,7 @@ function goToNextMonth() {
         displayYear.value += 1;
         return;
     }
+
     displayMonthIndex.value += 1;
 }
 
@@ -243,20 +315,42 @@ function goToCurrentMonth() {
 }
 
 function toggleDay(day: CalendarDay) {
-    if (day.isFiller || day.isPast || !day.dateKey) return;
-    const index = form.days.indexOf(day.dateKey);
-    if (index === -1) {
-        form.days.push(day.dateKey);
+    if (
+        day.isFiller ||
+        day.isPast ||
+        !day.dateKey
+    ) {
         return;
     }
+
+    const index = form.days.indexOf(day.dateKey);
+
+    if (index === -1) {
+        form.days.push(day.dateKey);
+        errors.days = '';
+        return;
+    }
+
     form.days.splice(index, 1);
 }
 
 function addDaysByWeekDay(weekDay: number) {
     currentMonthSelectableDays.value.forEach((day) => {
-        if (day.weekDay !== weekDay || !day.dateKey) return;
-        if (!form.days.includes(day.dateKey)) form.days.push(day.dateKey);
+        if (
+            day.weekDay !== weekDay ||
+            !day.dateKey
+        ) {
+            return;
+        }
+
+        if (!form.days.includes(day.dateKey)) {
+            form.days.push(day.dateKey);
+        }
     });
+
+    if (form.days.length) {
+        errors.days = '';
+    }
 }
 
 function selectWeekDaysCurrentMonth() {
@@ -266,15 +360,28 @@ function selectWeekDaysCurrentMonth() {
             day.weekDay === 0 ||
             day.weekDay === 6 ||
             !day.dateKey
-        )
+        ) {
             return;
-        if (!form.days.includes(day.dateKey)) form.days.push(day.dateKey);
+        }
+
+        if (!form.days.includes(day.dateKey)) {
+            form.days.push(day.dateKey);
+        }
     });
+
+    if (form.days.length) {
+        errors.days = '';
+    }
 }
 
 function clearCurrentMonthSelection() {
-    const currentMonthPrefix = `${displayYear.value}-${String(displayMonthIndex.value + 1).padStart(2, '0')}`;
-    form.days = form.days.filter((day) => !day.startsWith(currentMonthPrefix));
+    const currentMonthPrefix = `${displayYear.value}-${String(
+        displayMonthIndex.value + 1,
+    ).padStart(2, '0')}`;
+
+    form.days = form.days.filter(
+        (day) => !day.startsWith(currentMonthPrefix),
+    );
 }
 
 function clearSelection() {
@@ -288,6 +395,8 @@ function clearSelection() {
     form.allow_student_booking = false;
     form.allow_student_enrollment = false;
     form.allow_procedure_booking = false;
+
+    clearErrors();
 }
 
 function hasTimeOverlap(
@@ -306,8 +415,18 @@ function findConflicts(input: {
     end_time: string;
 }) {
     return existingSlots.value.filter((slot) => {
-        if (slot.clinic_id !== input.clinic_id) return false;
-        if (!input.days.includes(String(slot.date).slice(0, 10))) return false;
+        if (slot.clinic_id !== input.clinic_id) {
+            return false;
+        }
+
+        if (
+            !input.days.includes(
+                String(slot.date).slice(0, 10),
+            )
+        ) {
+            return false;
+        }
+
         return hasTimeOverlap(
             input.start_time,
             input.end_time,
@@ -320,9 +439,25 @@ function findConflicts(input: {
 async function submit() {
     if (loading.value) return;
 
+    clearErrors();
+
     const result = formValidationResult.value;
+
     if (!result.success) {
-        toast.error(result.error.issues[0].message);
+        result.error.issues.forEach((issue) => {
+            const field = issue.path[0] as keyof typeof errors;
+
+            if (field in errors && !errors[field]) {
+                errors[field] = issue.message;
+            }
+        });
+
+        const firstError = result.error.issues[0]?.path[0];
+
+        if (firstError) {
+            focusFirstError(String(firstError));
+        }
+
         return;
     }
 
@@ -332,47 +467,71 @@ async function submit() {
         start_time: result.data.start_time,
         end_time: result.data.end_time,
     });
+
     if (conflicts.length) {
         const conflict = conflicts[0];
+
         toast.error(
             `Conflito: ${conflict.clinic_name} já tem agenda em ${conflict.date} (${conflict.start_time} às ${conflict.end_time}).`,
         );
+
         return;
     }
 
     const payload: OpenSchedulePayload = {
         clinic_id: result.data.clinic_id,
         available_slots: result.data.available_slots,
-        allow_student_booking: result.data.allow_student_booking,
-        allow_student_enrollment: result.data.allow_student_enrollment,
-        allow_procedure_booking: result.data.allow_procedure_booking,
+        allow_student_booking:
+            result.data.allow_student_booking,
+        allow_student_enrollment:
+            result.data.allow_student_enrollment,
+        allow_procedure_booking:
+            result.data.allow_procedure_booking,
         period_id: result.data.period_id,
         responsible_ids: result.data.responsible_ids,
-        days: [...result.data.days].sort((a, b) => a.localeCompare(b)),
+        days: [...result.data.days].sort((a, b) =>
+            a.localeCompare(b),
+        ),
         start_time: result.data.start_time,
         end_time: result.data.end_time,
     };
 
     try {
         loading.value = true;
-        const { data } = await axios.post<OpenScheduleResponse>(
-            '/schedules/open',
-            payload,
+
+        const { data } =
+            await axios.post<OpenScheduleResponse>(
+                '/schedules/open',
+                payload,
+            );
+
+        existingSlots.value = [
+            ...existingSlots.value,
+            ...(data.slots ?? []),
+        ];
+
+        toast.success(
+            data.message ?? 'Agenda cadastrada com sucesso',
         );
-        existingSlots.value = [...existingSlots.value, ...(data.slots ?? [])];
-        console.log('OpenSchedule payload:', payload);
-        toast.success(data.message ?? 'Agenda cadastrada com sucesso');
+
         clearSelection();
-    } catch (error: any) {
+    } catch (error: unknown) {
         const errData: OpenScheduleErrorResponse | undefined =
-            error.response?.data;
+            axios.isAxiosError(error)
+                ? error.response?.data
+                : undefined;
+
         if (errData?.conflict) {
             toast.error(
                 `${errData.message ?? 'Conflito de agenda.'} (${errData.conflict.date} - ${errData.conflict.start_time} às ${errData.conflict.end_time})`,
             );
+
             return;
         }
-        toast.error(errData?.message ?? 'Erro ao cadastrar agenda');
+
+        toast.error(
+            errData?.message ?? 'Erro ao cadastrar agenda',
+        );
     } finally {
         loading.value = false;
     }
@@ -389,12 +548,18 @@ async function submit() {
                     >
                         Abrir agenda
                     </h1>
+
                     <p class="mt-1 text-sm text-gray-500">
                         Selecione os dias, período, clínica e horário para abrir
                         as agendas.
                     </p>
                 </div>
-                <div class="grid grid-cols-1 gap-6 p-6 lg:grid-cols-3">
+
+                <form
+                    class="grid grid-cols-1 gap-6 p-6 lg:grid-cols-3"
+                    novalidate
+                    @submit.prevent="submit"
+                >
                     <section
                         class="order-1 space-y-6 lg:col-span-2 lg:row-span-2"
                     >
@@ -402,6 +567,7 @@ async function submit() {
                             class="grid grid-cols-1 items-end gap-4 md:grid-cols-2"
                         >
                             <AppMultiselect
+                                ref="clinicInput"
                                 v-model="form.clinic_id"
                                 :options="clinicOptions"
                                 field-label="Clínica"
@@ -411,18 +577,23 @@ async function submit() {
                                 :close-on-select="true"
                                 :can-clear="true"
                                 :append-to-body="true"
+                                :error="errors.clinic_id"
                                 placeholder="Selecione a clínica"
                                 required
                             />
+
                             <BaseInput
+                                ref="availableSlotsInput"
                                 v-model="form.available_slots"
                                 label="Cadeiras livres"
                                 type="number"
                                 min="0"
                                 step="1"
+                                :error="errors.available_slots"
                                 placeholder="Ex: 6"
                             />
                         </div>
+
                         <div class="space-y-3">
                             <div
                                 class="flex items-start justify-between gap-4 rounded-lg border border-gray-200 bg-white p-4"
@@ -433,6 +604,7 @@ async function submit() {
                                     >
                                         Permitir inscrição de alunos
                                     </p>
+
                                     <p
                                         class="mt-1 text-xs leading-relaxed text-gray-500"
                                     >
@@ -441,6 +613,7 @@ async function submit() {
                                         equipe da clínica.
                                     </p>
                                 </div>
+
                                 <Switch
                                     v-model="form.allow_student_booking"
                                     :class="[
@@ -460,6 +633,7 @@ async function submit() {
                                     />
                                 </Switch>
                             </div>
+
                             <div
                                 class="flex items-start justify-between gap-4 rounded-lg border border-gray-200 bg-white p-4"
                             >
@@ -470,6 +644,7 @@ async function submit() {
                                         Inscrever automaticamente os alunos do
                                         período
                                     </p>
+
                                     <p
                                         class="mt-1 text-xs leading-relaxed text-gray-500"
                                     >
@@ -478,6 +653,7 @@ async function submit() {
                                         abertos para a clínica.
                                     </p>
                                 </div>
+
                                 <Switch
                                     v-model="form.allow_student_enrollment"
                                     :class="[
@@ -497,6 +673,7 @@ async function submit() {
                                     />
                                 </Switch>
                             </div>
+
                             <div
                                 class="flex items-start justify-between gap-4 rounded-lg border border-gray-200 bg-white p-4"
                             >
@@ -506,6 +683,7 @@ async function submit() {
                                     >
                                         Permitir registro de procedimento
                                     </p>
+
                                     <p
                                         class="mt-1 text-xs leading-relaxed text-gray-500"
                                     >
@@ -514,6 +692,7 @@ async function submit() {
                                         paciente.
                                     </p>
                                 </div>
+
                                 <Switch
                                     v-model="form.allow_procedure_booking"
                                     :class="[
@@ -534,24 +713,29 @@ async function submit() {
                                 </Switch>
                             </div>
                         </div>
+
                         <div class="rounded-xl border border-gray-200 p-4">
                             <div
                                 class="mb-4 flex flex-wrap items-center justify-between gap-3 border-b border-gray-100 pb-4"
                             >
                                 <div class="flex items-center gap-2">
                                     <Button
+                                        type="button"
                                         variant="outline"
                                         class="h-8 w-8 cursor-pointer p-0"
                                         @click="goToPreviousMonth"
                                     >
                                         &lt;
                                     </Button>
+
                                     <h2
                                         class="min-w-44 text-center text-sm font-semibold text-gray-800 capitalize"
                                     >
                                         {{ monthLabel }}
                                     </h2>
+
                                     <Button
+                                        type="button"
                                         variant="outline"
                                         class="h-8 w-8 cursor-pointer p-0"
                                         @click="goToNextMonth"
@@ -559,35 +743,44 @@ async function submit() {
                                         &gt;
                                     </Button>
                                 </div>
+
                                 <div class="flex items-center gap-3">
                                     <Button
+                                        type="button"
                                         variant="outline"
                                         class="h-8 cursor-pointer px-3 text-xs"
                                         @click="goToCurrentMonth"
                                     >
                                         Hoje
                                     </Button>
+
                                     <span class="text-xs text-gray-500">
                                         Selecione múltiplos dias
                                     </span>
                                 </div>
                             </div>
+
                             <div class="mb-4 flex flex-wrap gap-2">
                                 <Button
+                                    type="button"
                                     variant="outline"
                                     class="h-8 cursor-pointer px-3 text-xs"
                                     @click="selectWeekDaysCurrentMonth"
                                 >
                                     Seg-Sex
                                 </Button>
+
                                 <Button
+                                    type="button"
                                     variant="outline"
                                     class="h-8 cursor-pointer px-3 text-xs"
                                     @click="addDaysByWeekDay(6)"
                                 >
                                     Todos os sábados
                                 </Button>
+
                                 <Button
+                                    type="button"
                                     variant="outline"
                                     class="h-8 cursor-pointer px-3 text-xs"
                                     @click="clearCurrentMonthSelection"
@@ -595,6 +788,7 @@ async function submit() {
                                     Limpar mês
                                 </Button>
                             </div>
+
                             <div class="mb-2 grid grid-cols-7 gap-2">
                                 <div
                                     v-for="weekDay in weekDays"
@@ -604,6 +798,7 @@ async function submit() {
                                     {{ weekDay }}
                                 </div>
                             </div>
+
                             <div class="grid grid-cols-7 gap-2">
                                 <button
                                     v-for="day in calendarDays"
@@ -627,9 +822,18 @@ async function submit() {
                                     </span>
                                 </button>
                             </div>
+
+                            <p
+                                v-if="errors.days"
+                                class="mt-2 text-sm text-red-600"
+                            >
+                                {{ errors.days }}
+                            </p>
                         </div>
+
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <AppMultiselect
+                                ref="periodInput"
                                 v-model="form.period_id"
                                 :options="periodOptions"
                                 field-label="Período"
@@ -639,10 +843,13 @@ async function submit() {
                                 :close-on-select="true"
                                 :can-clear="true"
                                 :append-to-body="true"
+                                :error="errors.period_id"
                                 placeholder="Selecione o período"
                                 required
                             />
+
                             <AppMultiselect
+                                ref="responsibleInput"
                                 v-model="form.responsible_ids"
                                 :options="responsibleOptions"
                                 field-label="Responsáveis"
@@ -653,27 +860,35 @@ async function submit() {
                                 :close-on-select="true"
                                 :can-clear="true"
                                 :append-to-body="true"
+                                :error="errors.responsible_ids"
                                 placeholder="Selecione os responsáveis"
                             />
                         </div>
+
                         <div class="grid grid-cols-1 gap-4 md:grid-cols-2">
                             <BaseInput
+                                ref="startTimeInput"
                                 v-model="form.start_time"
                                 label="Horário de início"
                                 type="text"
                                 v-mask="'##:##'"
                                 placeholder="HH:mm"
+                                :error="errors.start_time"
                                 required
                             />
+
                             <BaseInput
+                                ref="endTimeInput"
                                 v-model="form.end_time"
                                 label="Horário de fim"
                                 type="text"
                                 v-mask="'##:##'"
                                 placeholder="HH:mm"
+                                :error="errors.end_time"
                                 required
                             />
                         </div>
+
                         <div
                             v-if="conflictPreview"
                             class="rounded-lg border border-amber-300 bg-amber-50 p-3 text-sm text-amber-800"
@@ -687,10 +902,11 @@ async function submit() {
                             entre
                             <strong>
                                 {{ conflictPreview.start_time }} às
-                                {{ conflictPreview.end_time }} </strong
-                            >.
+                                {{ conflictPreview.end_time }}
+                            </strong>.
                         </div>
                     </section>
+
                     <aside
                         class="order-2 h-fit rounded-xl border border-gray-200 bg-gray-50 p-5 lg:col-start-3 lg:row-start-1"
                     >
@@ -698,10 +914,12 @@ async function submit() {
                             <h3 class="text-base font-semibold text-gray-900">
                                 Resumo da abertura
                             </h3>
+
                             <p class="mt-1 text-xs text-gray-500">
                                 Confira os dados antes de cadastrar.
                             </p>
                         </div>
+
                         <div class="space-y-3 py-4 text-sm">
                             <div>
                                 <p class="text-xs text-gray-500">Clínica</p>
@@ -709,10 +927,12 @@ async function submit() {
                                     {{ clinicLabel }}
                                 </p>
                             </div>
+
                             <div>
                                 <p class="text-xs text-gray-500">
                                     Cadeiras livres
                                 </p>
+
                                 <p class="font-medium text-gray-800">
                                     {{
                                         normalizedAvailableChairs !== null
@@ -721,30 +941,38 @@ async function submit() {
                                     }}
                                 </p>
                             </div>
+
                             <div>
                                 <p class="text-xs text-gray-500">
                                     Dias selecionados
                                 </p>
+
                                 <p class="font-medium text-gray-800">
                                     {{ sortedDays.length }}
                                 </p>
                             </div>
+
                             <div>
                                 <p class="text-xs text-gray-500">Período</p>
+
                                 <p class="font-medium text-gray-800">
                                     {{ periodLabel }}
                                 </p>
                             </div>
+
                             <div>
                                 <p class="text-xs text-gray-500">
                                     Responsáveis
                                 </p>
+
                                 <p class="font-medium text-gray-800">
                                     {{ responsibleLabel }}
                                 </p>
                             </div>
+
                             <div>
                                 <p class="text-xs text-gray-500">Horário</p>
+
                                 <p class="font-medium text-gray-800">
                                     {{
                                         form.start_time && form.end_time
@@ -754,16 +982,19 @@ async function submit() {
                                 </p>
                             </div>
                         </div>
+
                         <div class="border-t border-gray-200 pt-4">
                             <p class="mb-2 text-sm font-medium text-gray-800">
                                 Dias escolhidos
                             </p>
+
                             <p
                                 v-if="!sortedDays.length"
                                 class="text-sm text-gray-500 italic"
                             >
                                 Nenhum dia selecionado ainda.
                             </p>
+
                             <ul
                                 v-else
                                 class="max-h-56 space-y-1 overflow-y-auto"
@@ -778,31 +1009,45 @@ async function submit() {
                             </ul>
                         </div>
                     </aside>
+
                     <div
                         class="order-3 flex flex-wrap justify-end gap-2 lg:col-span-2 lg:col-start-1 lg:row-start-3"
                     >
                         <Button
+                            type="button"
                             variant="outline"
                             class="inline-flex h-9 cursor-pointer items-center gap-2 rounded-lg border-gray-200 bg-white px-4 text-sm font-medium text-gray-700 shadow-sm transition hover:bg-gray-50 hover:text-gray-900 active:scale-[0.98]"
                             @click="clearSelection"
                         >
-                            <X class="h-4 w-4" /> Limpar seleção
+                            <X class="h-4 w-4" />
+                            Limpar seleção
                         </Button>
+
                         <Button
+                            type="submit"
                             class="inline-flex h-9 cursor-pointer items-center justify-center gap-2 rounded-lg bg-sky-600 px-4 text-sm font-medium text-white shadow-sm transition hover:bg-sky-700 focus:ring-2 focus:ring-sky-500 focus:ring-offset-1 focus:outline-none active:scale-[0.98] disabled:cursor-not-allowed disabled:opacity-60"
                             :disabled="!isFormReady || loading"
-                            @click="submit"
                         >
-                            <LoadingSpinner v-if="loading" class="h-4 w-4" />
-                            <CalendarPlus v-else class="h-4 w-4" />
+                            <LoadingSpinner
+                                v-if="loading"
+                                class="h-4 w-4"
+                            />
+
+                            <CalendarPlus
+                                v-else
+                                class="h-4 w-4"
+                            />
+
                             <span>
                                 {{
-                                    loading ? 'Salvando...' : 'Cadastrar agenda'
+                                    loading
+                                        ? 'Salvando...'
+                                        : 'Cadastrar agenda'
                                 }}
                             </span>
                         </Button>
                     </div>
-                </div>
+                </form>
             </div>
         </div>
     </AppLayout>
